@@ -129,6 +129,10 @@ object NowPlaying {
                 e.setEnabled(!e.state.value.enabled)
                 return true
             }
+            WinampWindow.Hit.EqPresets -> {
+                EqEngine.get(ctx).nextPreset()
+                return true
+            }
             WinampWindow.Hit.EqAuto -> {
                 val e = EqEngine.get(ctx)
                 e.setAuto(!e.state.value.auto)

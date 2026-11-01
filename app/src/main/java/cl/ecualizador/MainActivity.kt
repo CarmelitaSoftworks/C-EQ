@@ -137,6 +137,15 @@ private fun EqualizerScreen() {
     var spectrumError by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
     var importing by remember { mutableStateOf(false) }
+    var winampMessage by remember { mutableStateOf<String?>(null) }
+    val winampPresets = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val presets = runCatching {
+            ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }?.takeIf { it.size < (4 shl 20) }
+        }.getOrNull()?.let(EqCore::parseWinampEq).orEmpty()
+        winampMessage = if (presets.isEmpty()) ctx.getString(R.string.winamp_presets_none)
+        else ctx.getString(R.string.winamp_presets_added_fmt, engine.addCustomPresets(presets))
+    }
     /** Lo que eligió el usuario; la captura se pausa sola con la app en segundo plano. */
     var wantSpectrum by rememberSaveable { mutableStateOf(false) }
 
@@ -320,6 +329,16 @@ private fun EqualizerScreen() {
                 }) { Text(stringResource(R.string.export_curve)) }
                 TextButton(onClick = { importing = true }) { Text(stringResource(R.string.import_curve)) }
             }
+            TextButton(onClick = { winampPresets.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.winamp_presets_import)) }
+            winampMessage?.let { Text(it, fontSize = 12.sp, color = Accent) }
+            if (eq.surroundSupported) {
+                LabeledSlider(
+                    stringResource(R.string.surround), eq.surround, 0f..1f,
+                    if (eq.surround < 0.01f) stringResource(R.string.surround_off) else "%.0f%%".format(eq.surround * 100),
+                    engine::setSurround,
+                )
+                Text(stringResource(R.string.surround_hint), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+            }
             eq.customPresets.forEach { name ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(name, Modifier.weight(1f), fontSize = 14.sp)
@@ -481,7 +500,7 @@ private fun DeviceCard(profileKey: String, engine: EqEngine) {
     }
 
     if (showAuto) {
-        val curve = AutoProfile.curveFor(info.kind)
+        val curve = AutoProfile.curveFor(info.kind, info.name.takeIf { info.key.startsWith("bt:") })
         AlertDialog(
             onDismissRequest = { showAuto = false },
             title = { Text(stringResource(R.string.profile_for_fmt, stringResource(info.kind.label).lowercase())) },
@@ -830,6 +849,13 @@ private fun WallpaperCard() {
         if (winampLook) {
             // Las miniaturas muestran el skin como se verá en el fondo (solo el reproductor)
             WinampSkinPicker(ws.view.spectrumSettings(spectrum).copy(winampStack = false)) { change -> SpectrumPrefs.update(ctx, change) }
+            var shuffle by remember { mutableStateOf(SkinShuffle.mode(ctx)) }
+            Text(stringResource(R.string.shuffle_title), color = Muted, fontSize = 13.sp)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SkinShuffle.entries.forEach { m ->
+                    FilterChip(selected = shuffle == m, onClick = { shuffle = m; SkinShuffle.setMode(ctx, m) }, label = { Text(stringResource(m.label)) })
+                }
+            }
             NowPlayingAccess()
         }
         Text(stringResource(R.string.position), color = Muted, fontSize = 13.sp)
@@ -1387,7 +1413,20 @@ private val PRESET_LABELS = mapOf(
     "Volumen bajo" to R.string.preset_low_volume,
     "Automático" to R.string.preset_automatic,
     "Calibrado" to R.string.preset_calibrated,
-    "Importado" to R.string.preset_imported
+    "Importado" to R.string.preset_imported,
+    "Electrónica" to R.string.preset_electronic,
+    "Hip-hop" to R.string.preset_hiphop,
+    "Reggaetón" to R.string.preset_reggaeton,
+    "Metal" to R.string.preset_metal,
+    "Jazz" to R.string.preset_jazz,
+    "Acústica" to R.string.preset_acoustic,
+    "R&B" to R.string.preset_rnb,
+    "Latina" to R.string.preset_latin,
+    "Cine" to R.string.preset_movies,
+    "Noche" to R.string.preset_night,
+    "Menos graves" to R.string.preset_less_bass,
+    "Agudos extra" to R.string.preset_more_treble,
+    "Parlante pequeño" to R.string.preset_small_speaker,
 )
 
 /** Nombre del grupo de skins en el idioma del teléfono (los skins no cambian). */

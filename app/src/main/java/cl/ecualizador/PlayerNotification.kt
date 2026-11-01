@@ -35,6 +35,8 @@ object PlayerNotification {
     /** Publica, actualiza o quita la notificación según lo que suene. */
     @Synchronized
     fun update(ctx: Context) {
+        // El widget del reproductor se actualiza al mismo ritmo, haya o no notificación
+        runCatching { PlayerWidget.update(ctx) }
         val nm = ctx.getSystemService(NotificationManager::class.java) ?: return
         val track = NowPlaying.track.value
         if (!isEnabled(ctx) || track == null || NowPlaying.controller == null) {
@@ -57,14 +59,8 @@ object PlayerNotification {
                 }
             )
         }
-        val skinName = SpectrumPrefs.settings.value.winampSkin
-        val skin = WinampSkins.byName(skinName)
-        // Sin desplazar el título: la notificación es una foto por segundo y quedaría cortado a la mitad
-        val settings = SpectrumSettings(style = SpectrumStyle.WINAMP_CLASSIC, winampSkin = skinName, winampFrame = true, winampMarquee = false)
-        val bars = if (Spectrum.running.value) SpectrumShape.resample(Spectrum.bars.value, settings.effectiveBars) else FloatArray(settings.effectiveBars)
-
-        // RGB 565: la mitad de memoria; las notificaciones tienen un límite de tamaño
-        val window = render(2, WinampWindow.Part.FULL, settings, bars)
+        val skin = WinampSkins.byName(SpectrumPrefs.settings.value.winampSkin)
+        val window = windowBitmap(ctx)
 
         val expanded = RemoteViews(ctx.packageName, R.layout.player_expanded).apply {
             setImageViewBitmap(R.id.player_window, window)
@@ -105,6 +101,18 @@ object PlayerNotification {
 
     fun cancel(ctx: Context) {
         ctx.getSystemService(NotificationManager::class.java)?.cancel(ID)
+    }
+
+    /**
+     * La ventana del skin elegido con lo que suena, al doble, para la notificación y el widget. Sin
+     * desplazar el título: es una foto por segundo y quedaría cortado a la mitad.
+     */
+    internal fun windowBitmap(ctx: Context): Bitmap {
+        val skinName = SpectrumPrefs.load(ctx).winampSkin
+        val settings = SpectrumSettings(style = SpectrumStyle.WINAMP_CLASSIC, winampSkin = skinName, winampFrame = true, winampMarquee = false)
+        val bars = if (Spectrum.running.value) SpectrumShape.resample(Spectrum.bars.value, settings.effectiveBars) else FloatArray(settings.effectiveBars)
+        // RGB 565: la mitad de memoria; las notificaciones y los widgets tienen un límite de tamaño
+        return render(2, WinampWindow.Part.FULL, settings, bars)
     }
 
     private fun render(scale: Int, part: WinampWindow.Part, s: SpectrumSettings, bars: FloatArray): Bitmap {
@@ -148,7 +156,7 @@ object PlayerNotification {
      * Abre la app de música directamente (desde Android 12 una notificación no puede abrir apps
      * pasando por un receptor): su propia pantalla de reproducción o, si no la declara, su ícono.
      */
-    private fun openPlayer(ctx: Context): PendingIntent? {
+    internal fun openPlayer(ctx: Context): PendingIntent? {
         val c = NowPlaying.controller ?: return null
         c.sessionActivity?.let { return it }
         val pkg = c.packageName ?: return null
@@ -156,7 +164,7 @@ object PlayerNotification {
         return PendingIntent.getActivity(ctx, 1, launch, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
-    private fun action(ctx: Context, name: String): PendingIntent = PendingIntent.getBroadcast(
+    internal fun action(ctx: Context, name: String): PendingIntent = PendingIntent.getBroadcast(
         ctx, name.hashCode(),
         Intent(ctx, PlayerActionReceiver::class.java).setAction("cl.ecualizador.player.$name"),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,

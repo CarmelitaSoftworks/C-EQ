@@ -112,6 +112,65 @@ quita.
 | Zlomp | [winampskin_zlomp](https://archive.org/details/winampskin_zlomp) |
 | Zorgii | [winampskin_zorgii_by_garet_jax-d8v9fit](https://archive.org/details/winampskin_zorgii_by_garet_jax-d8v9fit) |
 
+## Curvas de audífonos (AutoEQ)
+
+Las curvas de corrección de audífonos vienen de [AutoEQ](https://github.com/jaakkopasanen/AutoEq)
+de Jaakko Pasanen (licencia MIT), con las mediciones de cada fuente que AutoEQ cita. La app las lleva
+a sus 10 bandas con `tools/gen_autoeq.py`.
+
+| Modelo | Medido por |
+|---|---|
+| Sony WH-1000XM3 | oratory1990 |
+| Sony WH-1000XM4 | oratory1990 |
+| Sony WH-1000XM5 | oratory1990 |
+| Sony WF-1000XM3 | oratory1990 |
+| Sony WF-1000XM4 | oratory1990 |
+| Sony WF-1000XM5 | oratory1990 |
+| Sony WH-CH720N | Rtings on Bruel & Kjaer 5128 |
+| Sony WH-CH520 | Rtings on HMS II.3 |
+| Apple AirPods Pro | crinacle on 711 |
+| Apple Airpods Pro 2 | HypetheSonics on GRAS RA0045 |
+| Apple AirPods (2nd generation) | Rtings on HMS II.3 |
+| Apple AirPods 3 | Super Review |
+| Apple AirPods Max | oratory1990 |
+| Samsung Galaxy Buds2 Pro | oratory1990 |
+| Samsung Galaxy Buds2 | oratory1990 |
+| Samsung Galaxy Buds Pro | oratory1990 |
+| Samsung Galaxy Buds Live | HypetheSonics |
+| Samsung Galaxy Buds FE | Regan Cipher |
+| Samsung Galaxy Buds | oratory1990 |
+| Bose QuietComfort 45 | oratory1990 |
+| Bose QuietComfort 35 II | crinacle on GRAS 43AG-7 |
+| Bose QuietComfort Earbuds | Rtings on HMS II.3 |
+| Bose QuietComfort Ultra Headphones | Rtings on Bruel & Kjaer 5128 |
+| JBL Tune 510BT | Rtings on HMS II.3 |
+| JBL Tune 520BT | Rtings on Bruel & Kjaer 5128 |
+| JBL Tune 760NC | Rtings on Bruel & Kjaer 5128 |
+| JBL Live 660NC | Rtings on HMS II.3 |
+| JBL Tune 230NC TWS | Rtings on HMS II.3 |
+| JBL Tune 720BT | Filk |
+| Sennheiser Momentum 4 Wireless | oratory1990 |
+| Sennheiser Momentum True Wireless 3 | oratory1990 |
+| Beats Studio Buds | oratory1990 |
+| Beats Fit Pro | Rtings on HMS II.3 |
+| Beats Powerbeats Pro | oratory1990 |
+| Google Pixel Buds Pro | HypetheSonics on GRAS RA0045 |
+| Google Pixel Buds A-Series | Rtings on HMS II.3 |
+| Nothing ear (1) | DHRME |
+| Nothing ear (2) | Super Review |
+| Anker Soundcore Life Q30 | Kuulokenurkka |
+| Anker Soundcore Liberty Air 2 Pro | Rtings on HMS II.3 |
+| Jabra Elite 75t | oratory1990 |
+| Jabra Elite 85t | Rtings on HMS II.3 |
+| Jabra Elite 7 Pro | oratory1990 |
+| Jabra Elite 85h | Rtings on HMS II.3 |
+| Audio-Technica ATH-M50xBT | crinacle on GRAS 43AG-7 |
+| Audio-Technica ATH-M50xBT2 | Rtings on HMS II.3 |
+| Huawei Freebuds Pro | Regan Cipher |
+| QCY T13 | Regan Cipher |
+| Edifier W820NB | Kuulokenurkka |
+| Skullcandy Crusher Evo | Rtings on HMS II.3 |
+
 ## Bibliotecas
 
 - [Jetpack Compose](https://developer.android.com/jetpack/compose) y AndroidX (Google, Apache 2.0).

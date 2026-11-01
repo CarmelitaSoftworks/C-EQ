@@ -41,6 +41,9 @@ data class EqUiState(
     val autoLevels: List<Float>? = null,
     val autoWhy: String = "",
     val autoContent: ListenContent = ListenContent.MUSIC,
+    /** Sonido envolvente (Virtualizer de Android), 0..1, si el teléfono lo permite en todo el audio. */
+    val surround: Float = 0f,
+    val surroundSupported: Boolean = false,
 ) {
     /** La curva que se ve: la automática si está activa, si no la del perfil. */
     val shownLevels: List<Float> get() = autoLevels ?: levels
@@ -72,6 +75,7 @@ class EqEngine private constructor(private val ctx: Context) {
     private val main = Handler(Looper.getMainLooper())
     private var dp: DynamicsProcessing? = null
     private var legacy: Equalizer? = null
+    private var virtualizer: android.media.audiofx.Virtualizer? = null
     private var reclaimAttempts = 0
     /** Durante la calibración el efecto queda plano para medir el equipo sin ecualizar. */
     @Volatile private var bypass = false
@@ -105,9 +109,12 @@ class EqEngine private constructor(private val ctx: Context) {
 
     /** Tipo del equipo conectado, para el ajuste automático. */
     private var outputKind = OutputKind.PHONE_SPEAKER
+    /** Nombre del equipo Bluetooth conectado (para reconocer el modelo de audífonos), o null. */
+    private var outputName: String? = null
 
     private fun switchProfile(out: Pair<String, String>) {
         outputKind = runCatching { DeviceAnalyzer.analyze(ctx).kind }.getOrDefault(OutputKind.PHONE_SPEAKER)
+        outputName = out.second.takeIf { out.first.startsWith("bt:") }
         // El historial de deshacer pertenece al perfil anterior: no debe aplicarse a otra salida.
         history.clear()
         val json = prefs.getString("profile_${out.first}", null)?.let { runCatching { JSONObject(it) }.getOrNull() }
@@ -140,8 +147,38 @@ class EqEngine private constructor(private val ctx: Context) {
 
     private fun createEffect() {
         release()
+        createSurround()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && createDynamics()) return
         createLegacy()
+    }
+
+    /**
+     * Sonido envolvente sobre la mezcla global. Android lo desaconseja en la sesión 0 y muchos
+     * fabricantes no lo permiten: si no se puede crear o no tiene intensidad ajustable, no se ofrece.
+     */
+    @Suppress("DEPRECATION")
+    private fun createSurround() {
+        val v = runCatching { android.media.audiofx.Virtualizer(PRIORITY - 1, 0) }.getOrNull()
+        val ok = v != null && runCatching { v.strengthSupported }.getOrDefault(false)
+        if (!ok) runCatching { v?.release() }
+        virtualizer = v.takeIf { ok }
+        state.update { it.copy(surroundSupported = ok) }
+        applySurround()
+    }
+
+    private fun applySurround() {
+        val v = virtualizer ?: return
+        val s = state.value.surround
+        runCatching {
+            v.setStrength((s * 1000).toInt().coerceIn(0, 1000).toShort())
+            v.enabled = s > 0.01f && !bypass
+        }
+    }
+
+    fun setSurround(value: Float) {
+        prefs.edit().putFloat("surround", value.coerceIn(0f, 1f)).apply()
+        state.update { it.copy(surround = value.coerceIn(0f, 1f)) }
+        applySurround()
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
@@ -215,7 +252,7 @@ class EqEngine private constructor(private val ctx: Context) {
     private fun autoCurve(): Pair<AutoCurve, ListenContent> {
         val t = NowPlaying.track.value
         val content = if (t == null) ListenContent.MUSIC else AutoEq.contentOf(t.app, t.genre)
-        return AutoEq.curve(outputKind, content, musicVolume()) to content
+        return AutoEq.curve(outputKind, content, musicVolume(), outputName) to content
     }
 
     /**
@@ -334,6 +371,8 @@ class EqEngine private constructor(private val ctx: Context) {
     }
 
     private fun release() {
+        runCatching { virtualizer?.release() }
+        virtualizer = null
         runCatching { dp?.release() }
         runCatching { legacy?.release() }
         dp = null
@@ -376,6 +415,7 @@ class EqEngine private constructor(private val ctx: Context) {
 
     fun setBypass(on: Boolean) {
         bypass = on
+        applySurround()
         apply()
     }
 
@@ -495,6 +535,34 @@ class EqEngine private constructor(private val ctx: Context) {
         saveProfile()
     }
 
+    /** PRESETS del skin: el preajuste siguiente (incluidos y propios, en orden), y vuelta al principio. */
+    fun nextPreset() {
+        val all = EqCore.PRESETS.keys.toList() + customPresets().keys
+        val i = all.indexOf(state.value.preset)
+        usePreset(all[(i + 1) % all.size])
+    }
+
+    /**
+     * Agrega preajustes propios (p. ej. importados de Winamp); los nombres repetidos llevan un número.
+     * Devuelve cuántos se agregaron.
+     */
+    fun addCustomPresets(presets: List<Pair<String, List<Float>>>): Int {
+        val json = runCatching { JSONObject(prefs.getString("customPresets", "{}")!!) }.getOrNull() ?: JSONObject()
+        var n = 0
+        for ((raw, levels) in presets) {
+            val base = raw.trim().take(24)
+            if (base.isEmpty()) continue
+            var name = base
+            var k = 2
+            while (name in EqCore.PRESETS || json.has(name)) name = "${base.take(20)} ($k)".also { k++ }
+            json.put(name, JSONArray(levels.map { it.coerceIn(EqCore.MIN_DB, EqCore.MAX_DB).toDouble() }))
+            n++
+        }
+        prefs.edit().putString("customPresets", json.toString()).apply()
+        state.update { it.copy(customPresets = customPresets().keys.toList()) }
+        return n
+    }
+
     fun deleteCustomPreset(name: String) {
         val json = runCatching { JSONObject(prefs.getString("customPresets", "{}")!!) }.getOrNull() ?: return
         json.remove(name)
@@ -519,6 +587,7 @@ class EqEngine private constructor(private val ctx: Context) {
                 autoReclaim = prefs.getBoolean("autoReclaim", true),
                 loudness = prefs.getBoolean("loudness", false),
                 auto = prefs.getBoolean("auto", false),
+                surround = prefs.getFloat("surround", 0f),
                 customPresets = customPresets().keys.toList(),
             )
         }

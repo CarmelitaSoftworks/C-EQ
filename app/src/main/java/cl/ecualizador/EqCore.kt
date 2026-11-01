@@ -161,5 +161,43 @@ object EqCore {
         "Clásica" to listOf(3f, 2.5f, 1.5f, 1f, 0f, 0f, -0.5f, 1f, 2f, 3f),
         "Podcast" to listOf(-4f, -3f, -1f, 1f, 2.5f, 3f, 2.5f, 1.5f, 0f, -1.5f),
         "Volumen bajo" to listOf(5f, 4f, 2f, 0.5f, 0f, 0f, 0f, 1f, 2.5f, 3.5f),
+        "Electrónica" to listOf(6f, 5f, 3f, 0f, -1.5f, -0.5f, 1f, 2f, 3.5f, 4f),
+        "Hip-hop" to listOf(6f, 5.5f, 3.5f, 1f, -1f, -1f, 0.5f, 1f, 2f, 2.5f),
+        "Reggaetón" to listOf(7f, 6f, 3f, 0.5f, -1f, 0f, 1f, 1.5f, 2.5f, 3f),
+        "Metal" to listOf(5f, 4f, 1.5f, -1f, -2.5f, -1f, 2f, 4f, 4.5f, 4f),
+        "Jazz" to listOf(3f, 2.5f, 1.5f, 1.5f, -1f, -1f, 0f, 1.5f, 2.5f, 3f),
+        "Acústica" to listOf(2f, 2f, 1.5f, 1f, 0.5f, 1f, 1.5f, 2f, 2f, 1.5f),
+        "R&B" to listOf(5f, 5f, 3f, 0f, -1f, 0.5f, 1.5f, 1f, 1.5f, 2.5f),
+        "Latina" to listOf(4f, 3f, 1f, 0f, 0f, 1f, 2f, 2.5f, 2.5f, 2f),
+        "Cine" to listOf(4f, 3.5f, 2f, 0f, 0f, 1.5f, 2.5f, 2f, 1.5f, 2f),
+        "Noche" to listOf(-3f, -2f, -1f, 0f, 1f, 1.5f, 1.5f, 0.5f, -1f, -2f),
+        "Menos graves" to listOf(-6f, -5f, -3.5f, -1.5f, 0f, 0f, 0f, 0f, 0f, 0f),
+        "Agudos extra" to listOf(0f, 0f, 0f, 0f, 0f, 0.5f, 2f, 4f, 6f, 7f),
+        "Parlante pequeño" to listOf(-5f, -2f, 2f, 2.5f, 1f, 0f, 1f, 1.5f, 1f, 0f),
     )
+
+    /**
+     * Preajustes de Winamp (.eqf y winamp.q1): cabecera «Winamp EQ library file v1.1», «\u001A!--» y
+     * entradas de 257 bytes de nombre más 11 valores (10 bandas y preamplificador) de 0 (+12 dB) a 63
+     * (−12 dB). Las bandas de Winamp (60 Hz–16 kHz) se toman como las 10 de la app. Vacía si no es
+     * un archivo de Winamp.
+     */
+    fun parseWinampEq(bytes: ByteArray): List<Pair<String, List<Float>>> {
+        val header = "Winamp EQ library file v1.1".toByteArray(Charsets.US_ASCII)
+        if (bytes.size < header.size + 4 || !bytes.copyOfRange(0, header.size).contentEquals(header)) return emptyList()
+        var i = header.size + 4
+        val out = mutableListOf<Pair<String, List<Float>>>()
+        while (i + 268 <= bytes.size) {
+            val nameBytes = bytes.copyOfRange(i, i + 257)
+            val end = nameBytes.indexOf(0.toByte()).let { if (it < 0) 257 else it }
+            val name = String(nameBytes, 0, end, Charsets.ISO_8859_1).trim()
+            val levels = List(BANDS) { b ->
+                val v = (bytes[i + 257 + b].toInt() and 0xFF).coerceIn(0, 63)
+                Math.round((12f - v * 24f / 63f) * 2) / 2f
+            }
+            if (name.isNotEmpty()) out += name to levels
+            i += 268
+        }
+        return out
+    }
 }

@@ -45,6 +45,7 @@ object DeviceAnalyzer {
                 btClass?.let { "Clase Bluetooth: ${classLabel(it)} (0x%04X)".format(it) }
                     ?: if (!hasBtPermission(ctx)) "Clase Bluetooth: sin permiso para leerla" else null,
                 if (kind == OutputKind.BT_UNKNOWN) "Tipo no reconocido por el nombre" else "Reconocido como: ${ctx.getString(kind.label)}",
+                HeadphoneProfiles.match(name)?.let { "Curva medida de AutoEQ: ${it.model}" },
             )
             return OutputInfo("bt:$name", name, kind, details)
         }

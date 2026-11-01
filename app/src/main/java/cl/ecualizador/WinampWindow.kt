@@ -128,6 +128,8 @@ object WinampWindow {
         data object EqToggle : Hit
         /** AUTO de la ventana del ecualizador: el ajuste automático. */
         data object EqAuto : Hit
+        /** PRESETS de la ventana del ecualizador: pasa al preajuste siguiente. */
+        data object EqPresets : Hit
         /** Fila [index] de la lista de reproducción, tal como se dibujó. */
         data class PlaylistRow(val index: Int) : Hit
     }
@@ -138,7 +140,7 @@ object WinampWindow {
         fun inside(rx: Int, ry: Int, rw: Int, rh: Int) = x >= rx && x < rx + rw && y >= ry && y < ry + rh
         if (inside(14, 18, 26, 12)) return Hit.EqToggle
         if (inside(40, 18, 32, 12)) return Hit.EqAuto
-        if (inside(217, 18, 44, 12)) return Hit.OpenEqualizer
+        if (inside(217, 18, 44, 12)) return Hit.EqPresets
         // Deslizadores, con un poco de margen para el dedo
         if (y < EQ_SLIDER_Y - 3 || y >= EQ_SLIDER_Y + EQ_SLIDER_H + 3) return null
         val fraction = (1f - (y - EQ_SLIDER_Y - EQ_THUMB / 2f) / (EQ_SLIDER_H - EQ_THUMB)).coerceIn(0f, 1f)

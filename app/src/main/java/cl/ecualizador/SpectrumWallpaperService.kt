@@ -58,6 +58,17 @@ class SpectrumWallpaperService : WallpaperService() {
             setTouchEventsEnabled(true)
             // La ventana del ecualizador del skin completo muestra y cambia el ecualizador
             EqEngine.get(this@SpectrumWallpaperService)
+            // Skin al azar al encender la pantalla
+            runCatching {
+                androidx.core.content.ContextCompat.registerReceiver(
+                    this@SpectrumWallpaperService, screenOn, android.content.IntentFilter(android.content.Intent.ACTION_SCREEN_ON),
+                    androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+                )
+            }
+        }
+
+        private val screenOn = object : android.content.BroadcastReceiver() {
+            override fun onReceive(context: android.content.Context, intent: android.content.Intent) = SkinShuffle.onScreenOn(context)
         }
 
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {
@@ -155,7 +166,7 @@ class SpectrumWallpaperService : WallpaperService() {
             val ctx = this@SpectrumWallpaperService
             // El volumen y el ecualizador no dependen del reproductor que suena
             val needsSession = hit !is WinampWindow.Hit.Volume && hit != WinampWindow.Hit.OpenEqualizer &&
-                hit !is WinampWindow.Hit.EqBand && hit != WinampWindow.Hit.EqToggle && hit != WinampWindow.Hit.EqAuto
+                hit !is WinampWindow.Hit.EqBand && hit != WinampWindow.Hit.EqToggle && hit != WinampWindow.Hit.EqAuto && hit != WinampWindow.Hit.EqPresets
             when {
                 needsSession && !NowPlaying.hasAccess(ctx) -> if (!accessHintShown) {
                     accessHintShown = true
@@ -177,6 +188,7 @@ class SpectrumWallpaperService : WallpaperService() {
         override fun onVisibilityChanged(isVisible: Boolean) {
             visible = isVisible
             drawerUntil = 0L
+            if (isVisible) SkinShuffle.onShown(this@SpectrumWallpaperService)
             fingers.clear()
             if (isVisible) {
                 NowPlaying.readVolume(this@SpectrumWallpaperService)
@@ -200,6 +212,7 @@ class SpectrumWallpaperService : WallpaperService() {
         }
 
         override fun onDestroy() {
+            runCatching { unregisterReceiver(screenOn) }
             Choreographer.getInstance().removeFrameCallback(this)
             Spectrum.release(spectrumUser)
             background?.recycle()

@@ -60,6 +60,18 @@ object AutoProfile {
         }
     }
 
+    /**
+     * Curva para el equipo: la medida por AutoEQ si se reconoce el modelo de audífonos por su nombre
+     * ([deviceName]); si no, la del tipo de equipo.
+     */
+    fun curveFor(kind: OutputKind, deviceName: String?): AutoCurve =
+        HeadphoneProfiles.match(deviceName)?.let { p ->
+            AutoCurve(
+                p.levels.toList(), 0f,
+                "Curva de AutoEQ para ${p.model} (medidos por ${p.source}): corrige la respuesta de tus audífonos hacia el objetivo Harman.",
+            )
+        } ?: curveFor(kind)
+
     fun curveFor(kind: OutputKind): AutoCurve = when (kind) {
         OutputKind.PHONE_SPEAKER -> AutoCurve(
             listOf(-6f, -5f, -2f, 0f, 1f, 1.5f, 2f, 1.5f, 1f, 0f), 0f,

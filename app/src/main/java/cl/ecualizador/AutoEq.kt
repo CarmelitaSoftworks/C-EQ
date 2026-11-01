@@ -59,8 +59,11 @@ object AutoEq {
     private fun headphones(kind: OutputKind) = kind == OutputKind.WIRED_HEADPHONES || kind == OutputKind.BT_HEADPHONES
 
     /** Curva automática para el equipo [kind], lo que suena y el volumen de la música (0..1). */
-    fun curve(kind: OutputKind, content: ListenContent, volume: Float): AutoCurve {
-        val base = AutoProfile.curveFor(kind)
+    fun curve(kind: OutputKind, content: ListenContent, volume: Float, deviceName: String? = null): AutoCurve {
+        val base = AutoProfile.curveFor(kind, deviceName)
+        // Audífonos reconocidos por su modelo: se cuidan como audífonos aunque el tipo no se supiera
+        @Suppress("NAME_SHADOWING")
+        val kind = if (HeadphoneProfiles.match(deviceName) != null) OutputKind.BT_HEADPHONES else kind
         val v = volume.coerceIn(0f, 1f)
         val levels = base.levels.toFloatArray()
         val why = mutableListOf(base.why)
