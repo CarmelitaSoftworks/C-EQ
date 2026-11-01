@@ -101,6 +101,7 @@ ecualizador sin abrir la app.
 1. Descarga [**C-EQ.apk**](https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk)
    (Android 8.0 o superior).
 2. Ábrelo y permite instalar apps de esa fuente si Android lo pide.
+   Si aparece un aviso de Play Protect, lee [por qué avisa](#️-por-qué-avisa-play-protect).
 3. Actualiza encima de la versión anterior sin perder tus ajustes.
 
 SHA-256 del APK 3.0.1: `6e9157621ef767ecdb8ddb772da50082fb41c0f889508dc346de812bb234905d`
@@ -114,6 +115,33 @@ SHA-256 del APK 3.0.1: `6e9157621ef767ecdb8ddb772da50082fb41c0f889508dc346de812b
 | Notificaciones | Mostrar el reproductor en la barra. |
 | Bluetooth | Reconocer el equipo conectado para usar su perfil. |
 | Servicio en primer plano / al iniciar | Mantener el ecualizador activo y encenderlo al reiniciar. |
+
+### 🛡️ ¿Por qué avisa Play Protect?
+
+Al instalar puede aparecer un aviso de Google Play Protect. No es porque C-EQ haga algo malo:
+
+- **Viene de fuera de Google Play**, de un desarrollador independiente que Google aún no conoce.
+- **Pide permisos que Google vigila de cerca** (micrófono, acceso a notificaciones y servicio en
+  primer plano). Son los que necesita un ecualizador con espectro que muestra lo que suena, pero
+  también los usan apps espía, así que el aviso salta por la combinación.
+
+Lo importante: **C-EQ no tiene permiso de Internet.** Android no le deja enviar nada fuera del
+teléfono: ni audio, ni lo que escuchas, ni tus notificaciones. No tiene anuncios, rastreo ni cuentas,
+y todo el código está aquí para revisarlo.
+
+**Para instalarla:** en el aviso toca **«Más detalles» › «Instalar de todas formas»**. Si te ofrece
+**«Enviar app para análisis»**, acepta: así Google la revisa y deja de marcarla. No hace falta
+desactivar Play Protect.
+
+**Para comprobar que el APK es el original**, compara sus huellas con estas:
+
+| | SHA-256 |
+|---|---|
+| APK 3.0.1 | `6e9157621ef767ecdb8ddb772da50082fb41c0f889508dc346de812bb234905d` |
+| Certificado de firma | `e399d964d3de12bc48776c779b65ab49be2ca6ec8eaeb64f4cb8e61d7948b2d0` |
+
+Con las herramientas del SDK de Android también puedes ver que no pide Internet:
+`aapt2 dump permissions C-EQ-3.0.1.apk` (no aparece `android.permission.INTERNET`).
 
 ## 🛠️ Compilar
 
@@ -173,6 +201,8 @@ player's queue, and puts the Winamp player in the notification shade and on an a
 (player, full stack with equalizer and playlist, or spectrum only). An automatic mode adapts the
 curve to the connected device, the content (music, speech, video) and the volume, with no
 microphone needed. Download the APK from [`dist/C-EQ.apk`](https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk).
-Code is GPL-3.0; the bundled skins belong to their authors (see [CREDITS.md](CREDITS.md)).
+If Play Protect warns you, it's because the APK is sideloaded and asks for sensitive permissions;
+the app has **no INTERNET permission**, so nothing can leave your phone (tap *More details › Install
+anyway*). Code is GPL-3.0; the bundled skins belong to their authors (see [CREDITS.md](CREDITS.md)).
 
 </details>
