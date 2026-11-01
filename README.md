@@ -3,6 +3,10 @@
 </p>
 
 <p align="center">
+  <b>🇪🇸 Español</b> · <a href="README.en.md">🇬🇧 English</a>
+</p>
+
+<p align="center">
   <a href="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml"><img src="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml/badge.svg" alt="Compilación"></a>
   <img src="https://img.shields.io/badge/versi%C3%B3n-3.0.1-B388FF" alt="Versión 3.0.1">
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0 o superior">
@@ -194,17 +198,6 @@ de sus autores y no quedan bajo esa licencia; ver [CREDITS.md](CREDITS.md).
 
 Si C-EQ te gusta, puedes invitar un café en [Ko-fi](https://ko-fi.com/carmelitasoftworks). ☕
 
-<details>
-<summary>🇬🇧 English</summary>
+---
 
-C-EQ is a system-wide 10-band equalizer for Android with a live spectrum and the classic Winamp 2
-skins, with their real windows and working buttons. It shows what is playing in any app, the
-player's queue, and puts the Winamp player in the notification shade and on an animated wallpaper
-(player, full stack with equalizer and playlist, or spectrum only). An automatic mode adapts the
-curve to the connected device, the content (music, speech, video) and the volume, with no
-microphone needed. Download the APK from [`dist/C-EQ.apk`](https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk).
-If Play Protect warns you, it's because the APK is sideloaded and asks for sensitive permissions;
-the app has **no INTERNET permission**, so nothing can leave your phone (tap *More details › Install
-anyway*). Code is GPL-3.0; the bundled skins belong to their authors (see [CREDITS.md](CREDITS.md)).
-
-</details>
+🇬🇧 **English version:** [README.en.md](README.en.md)
