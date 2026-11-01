@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Reproductor plegado: título y artista con el tiempo, y a la derecha la tira de botones del skin
+  (anterior | reproducir o pausa | siguiente) con zonas táctiles encima, con pesos en píxeles del skin.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/player_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@android:style/TextAppearance.Material.Notification.Title" />
+
+        <TextView
+            android:id="@+id/player_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@android:style/TextAppearance.Material.Notification" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/player_buttons"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/player_toggle"
+            android:scaleType="fitXY" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <FrameLayout android:id="@+id/player_previous_small" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="23" android:contentDescription="@string/player_previous" />
+            <FrameLayout android:id="@+id/player_toggle_small" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="23" android:contentDescription="@string/player_toggle" />
+            <FrameLayout android:id="@+id/player_next_small" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="22" android:contentDescription="@string/player_next" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>
