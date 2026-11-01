@@ -28,6 +28,11 @@ jobs:
           cp dist/C-EQ.apk "C-EQ-$version.apk"
           echo "VERSION=$version" >> "$GITHUB_ENV"
           echo "TAG=$tag" >> "$GITHUB_ENV"
+      # Si la etiqueta ya existe en otro commit (p. ej. tras reescribir el historial), se mueve a este
+      - name: Etiqueta en este commit
+        run: |
+          git tag -f "$TAG"
+          git push -f origin "refs/tags/$TAG"
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
