@@ -1,5 +1,11 @@
 # Cambios
 
+## 3.4.1
+- **Limitador más firme**: actúa desde −2 dBFS, 30:1 y en medio milisegundo; antes (−1 dBFS, 10:1,
+  1 ms) dejaba pasar picos que se recortaban.
+- **Protección del altavoz del teléfono** (activa por defecto): no sube los graves bajo 125 Hz que el
+  altavoz no puede dar, limita el volumen extra a +2 dB y usa protección «Máxima».
+
 ## 3.4
 - **Barra (shade)**: la ventana plegada de Winamp como modo del fondo y como widget de una fila, con
   el mini visor (5 filas, como el de Winamp), el reloj con la letra del skin, los mini botones y la

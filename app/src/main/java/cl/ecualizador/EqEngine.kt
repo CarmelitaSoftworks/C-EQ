@@ -41,6 +41,8 @@ data class EqUiState(
     val autoLevels: List<Float>? = null,
     val autoWhy: String = "",
     val autoContent: ListenContent = ListenContent.MUSIC,
+    /** Protección del altavoz del teléfono (ver [EqCore.protectSpeaker]). */
+    val speakerProtect: Boolean = true,
     /** Sonido envolvente (Virtualizer de Android), 0..1, si el teléfono lo permite en todo el audio. */
     val surround: Float = 0f,
     val surroundSupported: Boolean = false,
@@ -299,10 +301,14 @@ class EqEngine private constructor(private val ctx: Context) {
         main.post(rampRunnable)
     }
 
-    private fun push(gains: List<Float>) {
-        appliedGains = gains
+    private fun push(target: List<Float>) {
+        appliedGains = target
         // En la comparación A/B (bypass) todo queda neutro: sin preamplificador, refuerzo ni limitador
-        val s = if (bypass) state.value.copy(boost = 0f, balance = 0f, headroom = EqCore.Headroom.LOUD) else state.value
+        val raw = if (bypass) state.value.copy(boost = 0f, balance = 0f, headroom = EqCore.Headroom.LOUD) else state.value
+        // Altavoz del teléfono: sin graves que no puede dar, poco volumen extra y sin margen libre
+        val speaker = !bypass && raw.speakerProtect && raw.profileKey == "speaker"
+        val s = if (speaker) raw.copy(boost = minOf(raw.boost, EqCore.SPEAKER_BOOST_MAX_DB), headroom = EqCore.Headroom.FULL) else raw
+        val gains = if (speaker) EqCore.protectSpeaker(target) else target
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) runCatching {
             dp?.let { d ->
                 val cut = EqCore.cutoffs()
@@ -314,7 +320,12 @@ class EqEngine private constructor(private val ctx: Context) {
                 d.setInputGainbyChannel(1, right)
                 // El limitador es lo que evita la saturación cuando no se baja todo el volumen: siempre
                 // activo, salvo en la comparación A/B.
-                d.setLimiterAllChannelsTo(DynamicsProcessing.Limiter(true, !bypass, 0, 1f, 60f, 10f, -1f, 0f))
+                d.setLimiterAllChannelsTo(
+                    DynamicsProcessing.Limiter(
+                        true, !bypass, 0, EqCore.LIMITER_ATTACK_MS, EqCore.LIMITER_RELEASE_MS,
+                        EqCore.LIMITER_RATIO, EqCore.LIMITER_THRESHOLD_DB, 0f,
+                    )
+                )
             }
         }
         runCatching {
@@ -516,6 +527,12 @@ class EqEngine private constructor(private val ctx: Context) {
         if (!state.value.enabled) setEnabled(true)
     }
 
+    fun setSpeakerProtect(on: Boolean) {
+        prefs.edit().putBoolean("speakerProtect", on).apply()
+        state.update { it.copy(speakerProtect = on) }
+        apply(smooth = true)
+    }
+
     fun setAutoReclaim(on: Boolean) {
         prefs.edit().putBoolean("autoReclaim", on).apply()
         state.update { it.copy(autoReclaim = on) }
@@ -612,6 +629,7 @@ class EqEngine private constructor(private val ctx: Context) {
                 loudness = prefs.getBoolean("loudness", false),
                 auto = prefs.getBoolean("auto", false),
                 surround = prefs.getFloat("surround", 0f),
+                speakerProtect = prefs.getBoolean("speakerProtect", true),
                 customPresets = customPresets().keys.toList(),
             )
         }

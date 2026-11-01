@@ -79,6 +79,25 @@ object EqCore {
     /** Potenciar volumen: ganancia extra de entrada, contenida por el limitador. */
     const val BOOST_MAX_DB = 6f
 
+    /**
+     * Limitador al final de la cadena: desde −2 dBFS, 30:1 (casi un techo) y reacción de medio
+     * milisegundo, para que los picos no lleguen a recortarse antes de que actúe.
+     */
+    const val LIMITER_THRESHOLD_DB = -2f
+    const val LIMITER_RATIO = 30f
+    const val LIMITER_ATTACK_MS = 0.5f
+    const val LIMITER_RELEASE_MS = 80f
+
+    /**
+     * Protección del altavoz del teléfono: no puede reproducir graves profundos, y subirlos solo lo
+     * satura. Tope por banda (31 y 62 Hz sin subir, 125 Hz hasta +2 dB, 250 Hz hasta +4 dB) y poco
+     * volumen extra; la protección contra distorsión pasa a «Máxima».
+     */
+    private val SPEAKER_MAX_DB = floatArrayOf(0f, 0f, 2f, 4f, MAX_DB, MAX_DB, MAX_DB, MAX_DB, MAX_DB, MAX_DB)
+    const val SPEAKER_BOOST_MAX_DB = 2f
+
+    fun protectSpeaker(gains: List<Float>): List<Float> = List(BANDS) { i -> minOf(gains.getOrElse(i) { 0f }, SPEAKER_MAX_DB[i]) }
+
     /** Atenuación máxima del canal contrario cuando el balance está en un extremo. */
     const val BALANCE_RANGE_DB = 24f
 

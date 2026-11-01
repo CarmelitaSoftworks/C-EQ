@@ -322,6 +322,10 @@ private fun EqualizerScreen() {
                 },
                 fontSize = 12.sp, lineHeight = 16.sp, color = Muted
             )
+            if (eq.profileKey == "speaker") {
+                OptionRow(stringResource(R.string.speaker_protect), eq.speakerProtect, engine::setSpeakerProtect)
+                Text(stringResource(R.string.speaker_protect_hint), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+            }
             OptionRow(stringResource(R.string.reclaim_option), eq.autoReclaim, engine::setAutoReclaim)
             OptionRow(stringResource(R.string.loudness_option), eq.loudness, engine::setLoudness)
             Row {

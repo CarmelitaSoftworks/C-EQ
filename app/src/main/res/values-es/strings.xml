@@ -275,4 +275,6 @@
     <string name="player_stop">Detener</string>
     <string name="player_open">Abrir la app de música</string>
     <string name="art_background">Carátula de lo que suena como fondo</string>
+    <string name="speaker_protect">Proteger el altavoz del teléfono</string>
+    <string name="speaker_protect_hint">El altavoz del teléfono no puede dar graves profundos: subirlos solo lo satura. Con esto no se suben los graves bajo 125 Hz, el volumen extra llega hasta +2 dB y se deja margen para que no distorsione.</string>
 </resources>

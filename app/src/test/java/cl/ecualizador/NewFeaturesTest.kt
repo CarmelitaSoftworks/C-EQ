@@ -92,4 +92,16 @@ class NewFeaturesTest {
         assertTrue(!Updates.shouldRemind(daysSinceBuild = 60, today = 100, snoozedUntil = 120))
         assertTrue(Updates.shouldRemind(daysSinceBuild = 60, today = 120, snoozedUntil = 120))
     }
+
+    @Test
+    fun phoneSpeakerProtectionCapsDeepBassOnly() {
+        val boosted = EqCore.protectSpeaker(EqCore.PRESETS.getValue("Graves extra"))
+        assertEquals(0f, boosted[0], 0f)
+        assertEquals(0f, boosted[1], 0f)
+        assertTrue(boosted[2] <= 2f)
+        // Los cortes y las bandas medias y agudas no cambian
+        val cut = listOf(-6f, -5f, -2f, 0f, 1f, 1.5f, 2f, 1.5f, 1f, 0f)
+        assertEquals(cut, EqCore.protectSpeaker(cut))
+        assertTrue(EqCore.LIMITER_THRESHOLD_DB < 0f && EqCore.LIMITER_RATIO >= 20f)
+    }
 }
