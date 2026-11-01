@@ -1,61 +1,117 @@
-# C-EQ
+<p align="center">
+  <img src="docs/banner.png" alt="C-EQ: ecualizador para Android con alma de Winamp" width="100%">
+</p>
 
-Ecualizador para Android con alma de Winamp: 10 bandas para todo el teléfono, visor de espectro en
-tiempo real, fondo de pantalla animado, widget, mosaico de ajustes rápidos y los skins clásicos de
-Winamp 2 con su ventana real, botones que funcionan y lo que suena en vivo.
+<p align="center">
+  <a href="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml"><img src="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml/badge.svg" alt="Compilación"></a>
+  <img src="https://img.shields.io/badge/versi%C3%B3n-3.0-B388FF" alt="Versión 3.0">
+  <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0 o superior">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-blue" alt="GPL-3.0"></a>
+  <a href="https://ko-fi.com/carmelitasoftworks"><img src="https://img.shields.io/badge/Ko--fi-apoyar-FF5E5B?logo=ko-fi&logoColor=white" alt="Apoyar en Ko-fi"></a>
+</p>
 
-[![Apoyar en Ko-fi](https://img.shields.io/badge/Ko--fi-apoyar-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/carmelitasoftworks)
+<p align="center">
+  <b>Ecualizador de 10 bandas para todo el teléfono, espectro en vivo y los skins clásicos de Winamp 2<br>
+  con su ventana real, sus botones funcionando y lo que suena en tiempo real.</b>
+</p>
 
-![Pantalla principal](docs/pantalla-principal.png)
+<p align="center">
+  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Descargar APK (3.0)</b></a>
+  &nbsp;·&nbsp; <a href="CHANGELOG.md">Novedades</a>
+  &nbsp;·&nbsp; <a href="CREDITS.md">Créditos</a>
+  &nbsp;·&nbsp; <a href="https://ko-fi.com/carmelitasoftworks">Apoyar ☕</a>
+</p>
 
-## Qué hace
+---
 
-- **Ecualizador de 10 bandas** para toda la música del teléfono, con perfiles por dispositivo
-  (parlante, audífonos, Bluetooth), calibración y refuerzo de graves sin perder volumen.
-- **Visor de espectro** en la app, en el widget y en el fondo de pantalla.
-- **88 skins clásicos de Winamp** con su ventana original (barra de título, botones, posición,
-  volumen y fuente del skin) y el visor dentro de su recuadro. También se pueden **importar
-  archivos `.wsz`** clásicos.
+## ✨ Novedades de la 3.0
 
-  ![Skins](docs/skins.png)
+- **Winamp completo en el fondo de pantalla**: el skin hacia abajo con el reproductor, el
+  ecualizador y la lista de reproducción. Las bandas, ON y AUTO se tocan; la lista muestra la cola
+  de lo que suena y tocar una canción salta a ella.
+- **Ajuste automático sin micrófono**: la curva sigue sola al equipo conectado, a lo que suena y al
+  volumen.
+- Audífonos y parlantes **Bluetooth LE Audio** y TV por **HDMI** reconocidos.
+- Aleatorio encendido en todos los skins, créditos y Ko-fi dentro de la app.
 
-- **Patrones de color** del visor y **tema de la app** tomado del skin elegido.
+<p align="center">
+  <img src="docs/winamp-completo.png" alt="Winamp completo con tres skins: el original, Major Tom y uno de Sony" width="90%">
+</p>
 
-  ![Patrones](docs/patrones.png) ![Tema de la app](docs/tema-de-la-app.png)
+## 🎚️ Qué hace
 
-- **Lo que suena, en vivo**: título, artista, reloj, barra de posición y volumen en la ventana del
-  skin. Los botones (anterior, reproducir, pausa, detener, siguiente), la barra de posición y el
-  volumen funcionan, también desde el fondo de pantalla.
-- **Reproductor en la barra de notificaciones**, como el de Spotify, con la ventana del skin.
+<table>
+<tr>
+<td width="50%" valign="top">
 
-  ![Notificación](docs/notificacion.png)
+### Ecualizador
+- **10 bandas** (31 Hz a 16 kHz) para toda la música del teléfono, con limitador para no saturar.
+- **Un perfil por equipo**: altavoz, audífonos con cable, cada parlante o audífono Bluetooth.
+- **Ajuste automático sin micrófono**: parte de la curva del equipo y la ajusta a lo que suena
+  (música, música con graves, acústica, voz o video) y al volumen (más graves y agudos a poco
+  volumen; cuida parlantes chicos y oídos a mucho volumen).
+- **Calibración con micrófono** para parlantes, preajustes propios, deshacer y comparación A/B.
+- Refuerzo de graves **sin perder volumen**, volumen extra y balance.
+- Exporta e importa curvas en formato **GraphicEQ** (Equalizer APO, AutoEQ).
 
-- **Ajuste automático sin micrófono**: la curva sigue al equipo conectado, a lo que suena (música,
-  voz o video) y al volumen.
-- **Fondo animado** con tu foto en resolución completa y tres modos: el reproductor, **Winamp
-  completo** (reproductor, ecualizador que se toca y lista con la cola de lo que suena) o solo el
-  espectro.
+</td>
+<td width="50%" valign="top">
+<img src="docs/pantalla-principal.png" alt="Pantalla principal" width="100%">
+</td>
+</tr>
+</table>
 
-  ![Fondo animado](docs/fondo-animado.png)
-  ![Modos del fondo](docs/modos-del-fondo.png)
+### Skins de Winamp
+- **88 skins clásicos** con su ventana original: barra de título, botones, posición, volumen, fuente
+  del skin y el visor dentro de su recuadro. También se **importan archivos `.wsz`**.
+- **Lo que suena en vivo**: título, artista, reloj, barra de posición y volumen. Los botones,
+  la posición y el volumen funcionan.
+- **Patrones de color** del visor y **tema de la app** tomado del skin.
 
-## Instalar
+<p align="center">
+  <img src="docs/skins.png" alt="Skins" width="48%">
+  <img src="docs/patrones.png" alt="Patrones de color" width="48%">
+</p>
 
-Descarga el APK de la última compilación en
-[Actions](https://github.com/CarmelitaSoftworks/C-EQ/actions) (artefacto `apk`) o compílalo tú.
-Requiere Android 8.0 o superior.
+### Fondo de pantalla animado
+Tu foto en resolución completa con el espectro a 60 cuadros por segundo, en tres modos:
+**Reproductor**, **Winamp completo** o **Solo el espectro**. Los botones del skin se tocan desde la
+pantalla de inicio.
+
+<p align="center">
+  <img src="docs/fondo-animado.png" alt="Fondo animado" width="90%">
+</p>
+
+### Reproductor en la barra de notificaciones
+Como el de Spotify, pero con la ventana del skin elegido y sus botones.
+
+<p align="center">
+  <img src="docs/notificacion.png" alt="Reproductor en la barra de notificaciones" width="60%">
+</p>
+
+También trae **widget** con el espectro y **mosaico de Ajustes rápidos** para encender el
+ecualizador sin abrir la app.
+
+## 📲 Instalar
+
+1. Descarga [**C-EQ.apk**](https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk)
+   (Android 8.0 o superior).
+2. Ábrelo y permite instalar apps de esa fuente si Android lo pide.
+3. Actualiza encima de la versión anterior sin perder tus ajustes.
+
+SHA-256 del APK 3.0: `bfefd83f5c71f8d69e1073590769a479e7a0cfb40e44f9c58faf818446d4bad2`
 
 ### Permisos
 
 | Permiso | Para qué |
 |---|---|
-| Micrófono (`RECORD_AUDIO`) | Leer la salida de audio para dibujar el espectro (no graba nada). |
-| Acceso a notificaciones | Saber qué suena y controlar el reproductor (sesiones multimedia). |
+| Micrófono (`RECORD_AUDIO`) | Leer la salida de audio para dibujar el espectro (no graba nada) y la calibración opcional. |
+| Acceso a notificaciones | Saber qué suena, ver la cola y controlar el reproductor (sesiones multimedia). No lee tus notificaciones. |
 | Notificaciones | Mostrar el reproductor en la barra. |
-| Bluetooth | Reconocer los audífonos para usar su perfil del ecualizador. |
+| Bluetooth | Reconocer el equipo conectado para usar su perfil. |
 | Servicio en primer plano / al iniciar | Mantener el ecualizador activo y encenderlo al reiniciar. |
 
-## Compilar
+## 🛠️ Compilar
 
 Con JDK 17 y el SDK de Android:
 
@@ -73,12 +129,13 @@ keyAlias=…
 keyPassword=…
 ```
 
-## Skins
+## 🎨 Skins (para desarrollar)
 
 - `WinampClassicSkins.kt`: generado por `tools/gen_skins.py` a partir de los colores extraídos con
   `tools/chrome.py` de los skins de la colección «winampskins» de Internet Archive.
-- `app/src/main/assets/skins/<archiveId>.png`: la ventana principal (275×116) de cada skin y, debajo,
-  sus piezas (fuente, dígitos, reproducir/pausa, botones presionados y volumen), armadas con
+- `app/src/main/assets/skins/<archiveId>.png`: atlas de 275×637 de cada skin con la ventana principal
+  y sus piezas (fuente, dígitos, reproducir/pausa, botones presionados y volumen), la ventana del
+  ecualizador con sus deslizadores (EQMAIN.BMP) y las piezas de la lista (PLEDIT.BMP), armado con
   `WinampWindow` a partir de sus BMP. Las genera `SkinImportTest.generateClassicWindows` con
   `-DclassicWszDir`, `-DwinampExeBitmaps` (recursos BITMAP de winamp.exe, para el skin base) y
   `-DwindowsOut`. Los `.wsz` originales no están en el repositorio.
@@ -87,18 +144,31 @@ keyPassword=…
 - `SkinImportTest.classicImportMatchesBuiltInCatalog` con `-DclassicWszDir=<carpetas>` comprueba que
   el importador da los mismos colores que el catálogo generado.
 
-## Créditos
+## 🙌 Créditos
 
 Hecho por [Carmelita Softworks](https://github.com/CarmelitaSoftworks). Winamp es de Nullsoft /
 Winamp SA; cada skin incluido es obra de su autor o autora y viene de la colección
 [«winampskins»](https://archive.org/details/winampskins) de Internet Archive. La lista completa de
 skins, con el enlace a cada uno, está en [CREDITS.md](CREDITS.md).
 
-## Licencia
+## 📄 Licencia
 
 El código es [GPL-3.0](LICENSE). Los skins de Winamp incluidos (ventanas y colores) siguen siendo
 de sus autores y no quedan bajo esa licencia; ver [CREDITS.md](CREDITS.md).
 
-## Apoyar
+## ☕ Apoyar
 
 Si C-EQ te gusta, puedes invitar un café en [Ko-fi](https://ko-fi.com/carmelitasoftworks). ☕
+
+<details>
+<summary>🇬🇧 English</summary>
+
+C-EQ is a system-wide 10-band equalizer for Android with a live spectrum and the classic Winamp 2
+skins, with their real windows and working buttons. It shows what is playing in any app, the
+player's queue, and puts the Winamp player in the notification shade and on an animated wallpaper
+(player, full stack with equalizer and playlist, or spectrum only). An automatic mode adapts the
+curve to the connected device, the content (music, speech, video) and the volume, with no
+microphone needed. Download the APK from [`dist/C-EQ.apk`](https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk).
+Code is GPL-3.0; the bundled skins belong to their authors (see [CREDITS.md](CREDITS.md)).
+
+</details>
