@@ -19,20 +19,31 @@ enum class SkinShuffle(@StringRes val label: Int) {
         fun setMode(ctx: Context, mode: SkinShuffle) {
             ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("mode", mode.name)
                 .putLong("day", today()).apply()
+            checkedDay = -1L
         }
 
-        private fun today() = System.currentTimeMillis() / 86_400_000L
+        /** Día en la hora del teléfono: el skin diario cambia a medianoche local, no a la de Londres. */
+        private fun today() = java.time.LocalDate.now().toEpochDay()
+
+        /** Último día ya revisado en este proceso, para no leer los ajustes cada segundo. */
+        @Volatile private var checkedDay = -1L
 
         /** La pantalla se encendió: otro skin si el modo es ese. */
         fun onScreenOn(ctx: Context) {
             if (mode(ctx) == SCREEN_ON) shuffle(ctx)
         }
 
-        /** Se ve el fondo o la app: otro skin si cambió el día y el modo es diario. */
+        /**
+         * Se ve el skin (fondo, app, widget o notificación): otro skin si cambió el día y el modo es
+         * diario. Se revisa una vez por día y por proceso.
+         */
         fun onShown(ctx: Context) {
+            val day = today()
+            if (day == checkedDay) return
+            checkedDay = day
             if (mode(ctx) != DAILY) return
             val p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            if (p.getLong("day", 0L) != today()) shuffle(ctx)
+            if (p.getLong("day", 0L) != day) shuffle(ctx)
         }
 
         @Volatile private var lastShuffle = 0L

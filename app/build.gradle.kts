@@ -15,8 +15,9 @@ android {
         targetSdk = 35
         versionCode = 32
         versionName = "3.3"
-        // Día de la compilación (días desde 1970), para recordar buscar una versión nueva sin usar Internet
-        buildConfigField("long", "BUILD_DAY", "${System.currentTimeMillis() / 86_400_000L}L")
+        // Día del último commit (días desde 1970), para recordar buscar una versión nueva sin usar
+        // Internet. Sale del commit y no del reloj: el mismo código da siempre el mismo APK
+        buildConfigField("long", "BUILD_DAY", "${commitDay()}L")
     }
     // Firma de release: datos en keystore.properties (fuera de git). Sin ese archivo, el APK de
     // release sale sin firmar.
@@ -68,3 +69,11 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.14.1")
     testImplementation("androidx.test:core:1.6.1")
 }
+
+/** Día (desde 1970) del último commit, o 0 si no hay git. */
+fun commitDay(): Long = runCatching {
+    providers.exec {
+        commandLine("git", "log", "-1", "--format=%ct")
+        isIgnoreExitValue = true
+    }.standardOutput.asText.get().trim().toLong() / 86_400L
+}.getOrDefault(0L)

@@ -179,8 +179,8 @@ object EqCore {
     /**
      * Preajustes de Winamp (.eqf y winamp.q1): cabecera «Winamp EQ library file v1.1», «\u001A!--» y
      * entradas de 257 bytes de nombre más 11 valores (10 bandas y preamplificador) de 0 (+12 dB) a 63
-     * (−12 dB). Las bandas de Winamp (60 Hz–16 kHz) se toman como las 10 de la app. Vacía si no es
-     * un archivo de Winamp.
+     * (−12 dB). Las bandas de Winamp (60 Hz–16 kHz) se toman como las 10 de la app, con el
+     * preamplificador sumado. Vacía si no es un archivo de Winamp.
      */
     fun parseWinampEq(bytes: ByteArray): List<Pair<String, List<Float>>> {
         val header = "Winamp EQ library file v1.1".toByteArray(Charsets.US_ASCII)
@@ -191,9 +191,11 @@ object EqCore {
             val nameBytes = bytes.copyOfRange(i, i + 257)
             val end = nameBytes.indexOf(0.toByte()).let { if (it < 0) 257 else it }
             val name = String(nameBytes, 0, end, Charsets.ISO_8859_1).trim()
+            fun db(v: Int) = 12f - (v and 0xFF).coerceIn(0, 63) * 24f / 63f
+            // El preamplificador de Winamp (el byte 11) sube o baja todo: se suma a cada banda
+            val preamp = db(bytes[i + 257 + 10].toInt())
             val levels = List(BANDS) { b ->
-                val v = (bytes[i + 257 + b].toInt() and 0xFF).coerceIn(0, 63)
-                Math.round((12f - v * 24f / 63f) * 2) / 2f
+                Math.round((db(bytes[i + 257 + b].toInt()) + preamp).coerceIn(MIN_DB, MAX_DB) * 2) / 2f
             }
             if (name.isNotEmpty()) out += name to levels
             i += 268

@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml"><img src="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml/badge.svg" alt="Build"></a>
-  <img src="https://img.shields.io/badge/version-3.2.1-B388FF" alt="Version 3.2.1">
+  <img src="https://img.shields.io/badge/version-3.3-B388FF" alt="Version 3.3">
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0 or later">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="GPL-3.0"></a>
   <a href="https://ko-fi.com/carmelitasoftworks"><img src="https://img.shields.io/badge/Ko--fi-support-FF5E5B?logo=ko-fi&logoColor=white" alt="Support on Ko-fi"></a>
@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Download APK (3.2.1)</b></a>
+  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Download APK (3.3)</b></a>
   &nbsp;·&nbsp; <a href="https://github.com/CarmelitaSoftworks/C-EQ/releases">All versions</a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Credits</a>
@@ -37,6 +37,10 @@
 ---
 
 ## ✨ What's new
+
+**3.3 — Measured headphones and more Winamp.** AutoEQ curves for 48 popular Bluetooth headphones,
+a working PRESETS button on the skin, Winamp preset import (.eqf and .q1), 13 new presets, a player
+widget with the skin, random skin, surround sound and new-version reminders without Internet.
 
 **3.2.1 — Device names in your language.** Profile and device names follow the phone's language too.
 
@@ -71,7 +75,13 @@ to the way of using two or more that actually works: the brand's party mode, Aud
 - **Mic-free automatic mode**: starts from the device's curve and adapts it to what's playing
   (music, bass-heavy music, acoustic, speech or video) and to the volume (more bass and treble at
   low volume; protects small speakers and your ears at high volume).
-- **Microphone calibration** for speakers, custom presets, undo and A/B comparison.
+- **Measured AutoEQ curves** for 48 popular Bluetooth headphones (Sony, AirPods Pro 2/Max, Galaxy
+  Buds, Bose, JBL, Sennheiser, Beats, Pixel Buds, Nothing, Soundcore, Jabra…): the model is
+  recognized when it connects and its sound is corrected.
+- **23 presets** (Rock, Pop, Reggaeton, Electronic, Jazz, Movies, Night…), your own ones and
+  **Winamp's** (.eqf and winamp.q1).
+- **Microphone calibration** for speakers, undo and A/B comparison.
+- **Surround sound** on phones that allow it.
 - Bass boost **without losing volume**, extra volume and balance.
 - Export and import curves in **GraphicEQ** format (Equalizer APO, AutoEQ).
 
@@ -126,7 +136,7 @@ Like Spotify's, but with the window of the chosen skin and its buttons.
   <img src="docs/notificacion.png" alt="Player in the notification shade" width="60%">
 </p>
 
-It also comes with a spectrum **widget** and a **Quick Settings tile** to turn the equalizer on
+It also comes with a **player widget** with the skin and its buttons, a spectrum **widget**, a **random skin** (every day or when the screen turns on) and a **Quick Settings tile** to turn the equalizer on
 without opening the app.
 
 ### Languages
@@ -141,7 +151,7 @@ it in Settings › App languages.
    If a Play Protect warning shows up, read [why it warns](#play-protect).
 3. Updates install over the previous version without losing your settings.
 
-APK 3.2.1 SHA-256: `8dfd42d20383551c6dd3ed0115fa80c95c66f928c47cdaaa873d0dab869bd305`
+APK 3.3 SHA-256: `571be1ca2938e258dcf9154363589fd1c84e658c28c293f1f398dec1b223acc6`
 
 ### Permissions
 
@@ -176,11 +186,11 @@ Play Protect off.
 
 | | SHA-256 |
 |---|---|
-| APK 3.2.1 | `8dfd42d20383551c6dd3ed0115fa80c95c66f928c47cdaaa873d0dab869bd305` |
+| APK 3.3 | `571be1ca2938e258dcf9154363589fd1c84e658c28c293f1f398dec1b223acc6` |
 | Signing certificate | `e399d964d3de12bc48776c779b65ab49be2ca6ec8eaeb64f4cb8e61d7948b2d0` |
 
 With the Android SDK tools you can also see it doesn't ask for Internet:
-`aapt2 dump permissions C-EQ-3.2.1.apk` (`android.permission.INTERNET` is not listed).
+`aapt2 dump permissions C-EQ-3.3.apk` (`android.permission.INTERNET` is not listed).
 
 ## 🛠️ Build
 

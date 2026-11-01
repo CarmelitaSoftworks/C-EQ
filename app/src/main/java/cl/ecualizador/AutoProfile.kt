@@ -44,6 +44,8 @@ object AutoProfile {
     fun classifyBluetooth(name: String, btDeviceClass: Int?): OutputKind {
         // El nombre manda cuando es claro: muchos equipos informan una clase genérica.
         return when {
+            // Un modelo de audífonos con curva medida (ver HeadphoneProfiles) es audífono, sin dudas
+            HeadphoneProfiles.match(name) != null -> OutputKind.BT_HEADPHONES
             PARTY.containsMatchIn(name) -> OutputKind.BT_PARTY_SPEAKER
             HEADPHONES.containsMatchIn(name) -> OutputKind.BT_HEADPHONES
             CAR.containsMatchIn(name) -> OutputKind.BT_CAR
@@ -61,11 +63,11 @@ object AutoProfile {
     }
 
     /**
-     * Curva para el equipo: la medida por AutoEQ si se reconoce el modelo de audífonos por su nombre
-     * ([deviceName]); si no, la del tipo de equipo.
+     * Curva para el equipo: la medida por AutoEQ si se reconoció el modelo de audífonos ([profile], de
+     * HeadphoneProfiles.match); si no, la del tipo de equipo.
      */
-    fun curveFor(kind: OutputKind, deviceName: String?): AutoCurve =
-        HeadphoneProfiles.match(deviceName)?.let { p ->
+    fun curveFor(kind: OutputKind, profile: HeadphoneProfiles.Profile?): AutoCurve =
+        profile?.let { p ->
             AutoCurve(
                 p.levels.toList(), 0f,
                 "Curva de AutoEQ para ${p.model} (medidos por ${p.source}): corrige la respuesta de tus audífonos hacia el objetivo Harman.",

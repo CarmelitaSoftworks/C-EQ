@@ -109,12 +109,12 @@ class EqEngine private constructor(private val ctx: Context) {
 
     /** Tipo del equipo conectado, para el ajuste automático. */
     private var outputKind = OutputKind.PHONE_SPEAKER
-    /** Nombre del equipo Bluetooth conectado (para reconocer el modelo de audífonos), o null. */
-    private var outputName: String? = null
+    /** Curva medida del modelo de audífonos conectado, si se reconoce por su nombre Bluetooth. */
+    private var outputProfile: HeadphoneProfiles.Profile? = null
 
     private fun switchProfile(out: Pair<String, String>) {
         outputKind = runCatching { DeviceAnalyzer.analyze(ctx).kind }.getOrDefault(OutputKind.PHONE_SPEAKER)
-        outputName = out.second.takeIf { out.first.startsWith("bt:") }
+        outputProfile = out.second.takeIf { out.first.startsWith("bt:") }?.let(HeadphoneProfiles::match)
         // El historial de deshacer pertenece al perfil anterior: no debe aplicarse a otra salida.
         history.clear()
         val json = prefs.getString("profile_${out.first}", null)?.let { runCatching { JSONObject(it) }.getOrNull() }
@@ -162,8 +162,18 @@ class EqEngine private constructor(private val ctx: Context) {
         val ok = v != null && runCatching { v.strengthSupported }.getOrDefault(false)
         if (!ok) runCatching { v?.release() }
         virtualizer = v.takeIf { ok }
-        state.update { it.copy(surroundSupported = ok) }
+        if (ok) state.update { it.copy(surroundSupported = true) }
         applySurround()
+    }
+
+    /**
+     * Si el teléfono permite el sonido envolvente en todo el audio, se averigua una vez al empezar
+     * (creándolo apagado y soltándolo), para ofrecerlo aunque el ecualizador esté apagado.
+     */
+    @Suppress("DEPRECATION")
+    private fun probeSurround(): Boolean {
+        val v = runCatching { android.media.audiofx.Virtualizer(PRIORITY - 1, 0) }.getOrNull() ?: return false
+        return runCatching { v.strengthSupported }.getOrDefault(false).also { runCatching { v.release() } }
     }
 
     private fun applySurround() {
@@ -252,7 +262,7 @@ class EqEngine private constructor(private val ctx: Context) {
     private fun autoCurve(): Pair<AutoCurve, ListenContent> {
         val t = NowPlaying.track.value
         val content = if (t == null) ListenContent.MUSIC else AutoEq.contentOf(t.app, t.genre)
-        return AutoEq.curve(outputKind, content, musicVolume(), outputName) to content
+        return AutoEq.curve(outputKind, content, musicVolume(), outputProfile) to content
     }
 
     /**
@@ -524,14 +534,38 @@ class EqEngine private constructor(private val ctx: Context) {
         }
     }
 
-    fun saveCustomPreset(name: String) {
-        val trimmed = name.trim().take(24).ifEmpty { return }
-        // Un nombre igual a uno incluido quedaría inaccesible (los incluidos se buscan primero).
-        val clean = if (trimmed in EqCore.PRESETS) "$trimmed (mío)" else trimmed
-        val json = runCatching { JSONObject(prefs.getString("customPresets", "{}")!!) }.getOrNull() ?: JSONObject()
-        json.put(clean, JSONArray(state.value.levels.map { it.toDouble() }))
+    /** Nombres que la app usa para sus propias curvas: un preajuste propio no puede llamarse así. */
+    private val reservedNames = EqCore.PRESETS.keys + setOf("Automático", "Calibrado", "Importado", "Personalizado")
+
+    /**
+     * Guarda preajustes propios en [json] y devuelve sus nombres finales. El nombre se recorta a 24
+     * letras; si coincide con uno de la app (quedaría inaccesible) o, con [replace] en falso, con uno
+     * propio, lleva un número: «Rock (2)».
+     */
+    private fun putCustom(json: JSONObject, presets: List<Pair<String, List<Float>>>, replace: Boolean): List<String> =
+        presets.mapNotNull { (raw, levels) ->
+            val base = raw.trim().take(24)
+            if (base.isEmpty()) return@mapNotNull null
+            var name = base
+            var k = 2
+            while (name in reservedNames || (!replace && json.has(name))) name = "${base.take(20)} ($k)".also { k++ }
+            json.put(name, JSONArray(levels.map { it.coerceIn(EqCore.MIN_DB, EqCore.MAX_DB).toDouble() }))
+            name
+        }
+
+    private fun customJson() = runCatching { JSONObject(prefs.getString("customPresets", "{}")!!) }.getOrNull() ?: JSONObject()
+
+    private fun storeCustom(json: JSONObject) {
         prefs.edit().putString("customPresets", json.toString()).apply()
-        state.update { it.copy(customPresets = customPresets().keys.toList(), preset = clean) }
+        state.update { it.copy(customPresets = customPresets().keys.toList()) }
+    }
+
+    /** Guarda la curva actual como preajuste propio (con el mismo nombre, lo reemplaza). */
+    fun saveCustomPreset(name: String) {
+        val json = customJson()
+        val saved = putCustom(json, listOf(name to state.value.levels), replace = true).firstOrNull() ?: return
+        storeCustom(json)
+        state.update { it.copy(preset = saved) }
         saveProfile()
     }
 
@@ -547,20 +581,10 @@ class EqEngine private constructor(private val ctx: Context) {
      * Devuelve cuántos se agregaron.
      */
     fun addCustomPresets(presets: List<Pair<String, List<Float>>>): Int {
-        val json = runCatching { JSONObject(prefs.getString("customPresets", "{}")!!) }.getOrNull() ?: JSONObject()
-        var n = 0
-        for ((raw, levels) in presets) {
-            val base = raw.trim().take(24)
-            if (base.isEmpty()) continue
-            var name = base
-            var k = 2
-            while (name in EqCore.PRESETS || json.has(name)) name = "${base.take(20)} ($k)".also { k++ }
-            json.put(name, JSONArray(levels.map { it.coerceIn(EqCore.MIN_DB, EqCore.MAX_DB).toDouble() }))
-            n++
-        }
-        prefs.edit().putString("customPresets", json.toString()).apply()
-        state.update { it.copy(customPresets = customPresets().keys.toList()) }
-        return n
+        val json = customJson()
+        val added = putCustom(json, presets, replace = false)
+        storeCustom(json)
+        return added.size
     }
 
     fun deleteCustomPreset(name: String) {
@@ -593,6 +617,7 @@ class EqEngine private constructor(private val ctx: Context) {
         }
         switchProfile(currentOutput())
         watchVolume()
+        if (!state.value.enabled) state.update { it.copy(surroundSupported = probeSurround()) }
         audio.registerAudioDeviceCallback(object : AudioDeviceCallback() {
             override fun onAudioDevicesAdded(added: Array<out AudioDeviceInfo>) = onOutputChanged()
             override fun onAudioDevicesRemoved(removed: Array<out AudioDeviceInfo>) = onOutputChanged()

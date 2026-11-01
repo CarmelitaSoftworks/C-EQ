@@ -1,7 +1,7 @@
 # Cambios
 
 ## 3.3
-- **Curvas medidas de AutoEQ** para 50 audífonos Bluetooth populares (Sony, AirPods, Galaxy Buds,
+- **Curvas medidas de AutoEQ** para 48 audífonos Bluetooth populares (Sony, AirPods Pro 2/3/Max, Galaxy Buds,
   Bose, JBL, Sennheiser, Beats, Pixel Buds, Nothing, Soundcore, Jabra, Audio-Technica…). Se
   reconocen por el nombre Bluetooth y las usan el ajuste automático y «Crear perfil fijo».
 - **PRESETS del skin funciona**: en Winamp completo pasa al preajuste siguiente.
@@ -11,6 +11,8 @@
 - **Widget del reproductor** con la ventana del skin, lo que suena y sus botones.
 - **Skin al azar**: cada día o cada vez que se enciende la pantalla.
 - **Sonido envolvente** (Virtualizer de Android) en los teléfonos que lo permiten en todo el audio.
+- **Aviso de versión nueva** sin usar Internet: botón para buscarla, avisos con Obtainium y un
+  recordatorio cuando la versión instalada tiene más de 45 días.
 
 ## 3.2.1
 - Los nombres de los equipos del perfil (altavoz del teléfono, audífonos, parlante, auto, TV…) se

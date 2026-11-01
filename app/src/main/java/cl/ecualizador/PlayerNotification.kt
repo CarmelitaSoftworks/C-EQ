@@ -35,14 +35,18 @@ object PlayerNotification {
     /** Publica, actualiza o quita la notificación según lo que suene. */
     @Synchronized
     fun update(ctx: Context) {
-        // El widget del reproductor se actualiza al mismo ritmo, haya o no notificación
-        runCatching { PlayerWidget.update(ctx) }
+        SkinShuffle.onShown(ctx)
         val nm = ctx.getSystemService(NotificationManager::class.java) ?: return
         val track = NowPlaying.track.value
-        if (!isEnabled(ctx) || track == null || NowPlaying.controller == null) {
-            nm.cancel(ID)
-            return
-        }
+        val notify = isEnabled(ctx) && track != null && NowPlaying.controller != null
+        if (!notify) nm.cancel(ID)
+        // El widget del reproductor se actualiza al mismo ritmo, haya o no notificación; la ventana
+        // se dibuja una sola vez para los dos, y nada si no hay ninguno
+        val widgets = runCatching { PlayerWidget.ids(ctx) }.getOrDefault(IntArray(0))
+        if (!notify && widgets.isEmpty()) return
+        val window = windowBitmap(ctx)
+        if (widgets.isNotEmpty()) runCatching { PlayerWidget.push(ctx, widgets, window) }
+        if (!notify || track == null) return
         SpectrumPrefs.load(ctx)
         if (nm.getNotificationChannel(CHANNEL) == null) {
             // Android no deja subir la prioridad de un canal existente: se crea otro y se borra el viejo.
@@ -60,7 +64,6 @@ object PlayerNotification {
             )
         }
         val skin = WinampSkins.byName(SpectrumPrefs.settings.value.winampSkin)
-        val window = windowBitmap(ctx)
 
         val expanded = RemoteViews(ctx.packageName, R.layout.player_expanded).apply {
             setImageViewBitmap(R.id.player_window, window)

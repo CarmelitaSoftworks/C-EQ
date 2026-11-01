@@ -227,10 +227,13 @@ class NowPlayingService : NotificationListenerService() {
             if (NowPlaying.track.value?.state == PlayingTrack.State.PLAYING) main.postDelayed(this, 1000)
         }
     }
+    /** Mantener una tecla de volumen manda muchos avisos seguidos: se redibuja una vez al final. */
+    private val volumeRedraw = Runnable { PlayerNotification.update(this) }
     private val volumeChanged = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context, intent: android.content.Intent) {
             NowPlaying.readVolume(context)
-            PlayerNotification.update(context)
+            main.removeCallbacks(volumeRedraw)
+            main.postDelayed(volumeRedraw, 250)
         }
     }
 
@@ -258,6 +261,7 @@ class NowPlayingService : NotificationListenerService() {
         follow(emptyList())
         NowPlaying.controller = null
         main.removeCallbacks(tick)
+        main.removeCallbacks(volumeRedraw)
         runCatching { unregisterReceiver(volumeChanged) }
         PlayerNotification.cancel(this)
         sessions = null

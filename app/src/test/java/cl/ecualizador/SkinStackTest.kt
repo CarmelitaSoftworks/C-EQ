@@ -19,7 +19,7 @@ class SkinStackTest {
     fun equalizerWindowHits() {
         assertEquals(WinampWindow.Hit.EqToggle, WinampWindow.eqHit(20f, 22f))
         assertEquals(WinampWindow.Hit.EqAuto, WinampWindow.eqHit(50f, 22f))
-        assertEquals(WinampWindow.Hit.OpenEqualizer, WinampWindow.eqHit(230f, 22f))
+        assertEquals(WinampWindow.Hit.EqPresets, WinampWindow.eqHit(230f, 22f))
         // Arriba del todo de la primera banda: +12 dB; abajo del todo de la última: −12 dB
         assertEquals(WinampWindow.Hit.EqBand(0, 1f), WinampWindow.eqHit(84f, 38f))
         assertEquals(WinampWindow.Hit.EqBand(9, 0f), WinampWindow.eqHit(78f + 9 * 18 + 6, 100f))

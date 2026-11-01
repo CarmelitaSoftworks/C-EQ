@@ -68,7 +68,9 @@ class SpectrumWallpaperService : WallpaperService() {
         }
 
         private val screenOn = object : android.content.BroadcastReceiver() {
-            override fun onReceive(context: android.content.Context, intent: android.content.Intent) = SkinShuffle.onScreenOn(context)
+            override fun onReceive(context: android.content.Context, intent: android.content.Intent) {
+                if (!isPreview) SkinShuffle.onScreenOn(context)
+            }
         }
 
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {
@@ -188,7 +190,8 @@ class SpectrumWallpaperService : WallpaperService() {
         override fun onVisibilityChanged(isVisible: Boolean) {
             visible = isVisible
             drawerUntil = 0L
-            if (isVisible) SkinShuffle.onShown(this@SpectrumWallpaperService)
+            // La vista previa del selector de fondos no cambia el skin
+            if (isVisible && !isPreview) SkinShuffle.onShown(this@SpectrumWallpaperService)
             fingers.clear()
             if (isVisible) {
                 NowPlaying.readVolume(this@SpectrumWallpaperService)

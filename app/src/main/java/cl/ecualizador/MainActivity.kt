@@ -138,13 +138,17 @@ private fun EqualizerScreen() {
     var saving by remember { mutableStateOf(false) }
     var importing by remember { mutableStateOf(false) }
     var winampMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
     val winampPresets = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        val presets = runCatching {
-            ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }?.takeIf { it.size < (4 shl 20) }
-        }.getOrNull()?.let(EqCore::parseWinampEq).orEmpty()
-        winampMessage = if (presets.isEmpty()) ctx.getString(R.string.winamp_presets_none)
-        else ctx.getString(R.string.winamp_presets_added_fmt, engine.addCustomPresets(presets))
+        scope.launch {
+            // Fuera del hilo principal y sin leer más de lo que puede pesar un archivo de Winamp
+            val presets = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                readSmallFile(ctx, uri, WINAMP_EQ_MAX_BYTES)?.let(EqCore::parseWinampEq).orEmpty()
+            }
+            winampMessage = if (presets.isEmpty()) ctx.getString(R.string.winamp_presets_none)
+            else ctx.getString(R.string.winamp_presets_added_fmt, engine.addCustomPresets(presets))
+        }
     }
     /** Lo que eligió el usuario; la captura se pausa sola con la app en segundo plano. */
     var wantSpectrum by rememberSaveable { mutableStateOf(false) }
@@ -154,8 +158,10 @@ private fun EqualizerScreen() {
     DisposableEffect(lifecycle) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_START ->
+                Lifecycle.Event.ON_START -> {
+                    SkinShuffle.onShown(ctx)
                     if (wantSpectrum && granted(Manifest.permission.RECORD_AUDIO)) spectrumError = Spectrum.acquire("app", ctx)
+                }
                 Lifecycle.Event.ON_STOP -> Spectrum.release("app")
                 else -> {}
             }
@@ -377,6 +383,34 @@ private fun EqualizerScreen() {
     }
 }
 
+/** Un archivo de Winamp con sus 256 preajustes como mucho pesa unos 69 KB: con margen. */
+private const val WINAMP_EQ_MAX_BYTES = 512 * 1024
+
+/**
+ * Lee un archivo elegido por el usuario si pesa como mucho [max] bytes; si es más grande (o no se
+ * puede abrir), null, sin cargarlo entero en memoria.
+ */
+private fun readSmallFile(ctx: android.content.Context, uri: android.net.Uri, max: Int): ByteArray? {
+    val size = runCatching {
+        ctx.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.SIZE), null, null, null)
+            ?.use { c -> if (c.moveToFirst() && !c.isNull(0)) c.getLong(0) else -1L }
+    }.getOrNull() ?: -1L
+    if (size > max) return null
+    return runCatching {
+        ctx.contentResolver.openInputStream(uri)?.use { input ->
+            val out = java.io.ByteArrayOutputStream()
+            val buf = ByteArray(16 * 1024)
+            while (true) {
+                val n = input.read(buf)
+                if (n < 0) break
+                out.write(buf, 0, n)
+                if (out.size() > max) return null
+            }
+            out.toByteArray()
+        }
+    }.getOrNull()
+}
+
 /** Aviso para buscar una versión nueva cuando la instalada ya tiene un tiempo (ver [Updates]). */
 @Composable
 private fun UpdateReminder() {
@@ -526,7 +560,7 @@ private fun DeviceCard(profileKey: String, engine: EqEngine) {
     }
 
     if (showAuto) {
-        val curve = AutoProfile.curveFor(info.kind, info.name.takeIf { info.key.startsWith("bt:") })
+        val curve = AutoProfile.curveFor(info.kind, info.name.takeIf { info.key.startsWith("bt:") }?.let(HeadphoneProfiles::match))
         AlertDialog(
             onDismissRequest = { showAuto = false },
             title = { Text(stringResource(R.string.profile_for_fmt, stringResource(info.kind.label).lowercase())) },

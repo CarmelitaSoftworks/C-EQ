@@ -20,7 +20,8 @@ object Updates {
 
     private fun today() = System.currentTimeMillis() / 86_400_000L
 
-    fun daysSinceBuild(): Long = (today() - BuildConfig.BUILD_DAY).coerceAtLeast(0)
+    /** Días desde el último commit de esta versión (0 si no se supo al compilar). */
+    fun daysSinceBuild(): Long = if (BuildConfig.BUILD_DAY <= 0) 0 else (today() - BuildConfig.BUILD_DAY).coerceAtLeast(0)
 
     /** Si toca recordar: la versión es vieja y no se pidió «Más tarde» hace poco. */
     fun shouldRemind(ctx: Context): Boolean =

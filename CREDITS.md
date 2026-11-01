@@ -128,9 +128,7 @@ a sus 10 bandas con `tools/gen_autoeq.py`.
 | Sony WF-1000XM5 | oratory1990 |
 | Sony WH-CH720N | Rtings on Bruel & Kjaer 5128 |
 | Sony WH-CH520 | Rtings on HMS II.3 |
-| Apple AirPods Pro | crinacle on 711 |
 | Apple Airpods Pro 2 | HypetheSonics on GRAS RA0045 |
-| Apple AirPods (2nd generation) | Rtings on HMS II.3 |
 | Apple AirPods 3 | Super Review |
 | Apple AirPods Max | oratory1990 |
 | Samsung Galaxy Buds2 Pro | oratory1990 |
