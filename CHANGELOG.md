@@ -1,5 +1,9 @@
 # Cambios
 
+## 3.2.1
+- Los nombres de los equipos del perfil (altavoz del teléfono, audífonos, parlante, auto, TV…) se
+  muestran en inglés o español según el idioma del teléfono; los Bluetooth conservan su nombre.
+
 ## 3.2
 - Asistente **Varios parlantes**: revisa tus parlantes vinculados y tu teléfono y te lleva a lo que
   funciona: el modo fiesta de la marca si tienes dos de la misma (Sony Party Connect, JBL PartyBoost,
