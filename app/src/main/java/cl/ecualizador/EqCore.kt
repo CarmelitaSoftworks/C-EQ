@@ -45,10 +45,10 @@ object EqCore {
      * limitador que impide la saturación digital, así que no hace falta bajar todo lo que sube la
      * banda más alta (eso es lo que hace perder volumen al subir los graves).
      */
-    enum class Headroom(val label: String, val description: String) {
-        FULL("Máxima", "Baja todo el volumen lo que suba la banda más alta: nunca satura, pero subir los graves resta volumen."),
-        BALANCED("Equilibrada", "Los primeros 3 dB no restan volumen y del resto se compensa la mitad; el limitador contiene los picos."),
-        LOUD("Volumen", "No baja nada: el limitador contiene los picos. Con graves muy altos y música fuerte puede notarse que comprime."),
+    enum class Headroom(@androidx.annotation.StringRes val label: Int, @androidx.annotation.StringRes val description: Int) {
+        FULL(R.string.headroom_full, R.string.headroom_full_desc),
+        BALANCED(R.string.headroom_balanced, R.string.headroom_balanced_desc),
+        LOUD(R.string.headroom_loud, R.string.headroom_loud_desc),
     }
 
     /** Dentro de este margen subir una banda no resta volumen en el modo equilibrado. */

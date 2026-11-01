@@ -1,5 +1,10 @@
 # Cambios
 
+## 3.1
+- El menú de la app sigue el idioma del teléfono: inglés por defecto y español si el teléfono está
+  en español (en Android 13+ también se elige en Ajustes › Idioma de las apps). Los skins no cambian;
+  la notificación, el widget, el fondo y las explicaciones técnicas siguen en español por ahora.
+
 ## 3.0.1
 - La lista de reproducción del skin completo usa la letra del propio skin (TEXT.BMP), teñida con
   los colores de su lista; también en skins con letra con sombra o degradado.

@@ -78,7 +78,7 @@ class RendererPreviewTest {
             val (values, peaks) = analyzed(s.effectiveBars)
             c.save()
             c.translate(0f, (gap + k * (rowH + gap)).toFloat())
-            c.drawText(if (s.style.winamp) s.style.label else "${s.style.label} · ${s.palette.label} · ${s.effectiveBars} barras", 12f, -8f, text)
+            c.drawText(if (s.style.winamp) label(s.style.label) else "${label(s.style.label)} · ${label(s.palette.label)} · ${s.effectiveBars} barras", 12f, -8f, text)
             r.draw(c, w.toFloat(), rowH.toFloat(), values, peaks, s, 2f, wave)
             c.restore()
         }
@@ -114,7 +114,7 @@ class RendererPreviewTest {
         sample.forEachIndexed { i, skin -> ptc.drawText(skin.name, plab + 8f + i * (pcw + 8), 26f, small) }
         pats.forEachIndexed { j, pat ->
             val y = 36f + j * (pch + 10)
-            ptc.drawText(pat.label, 12f, y + pch / 2f + 8f, text)
+            ptc.drawText(label(pat.label), 12f, y + pch / 2f + 8f, text)
             sample.forEachIndexed { i, skin ->
                 ptc.save(); ptc.translate(plab + 8f + i * (pcw + 8), y)
                 SpectrumRenderer().draw(
@@ -171,7 +171,7 @@ class RendererPreviewTest {
                 val paint = Paint().apply { color = pal.color(x / 419f) }
                 pc.drawRect(280f + x, 10f + k * 44, 281f + x, 44f + k * 44, paint)
             }
-            pc.drawText(pal.label, 12f, 34f + k * 44, text)
+            pc.drawText(label(pal.label), 12f, 34f + k * 44, text)
         }
         File(out, "paletas.png").outputStream().use { sw.compress(Bitmap.CompressFormat.PNG, 100, it) }
 
@@ -210,7 +210,7 @@ class RendererStateTest {
         val clean = render(null)
         SpectrumStyle.entries.forEach { st ->
             val after = render(SpectrumSettings(style = st, bars = 32))
-            org.junit.Assert.assertArrayEquals("el estilo ${st.label} cambió el dibujo siguiente", clean, after)
+            org.junit.Assert.assertArrayEquals("el estilo ${label(st.label)} cambió el dibujo siguiente", clean, after)
         }
     }
 
@@ -306,3 +306,6 @@ class RendererStateTest {
         org.junit.Assert.assertNull(r.hitAt(2 * 45f, 2 * 95f))
     }
 }
+
+/** Nombre de una opción en el idioma de la prueba. */
+private fun label(res: Int): String = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>().getString(res)

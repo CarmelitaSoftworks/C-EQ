@@ -1,18 +1,18 @@
 package cl.ecualizador
 
 /** Forma de dibujar el analizador. */
-enum class SpectrumStyle(val label: String, val winamp: Boolean = false) {
-    BARS("Barras"),
-    BLOCKS("Bloques LED"),
-    LINE("Línea"),
-    MIRROR("Espejo"),
-    DOTS("Puntos"),
-    CIRCLE("Circular"),
-    WAVE("Onda"),
-    WINAMP_CLASSIC("Winamp clásico", true),
-    WINAMP_FIRE("Winamp fuego", true),
-    WINAMP_LINES("Winamp líneas", true),
-    WINAMP_SCOPE("Winamp osciloscopio", true),
+enum class SpectrumStyle(@androidx.annotation.StringRes val label: Int, val winamp: Boolean = false) {
+    BARS(R.string.style_bars),
+    BLOCKS(R.string.style_blocks),
+    LINE(R.string.style_line),
+    MIRROR(R.string.style_mirror),
+    DOTS(R.string.style_dots),
+    CIRCLE(R.string.style_circle),
+    WAVE(R.string.style_wave),
+    WINAMP_CLASSIC(R.string.style_winamp_classic, true),
+    WINAMP_FIRE(R.string.style_winamp_fire, true),
+    WINAMP_LINES(R.string.style_winamp_lines, true),
+    WINAMP_SCOPE(R.string.style_winamp_scope, true),
 }
 
 /**
@@ -76,21 +76,21 @@ object WinampChrome {
 }
 
 /** Cómo se pintan las barras de los estilos Winamp con los colores del skin. */
-enum class WinampPattern(val label: String) {
+enum class WinampPattern(@androidx.annotation.StringRes val label: Int) {
     /** Como el original: el color depende de la altura (o de la punta, en «fuego»). */
-    ROWS("Filas"),
+    ROWS(R.string.pattern_rows),
     /** Opción «Line» de Winamp: toda la barra del color de su punta. */
-    SOLID("Línea"),
+    SOLID(R.string.pattern_solid),
     /** Cada banda con una fila de la paleta: graves abajo de la escala, agudos arriba. */
-    BANDS("Bandas"),
+    BANDS(R.string.pattern_bands),
     /** Filas separadas, como una pantalla LCD. */
-    LCD("LCD"),
+    LCD(R.string.pattern_lcd),
     /** Píxeles alternados con el fondo, como los gráficos de 16 colores. */
-    DITHER("Trama"),
+    DITHER(R.string.pattern_dither),
     /** Degradado de la cara de la ventana al color de acento del skin. */
-    CHROME("Chasis"),
+    CHROME(R.string.pattern_chrome),
     /** Colores de la lista de reproducción del skin. */
-    PLAYLIST("Lista");
+    PLAYLIST(R.string.pattern_playlist);
 
     /**
      * Algunos skins alternan filas del color del fondo (un efecto de rayas que solo funciona en
@@ -140,23 +140,23 @@ enum class WinampPattern(val label: String) {
 }
 
 /** Paleta de colores: paradas de 0 (silencio) a 1 (máximo), en ARGB. */
-enum class SpectrumPalette(val label: String, val stops: List<Pair<Float, Int>>) {
-    VIOLET("Violeta", listOf(0f to 0xFF1E3A8A.toInt(), 0.5f to 0xFFB388FF.toInt(), 0.8f to 0xFFFF7043.toInt(), 1f to 0xFFFFEB3B.toInt())),
-    FIRE("Fuego", listOf(0f to 0xFF3E0A00.toInt(), 0.4f to 0xFFD84315.toInt(), 0.75f to 0xFFFFA000.toInt(), 1f to 0xFFFFF59D.toInt())),
-    OCEAN("Océano", listOf(0f to 0xFF002B36.toInt(), 0.45f to 0xFF0288D1.toInt(), 0.8f to 0xFF26C6DA.toInt(), 1f to 0xFFE0F7FA.toInt())),
-    NEON("Neón", listOf(0f to 0xFF00E5FF.toInt(), 0.35f to 0xFF00E676.toInt(), 0.7f to 0xFFFFEA00.toInt(), 1f to 0xFFFF1744.toInt())),
-    MATRIX("Verde clásico", listOf(0f to 0xFF003300.toInt(), 0.6f to 0xFF00C853.toInt(), 1f to 0xFFB9F6CA.toInt())),
-    MONO("Blanco", listOf(0f to 0xFF424242.toInt(), 1f to 0xFFFFFFFF.toInt())),
-    WINAMP("Winamp", listOf(0f to 0xFF188408.toInt(), 0.45f to 0xFF29CE10.toInt(), 0.6f to 0xFFBDDE29.toInt(), 0.75f to 0xFFDEA518.toInt(), 0.88f to 0xFFD65A00.toInt(), 1f to 0xFFEF3110.toInt())),
-    RAINBOW("Arcoíris", listOf(0f to 0xFF7C4DFF.toInt(), 0.2f to 0xFF2979FF.toInt(), 0.4f to 0xFF00E676.toInt(), 0.6f to 0xFFFFEA00.toInt(), 0.8f to 0xFFFF9100.toInt(), 1f to 0xFFFF1744.toInt())),
-    SUNSET("Atardecer", listOf(0f to 0xFF2D1B69.toInt(), 0.4f to 0xFFC2185B.toInt(), 0.75f to 0xFFFF7043.toInt(), 1f to 0xFFFFD54F.toInt())),
-    SYNTHWAVE("Synthwave", listOf(0f to 0xFF2B0B4A.toInt(), 0.35f to 0xFF7B1FA2.toInt(), 0.7f to 0xFFFF2E97.toInt(), 1f to 0xFF00E5FF.toInt())),
-    AURORA("Aurora", listOf(0f to 0xFF0B1E3B.toInt(), 0.4f to 0xFF00897B.toInt(), 0.75f to 0xFF69F0AE.toInt(), 1f to 0xFFE040FB.toInt())),
-    ICE("Hielo", listOf(0f to 0xFF0D2137.toInt(), 0.5f to 0xFF4FC3F7.toInt(), 1f to 0xFFFFFFFF.toInt())),
-    GOLD("Oro", listOf(0f to 0xFF3E2723.toInt(), 0.5f to 0xFFB8860B.toInt(), 0.85f to 0xFFFFD54F.toInt(), 1f to 0xFFFFF8E1.toInt())),
-    LAVA("Lava", listOf(0f to 0xFF1A0000.toInt(), 0.45f to 0xFFB71C1C.toInt(), 0.8f to 0xFFFF6F00.toInt(), 1f to 0xFFFFE082.toInt())),
-    PINK("Rosa", listOf(0f to 0xFF4A148C.toInt(), 0.5f to 0xFFEC407A.toInt(), 1f to 0xFFFCE4EC.toInt())),
-    CYBERPUNK("Cyberpunk", listOf(0f to 0xFF00E5FF.toInt(), 0.5f to 0xFFFF00E5.toInt(), 1f to 0xFFFFF000.toInt())),
+enum class SpectrumPalette(@androidx.annotation.StringRes val label: Int, val stops: List<Pair<Float, Int>>) {
+    VIOLET(R.string.palette_violet, listOf(0f to 0xFF1E3A8A.toInt(), 0.5f to 0xFFB388FF.toInt(), 0.8f to 0xFFFF7043.toInt(), 1f to 0xFFFFEB3B.toInt())),
+    FIRE(R.string.palette_fire, listOf(0f to 0xFF3E0A00.toInt(), 0.4f to 0xFFD84315.toInt(), 0.75f to 0xFFFFA000.toInt(), 1f to 0xFFFFF59D.toInt())),
+    OCEAN(R.string.palette_ocean, listOf(0f to 0xFF002B36.toInt(), 0.45f to 0xFF0288D1.toInt(), 0.8f to 0xFF26C6DA.toInt(), 1f to 0xFFE0F7FA.toInt())),
+    NEON(R.string.palette_neon, listOf(0f to 0xFF00E5FF.toInt(), 0.35f to 0xFF00E676.toInt(), 0.7f to 0xFFFFEA00.toInt(), 1f to 0xFFFF1744.toInt())),
+    MATRIX(R.string.palette_matrix, listOf(0f to 0xFF003300.toInt(), 0.6f to 0xFF00C853.toInt(), 1f to 0xFFB9F6CA.toInt())),
+    MONO(R.string.palette_mono, listOf(0f to 0xFF424242.toInt(), 1f to 0xFFFFFFFF.toInt())),
+    WINAMP(R.string.palette_winamp, listOf(0f to 0xFF188408.toInt(), 0.45f to 0xFF29CE10.toInt(), 0.6f to 0xFFBDDE29.toInt(), 0.75f to 0xFFDEA518.toInt(), 0.88f to 0xFFD65A00.toInt(), 1f to 0xFFEF3110.toInt())),
+    RAINBOW(R.string.palette_rainbow, listOf(0f to 0xFF7C4DFF.toInt(), 0.2f to 0xFF2979FF.toInt(), 0.4f to 0xFF00E676.toInt(), 0.6f to 0xFFFFEA00.toInt(), 0.8f to 0xFFFF9100.toInt(), 1f to 0xFFFF1744.toInt())),
+    SUNSET(R.string.palette_sunset, listOf(0f to 0xFF2D1B69.toInt(), 0.4f to 0xFFC2185B.toInt(), 0.75f to 0xFFFF7043.toInt(), 1f to 0xFFFFD54F.toInt())),
+    SYNTHWAVE(R.string.palette_synthwave, listOf(0f to 0xFF2B0B4A.toInt(), 0.35f to 0xFF7B1FA2.toInt(), 0.7f to 0xFFFF2E97.toInt(), 1f to 0xFF00E5FF.toInt())),
+    AURORA(R.string.palette_aurora, listOf(0f to 0xFF0B1E3B.toInt(), 0.4f to 0xFF00897B.toInt(), 0.75f to 0xFF69F0AE.toInt(), 1f to 0xFFE040FB.toInt())),
+    ICE(R.string.palette_ice, listOf(0f to 0xFF0D2137.toInt(), 0.5f to 0xFF4FC3F7.toInt(), 1f to 0xFFFFFFFF.toInt())),
+    GOLD(R.string.palette_gold, listOf(0f to 0xFF3E2723.toInt(), 0.5f to 0xFFB8860B.toInt(), 0.85f to 0xFFFFD54F.toInt(), 1f to 0xFFFFF8E1.toInt())),
+    LAVA(R.string.palette_lava, listOf(0f to 0xFF1A0000.toInt(), 0.45f to 0xFFB71C1C.toInt(), 0.8f to 0xFFFF6F00.toInt(), 1f to 0xFFFFE082.toInt())),
+    PINK(R.string.palette_pink, listOf(0f to 0xFF4A148C.toInt(), 0.5f to 0xFFEC407A.toInt(), 1f to 0xFFFCE4EC.toInt())),
+    CYBERPUNK(R.string.palette_cyberpunk, listOf(0f to 0xFF00E5FF.toInt(), 0.5f to 0xFFFF00E5.toInt(), 1f to 0xFFFFF000.toInt())),
     ;
 
     /** Color interpolado para un nivel 0..1. */
@@ -173,7 +173,7 @@ enum class SpectrumPalette(val label: String, val stops: List<Pair<Float, Int>>)
 }
 
 /** Velocidad con que bajan las barras. */
-enum class FallSpeed(val label: String, val perSec: Float) { SLOW("Lenta", 0.8f), NORMAL("Normal", 1.6f), FAST("Rápida", 3.2f) }
+enum class FallSpeed(@androidx.annotation.StringRes val label: Int, val perSec: Float) { SLOW(R.string.fall_slow, 0.8f), NORMAL(R.string.fall_normal, 1.6f), FAST(R.string.fall_fast, 3.2f) }
 
 /** Opciones del visor (app y widget). */
 data class SpectrumSettings(

@@ -5,16 +5,16 @@ import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 
-enum class WallpaperPosition(val label: String) { BOTTOM("Abajo"), CENTER("Centro"), TOP("Arriba") }
+enum class WallpaperPosition(@androidx.annotation.StringRes val label: Int) { BOTTOM(R.string.position_bottom), CENTER(R.string.position_center), TOP(R.string.position_top) }
 
 /** Qué se ve en el fondo animado. */
-enum class WallpaperView(val label: String) {
+enum class WallpaperView(@androidx.annotation.StringRes val label: Int) {
     /** La ventana del skin de Winamp a todo el ancho, con el espectro en su visor. */
-    PLAYER("Reproductor"),
+    PLAYER(R.string.view_player),
     /** El skin completo hacia abajo: reproductor, ecualizador y lista de reproducción con la cola. */
-    FULL_SKIN("Winamp completo"),
+    FULL_SKIN(R.string.view_full_skin),
     /** Solo el espectro, con el estilo y el alto elegidos. */
-    SPECTRUM("Solo el espectro");
+    SPECTRUM(R.string.view_spectrum);
 
     /**
      * Ajustes del visor para este modo. El reproductor siempre usa un estilo de Winamp y la ventana

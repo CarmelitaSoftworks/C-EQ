@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -174,8 +175,8 @@ private fun EqualizerScreen() {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Ecualizador", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                Text(if (eq.enabled) "Activo en todo el teléfono" else "Apagado", color = if (eq.enabled) Accent else Muted)
+                Text(stringResource(R.string.app_name), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text(if (eq.enabled) stringResource(R.string.eq_active) else stringResource(R.string.eq_off), color = if (eq.enabled) Accent else Muted)
             }
             Switch(checked = eq.enabled, onCheckedChange = enable)
         }
@@ -193,7 +194,7 @@ private fun EqualizerScreen() {
                 }, null, tint = Accent, modifier = Modifier.size(18.dp)
             )
             Spacer(Modifier.width(8.dp))
-            Text("Perfil: ${eq.profileName}", fontSize = 14.sp)
+            Text(stringResource(R.string.profile_fmt, eq.profileName), fontSize = 14.sp)
         }
 
         eq.error?.let { Text(it, color = Color(0xFFEF5350), fontSize = 13.sp) }
@@ -202,8 +203,8 @@ private fun EqualizerScreen() {
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Card).padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Otra app de ecualizador tomó el control del audio.", Modifier.weight(1f), fontSize = 13.sp, color = Warn)
-                TextButton(onClick = engine::reclaimNow) { Text("Recuperar") }
+                Text(stringResource(R.string.other_app_control), Modifier.weight(1f), fontSize = 13.sp, color = Warn)
+                TextButton(onClick = engine::reclaimNow) { Text(stringResource(R.string.reclaim)) }
             }
         }
 
@@ -227,13 +228,13 @@ private fun EqualizerScreen() {
 
         // Curva de respuesta del ecualizador
         Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Card).padding(12.dp)) {
-            Text("Curva del ecualizador", fontSize = 13.sp, color = Muted)
+            Text(stringResource(R.string.curve_title), fontSize = 13.sp, color = Muted)
             ResponseGraph(gains)
         }
 
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             (EqCore.PRESETS.keys + eq.customPresets).forEach { name ->
-                FilterChip(selected = eq.preset == name, onClick = { engine.usePreset(name) }, label = { Text(name) })
+                FilterChip(selected = eq.preset == name, onClick = { engine.usePreset(name) }, label = { Text(presetLabel(name)) })
             }
         }
 
@@ -243,14 +244,14 @@ private fun EqualizerScreen() {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 CompareButton(enabled = eq.enabled, onHold = engine::setBypass)
                 Spacer(Modifier.weight(1f))
-                IconButton(onClick = engine::undo, enabled = eq.canUndo) { Icon(Icons.AutoMirrored.Filled.Undo, "Deshacer") }
+                IconButton(onClick = engine::undo, enabled = eq.canUndo) { Icon(Icons.AutoMirrored.Filled.Undo, stringResource(R.string.undo)) }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 eq.shownLevels.forEachIndexed { i, level -> BandSlider(level, EqCore.label(i)) { engine.setBand(i, it) } }
             }
             Text(
-                if (eq.auto) "Ajuste automático: si mueves una banda, sigues a mano desde esta curva"
-                else "Arrastra o toca una banda · doble toque la deja en 0 dB",
+                if (eq.auto) stringResource(R.string.bands_hint_auto)
+                else stringResource(R.string.bands_hint),
                 fontSize = 11.sp, color = Muted, modifier = Modifier.padding(start = 8.dp, top = 4.dp)
             )
         }
@@ -259,19 +260,19 @@ private fun EqualizerScreen() {
             Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Card).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            LabeledSlider("Graves", eq.bass, 0f..1f, "+%.0f dB".format(eq.bass * EqCore.BASS_MAX_DB), engine::setBass)
+            LabeledSlider(stringResource(R.string.bass), eq.bass, 0f..1f, "+%.0f dB".format(eq.bass * EqCore.BASS_MAX_DB), engine::setBass)
             if (eq.advanced) {
-                LabeledSlider("Volumen extra", eq.boost, 0f..EqCore.BOOST_MAX_DB, "+%.1f dB".format(eq.boost), engine::setBoost)
+                LabeledSlider(stringResource(R.string.extra_volume), eq.boost, 0f..EqCore.BOOST_MAX_DB, "+%.1f dB".format(eq.boost), engine::setBoost)
                 LabeledSlider(
-                    "Balance", eq.balance, -1f..1f,
+                    stringResource(R.string.balance), eq.balance, -1f..1f,
                     when {
-                        eq.balance < -0.02f -> "I %.0f%%".format(-eq.balance * 100)
-                        eq.balance > 0.02f -> "D %.0f%%".format(eq.balance * 100)
-                        else -> "Centro"
+                        eq.balance < -0.02f -> stringResource(R.string.balance_left_fmt, Math.round(-eq.balance * 100))
+                        eq.balance > 0.02f -> stringResource(R.string.balance_right_fmt, Math.round(eq.balance * 100))
+                        else -> stringResource(R.string.balance_center)
                     }
                 ) { v -> engine.setBalance(if (kotlin.math.abs(v) < 0.04f) 0f else v) }
             } else if (eq.engine.isNotEmpty()) {
-                Text("Este teléfono solo permite el ecualizador básico: sin volumen extra ni balance.", fontSize = 12.sp, color = Muted)
+                Text(stringResource(R.string.basic_only), fontSize = 12.sp, color = Muted)
             }
         }
 
@@ -279,49 +280,48 @@ private fun EqualizerScreen() {
             Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Card).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text("Opciones", fontWeight = FontWeight.SemiBold)
-            Text("Protección contra distorsión", fontSize = 14.sp)
+            Text(stringResource(R.string.options), fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.distortion_protection), fontSize = 14.sp)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 EqCore.Headroom.entries.forEach { m ->
-                    FilterChip(selected = eq.headroom == m, onClick = { engine.setHeadroom(m) }, label = { Text(m.label) })
+                    FilterChip(selected = eq.headroom == m, onClick = { engine.setHeadroom(m) }, label = { Text(stringResource(m.label)) })
                 }
             }
             Text(
-                eq.headroom.description + when {
+                stringResource(eq.headroom.description) + when {
                     eq.advanced || eq.engine.isEmpty() -> ""
-                    eq.headroom == EqCore.Headroom.LOUD -> " Este teléfono no tiene limitador: puede distorsionar."
-                    eq.headroom == EqCore.Headroom.BALANCED -> " Este teléfono no tiene limitador: aquí equivale a «Máxima»."
+                    eq.headroom == EqCore.Headroom.LOUD -> " " + stringResource(R.string.no_limiter_loud)
+                    eq.headroom == EqCore.Headroom.BALANCED -> " " + stringResource(R.string.no_limiter_balanced)
                     else -> ""
                 },
                 fontSize = 12.sp, lineHeight = 16.sp, color = Muted
             )
-            OptionRow("Recuperar el control si otra app lo toma", eq.autoReclaim, engine::setAutoReclaim)
-            OptionRow("Compensar volumen bajo (más graves y agudos al bajar el volumen)", eq.loudness, engine::setLoudness)
+            OptionRow(stringResource(R.string.reclaim_option), eq.autoReclaim, engine::setAutoReclaim)
+            OptionRow(stringResource(R.string.loudness_option), eq.loudness, engine::setLoudness)
             Row {
-                TextButton(onClick = { saving = true }) { Text("Guardar preajuste") }
-                TextButton(onClick = engine::resetProfile) { Text("Restablecer perfil") }
+                TextButton(onClick = { saving = true }) { Text(stringResource(R.string.save_preset)) }
+                TextButton(onClick = engine::resetProfile) { Text(stringResource(R.string.reset_profile)) }
             }
             Row {
                 TextButton(onClick = {
                     val send = android.content.Intent(android.content.Intent.ACTION_SEND)
                         .setType("text/plain")
                         .putExtra(android.content.Intent.EXTRA_TEXT, EqCore.toGraphicEq(eq.levels))
-                    runCatching { ctx.startActivity(android.content.Intent.createChooser(send, "Exportar curva")) }
-                }) { Text("Exportar curva") }
-                TextButton(onClick = { importing = true }) { Text("Importar curva") }
+                    runCatching { ctx.startActivity(android.content.Intent.createChooser(send, ctx.getString(R.string.export_curve))) }
+                }) { Text(stringResource(R.string.export_curve)) }
+                TextButton(onClick = { importing = true }) { Text(stringResource(R.string.import_curve)) }
             }
             eq.customPresets.forEach { name ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(name, Modifier.weight(1f), fontSize = 14.sp)
-                    IconButton(onClick = { engine.deleteCustomPreset(name) }) { Icon(Icons.Filled.Delete, "Borrar $name") }
+                    IconButton(onClick = { engine.deleteCustomPreset(name) }) { Icon(Icons.Filled.Delete, stringResource(R.string.delete_fmt, name)) }
                 }
             }
-            if (eq.engine.isNotEmpty()) Text("Motor: ${eq.engine}", fontSize = 12.sp, color = Muted)
+            if (eq.engine.isNotEmpty()) Text(stringResource(R.string.engine_fmt, eq.engine), fontSize = 12.sp, color = Muted)
         }
 
         Text(
-            "Cada salida tiene su propio ajuste: tu equipo Bluetooth, los audífonos y el altavoz. " +
-                "Agrega el mosaico «Ecualizador» en Ajustes rápidos para activarlo sin abrir la app.",
+            stringResource(R.string.footer),
             fontSize = 12.sp, lineHeight = 17.sp, color = Muted
         )
 
@@ -337,12 +337,12 @@ private fun EqualizerScreen() {
         var name by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { saving = false },
-            title = { Text("Guardar preajuste") },
-            text = { OutlinedTextField(name, { name = it.take(24) }, label = { Text("Nombre") }, singleLine = true) },
+            title = { Text(stringResource(R.string.save_preset)) },
+            text = { OutlinedTextField(name, { name = it.take(24) }, label = { Text(stringResource(R.string.name)) }, singleLine = true) },
             confirmButton = {
-                TextButton(enabled = name.isNotBlank(), onClick = { engine.saveCustomPreset(name); saving = false }) { Text("Guardar") }
+                TextButton(enabled = name.isNotBlank(), onClick = { engine.saveCustomPreset(name); saving = false }) { Text(stringResource(R.string.save)) }
             },
-            dismissButton = { TextButton(onClick = { saving = false }) { Text("Cancelar") } }
+            dismissButton = { TextButton(onClick = { saving = false }) { Text(stringResource(R.string.cancel)) } }
         )
     }
 }
@@ -360,17 +360,14 @@ private fun CreditsCard() {
     ) {
         Text("C-EQ ${BuildConfig.VERSION_NAME}", fontWeight = FontWeight.SemiBold)
         Text(
-            "Hecho por Carmelita Softworks. Código abierto (GPL-3.0).\n" +
-                "Winamp es de Nullsoft / Winamp SA. Cada skin incluido es obra de su autor o autora y viene de la " +
-                "colección «winampskins» de Internet Archive. Posiciones de las ventanas según Webamp.\n" +
-                "Diseño del ecualizador inspirado en Equalizer314 (F-Droid, GPL-3.0): DynamicsProcessing sobre la mezcla global.",
+            stringResource(R.string.credits_text),
             fontSize = 12.sp, lineHeight = 17.sp, color = Muted
         )
         Button(onClick = { open("https://ko-fi.com/carmelitasoftworks") }, modifier = Modifier.fillMaxWidth()) {
-            Text("Apoyar en Ko-fi ☕")
+            Text(stringResource(R.string.kofi))
         }
         TextButton(onClick = { open("https://github.com/CarmelitaSoftworks/C-EQ/blob/main/CREDITS.md") }) {
-            Text("Créditos completos y lista de skins")
+            Text(stringResource(R.string.full_credits))
         }
     }
 }
@@ -426,19 +423,19 @@ private fun DeviceCard(profileKey: String, engine: EqEngine) {
     val scope = rememberCoroutineScope()
 
     fun startCalibration() {
-        calib = CalibState.Running(0f, "Preparando…")
+        calib = CalibState.Running(0f, ctx.getString(R.string.preparing))
         scope.launch {
             calib = try {
                 CalibState.Done(Calibrator(ctx).run { p, t -> calib = CalibState.Running(p, t) })
             } catch (e: CalibrationException) {
                 CalibState.Failed(e.message ?: "Error")
             } catch (e: Exception) {
-                CalibState.Failed("No se pudo calibrar: ${e.message ?: e.javaClass.simpleName}")
+                CalibState.Failed(ctx.getString(R.string.calib_failed_fmt, e.message ?: e.javaClass.simpleName))
             }
         }
     }
     val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
-        if (ok) startCalibration() else calib = CalibState.Failed("Sin el permiso de micrófono no se puede medir.")
+        if (ok) startCalibration() else calib = CalibState.Failed(ctx.getString(R.string.calib_no_mic))
     }
 
     Column(
@@ -447,30 +444,29 @@ private fun DeviceCard(profileKey: String, engine: EqEngine) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Equipo conectado", fontSize = 12.sp, color = Muted)
+                Text(stringResource(R.string.connected_device), fontSize = 12.sp, color = Muted)
                 Text(info.name, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
                 Text(info.kind.label, color = Accent, fontSize = 13.sp)
             }
-            IconButton(onClick = { info = DeviceAnalyzer.analyze(ctx) }) { Icon(Icons.Filled.Refresh, "Analizar de nuevo") }
+            IconButton(onClick = { info = DeviceAnalyzer.analyze(ctx) }) { Icon(Icons.Filled.Refresh, stringResource(R.string.analyze_again)) }
         }
         info.details.forEach { Text("• $it", fontSize = 12.sp, color = Ink.copy(alpha = 0.65f)) }
         if (info.key.startsWith("bt:") && !DeviceAnalyzer.hasBtPermission(ctx) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             TextButton(onClick = { btPermission.launch(Manifest.permission.BLUETOOTH_CONNECT) }) {
-                Text("Permitir leer el tipo de equipo Bluetooth")
+                Text(stringResource(R.string.allow_bt_type))
             }
         }
         val eq by engine.state.collectAsState()
-        OptionRow("Ajuste automático sin micrófono", eq.auto, engine::setAuto)
+        OptionRow(stringResource(R.string.auto_option), eq.auto, engine::setAuto)
         Text(
             if (eq.auto) "Suena: ${eq.autoContent.label.lowercase()}. ${eq.autoWhy}"
-            else "La curva sigue sola al equipo conectado, a lo que suena (música, voz o video) y al volumen. " +
-                "También se activa con AUTO en el ecualizador del skin.",
+            else stringResource(R.string.auto_hint),
             fontSize = 12.sp, lineHeight = 16.sp, color = Muted
         )
-        OutlinedButton(onClick = { showAuto = true }, modifier = Modifier.fillMaxWidth()) { Text("Crear perfil fijo para este equipo") }
+        OutlinedButton(onClick = { showAuto = true }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.fixed_profile)) }
         if (AutoProfile.canCalibrate(info.kind)) {
             OutlinedButton(onClick = { calib = CalibState.Intro }, modifier = Modifier.fillMaxWidth()) {
-                Text("Calibrar con el micrófono")
+                Text(stringResource(R.string.calibrate_mic))
             }
         }
     }
@@ -479,21 +475,21 @@ private fun DeviceCard(profileKey: String, engine: EqEngine) {
         val curve = AutoProfile.curveFor(info.kind)
         AlertDialog(
             onDismissRequest = { showAuto = false },
-            title = { Text("Perfil para ${info.kind.label.lowercase()}") },
+            title = { Text(stringResource(R.string.profile_for_fmt, info.kind.label.lowercase())) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ResponseGraph(EqCore.finalGains(curve.levels, curve.bass))
                     Text(curve.why, fontSize = 13.sp, lineHeight = 18.sp)
-                    Text("Se guardará en el perfil de «${info.name}». Luego puedes ajustarlo a tu gusto.", fontSize = 12.sp, color = Muted)
+                    Text(stringResource(R.string.saved_in_fmt, info.name), fontSize = 12.sp, color = Muted)
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
                     engine.applyCurve(curve.levels, curve.bass, "Automático")
                     showAuto = false
-                }) { Text("Aplicar") }
+                }) { Text(stringResource(R.string.apply)) }
             },
-            dismissButton = { TextButton(onClick = { showAuto = false }) { Text("Cancelar") } }
+            dismissButton = { TextButton(onClick = { showAuto = false }) { Text(stringResource(R.string.cancel)) } }
         )
     }
 
@@ -526,16 +522,12 @@ private fun CalibrationDialog(
     val base = AutoProfile.curveFor(info.kind)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Calibrar ${info.name}") },
+        title = { Text(stringResource(R.string.calibrate_fmt, info.name)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 when (state) {
                     CalibState.Intro -> Text(
-                        "1. Pon el volumen del equipo a un nivel normal de escucha (ni muy bajo ni al máximo).\n" +
-                            "2. Ubica el teléfono donde sueles escuchar, a 1–2 m del equipo, con el micrófono hacia él.\n" +
-                            "3. Pide silencio: sonará un ruido tipo «shhh» durante 9 segundos.\n\n" +
-                            "El ecualizador se pausa mientras mide. El micrófono de un teléfono no es de laboratorio: " +
-                            "el resultado es una buena base, no una medición exacta.",
+                        stringResource(R.string.calib_intro),
                         fontSize = 13.sp, lineHeight = 18.sp
                     )
                     is CalibState.Running -> {
@@ -547,17 +539,16 @@ private fun CalibrationDialog(
                         val proposal = proposal(state.result.correction, base, addBase)
                         CompareGraph(state.result.measured, proposal)
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text("— Medido", fontSize = 12.sp, color = Muted)
-                            Text("— Corrección", fontSize = 12.sp, color = Accent)
+                            Text(stringResource(R.string.measured), fontSize = 12.sp, color = Muted)
+                            Text(stringResource(R.string.correction), fontSize = 12.sp, color = Accent)
                         }
                         Text(
-                            "Lo medido muestra cómo suena el equipo en tu espacio (los extremos no se corrigen: el micrófono no los mide bien). " +
-                                "La corrección recorta los picos y rellena con cuidado los huecos.",
+                            stringResource(R.string.calib_explain),
                             fontSize = 12.sp, lineHeight = 16.sp, color = Ink.copy(alpha = 0.75f)
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(checked = addBase, onCheckedChange = { addBase = it })
-                            Text("Sumar el perfil automático de ${info.kind.label.lowercase()}", fontSize = 13.sp)
+                            Text(stringResource(R.string.add_auto_fmt, info.kind.label.lowercase()), fontSize = 13.sp)
                         }
                     }
                 }
@@ -566,16 +557,16 @@ private fun CalibrationDialog(
         confirmButton = {
             when (state) {
                 CalibState.Intro, is CalibState.Failed -> TextButton(onClick = onStart) {
-                    Text(if (state is CalibState.Failed) "Reintentar" else "Comenzar")
+                    Text(if (state is CalibState.Failed) stringResource(R.string.retry) else stringResource(R.string.start))
                 }
                 is CalibState.Done -> TextButton(onClick = {
                     onApply(proposal(state.result.correction, base, addBase), if (addBase) base.bass else 0f)
-                }) { Text("Aplicar") }
+                }) { Text(stringResource(R.string.apply)) }
                 is CalibState.Running -> {}
             }
         },
         dismissButton = {
-            if (state !is CalibState.Running) TextButton(onClick = onDismiss) { Text("Cerrar") }
+            if (state !is CalibState.Running) TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
         }
     )
 }
@@ -626,31 +617,30 @@ private fun SpectrumCard(running: Boolean, error: String?, onToggle: (Boolean) -
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Espectro en tiempo real", Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.spectrum_live), Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
             Switch(checked = running, onCheckedChange = onToggle)
         }
         if (running) {
             SpectrumView(settings, mode, frozen, Modifier.fillMaxWidth().height(190.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                FilterChip(selected = mode == 0, onClick = { mode = 0 }, label = { Text("Analizador") })
-                FilterChip(selected = mode == 1, onClick = { mode = 1 }, label = { Text("Cascada") })
+                FilterChip(selected = mode == 0, onClick = { mode = 0 }, label = { Text(stringResource(R.string.analyzer)) })
+                FilterChip(selected = mode == 1, onClick = { mode = 1 }, label = { Text(stringResource(R.string.waterfall)) })
                 Spacer(Modifier.weight(1f))
-                IconButton(onClick = { customizing = true }) { Icon(Icons.Filled.Palette, "Personalizar") }
+                IconButton(onClick = { customizing = true }) { Icon(Icons.Filled.Palette, stringResource(R.string.customize)) }
                 IconButton(onClick = { frozen = !frozen }) {
-                    Icon(if (frozen) Icons.Filled.PlayArrow else Icons.Filled.Pause, if (frozen) "Continuar" else "Congelar")
+                    Icon(if (frozen) Icons.Filled.PlayArrow else Icons.Filled.Pause, if (frozen) stringResource(R.string.resume) else stringResource(R.string.freeze))
                 }
-                IconButton(onClick = { fullscreen = true }) { Icon(Icons.Filled.Fullscreen, "Pantalla completa") }
+                IconButton(onClick = { fullscreen = true }) { Icon(Icons.Filled.Fullscreen, stringResource(R.string.fullscreen)) }
             }
         } else {
             Text(
-                "Muestra en vivo los graves, medios y agudos de todo lo que suena. Android pide el permiso de micrófono para esto, pero no se graba nada. " +
-                    "También puedes agregar el widget «Espectro» en tu pantalla de inicio.",
+                stringResource(R.string.spectrum_hint),
                 fontSize = 12.sp, lineHeight = 16.sp, color = Muted
             )
         }
         error?.let { Text(it, fontSize = 12.sp, color = Warn) }
         if (running && SpectrumWidget.hasWidgets(ctx)) {
-            TextButton(onClick = { SpectrumWidgetService.start(ctx) }) { Text("Animar el widget de la pantalla de inicio") }
+            TextButton(onClick = { SpectrumWidgetService.start(ctx) }) { Text(stringResource(R.string.animate_widget)) }
         }
     }
 
@@ -658,15 +648,15 @@ private fun SpectrumCard(running: Boolean, error: String?, onToggle: (Boolean) -
         Dialog(onDismissRequest = { fullscreen = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
             Column(Modifier.fillMaxSize().background(Bg).systemBarsPadding().padding(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    FilterChip(selected = mode == 0, onClick = { mode = 0 }, label = { Text("Analizador") })
+                    FilterChip(selected = mode == 0, onClick = { mode = 0 }, label = { Text(stringResource(R.string.analyzer)) })
                     Spacer(Modifier.width(8.dp))
-                    FilterChip(selected = mode == 1, onClick = { mode = 1 }, label = { Text("Cascada") })
+                    FilterChip(selected = mode == 1, onClick = { mode = 1 }, label = { Text(stringResource(R.string.waterfall)) })
                     Spacer(Modifier.weight(1f))
-                    IconButton(onClick = { customizing = true }) { Icon(Icons.Filled.Palette, "Personalizar") }
+                    IconButton(onClick = { customizing = true }) { Icon(Icons.Filled.Palette, stringResource(R.string.customize)) }
                     IconButton(onClick = { frozen = !frozen }) {
-                        Icon(if (frozen) Icons.Filled.PlayArrow else Icons.Filled.Pause, if (frozen) "Continuar" else "Congelar")
+                        Icon(if (frozen) Icons.Filled.PlayArrow else Icons.Filled.Pause, if (frozen) stringResource(R.string.resume) else stringResource(R.string.freeze))
                     }
-                    IconButton(onClick = { fullscreen = false }) { Icon(Icons.Filled.Close, "Cerrar") }
+                    IconButton(onClick = { fullscreen = false }) { Icon(Icons.Filled.Close, stringResource(R.string.close)) }
                 }
                 SpectrumView(settings, mode, frozen, Modifier.fillMaxWidth().weight(1f))
             }
@@ -687,18 +677,17 @@ private fun NowPlayingAccess() {
     LaunchedEffect(state, access) { if (access) NowPlaying.reconnect(ctx) }
     if (access && !connected) {
         Text(
-            "Permiso dado, pero Android aún no conecta el servicio que lee lo que suena. Espera unos segundos; " +
-                "si sigue así, desactiva y vuelve a activar el acceso o reinicia el teléfono.",
+            stringResource(R.string.np_not_connected),
             fontSize = 12.sp, lineHeight = 16.sp, color = Warn
         )
         OutlinedButton(onClick = {
             runCatching { ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
-        }) { Text("Abrir el acceso a notificaciones") }
+        }) { Text(stringResource(R.string.open_notif_access)) }
     }
     if (access) {
         Text(
-            (track?.let { "Suena: ${it.winampTitle()}" } ?: "Muestra lo que suena en cualquier app. Pon música para verlo.") +
-                " En el fondo, los botones del skin controlan la música (toca una zona sin íconos).",
+            (track?.let { stringResource(R.string.np_playing_fmt, it.winampTitle()) } ?: stringResource(R.string.np_idle)) +
+                " " + stringResource(R.string.np_buttons_hint),
             fontSize = 12.sp, color = Muted
         )
         var inShade by remember { mutableStateOf(PlayerNotification.isEnabled(ctx)) }
@@ -712,7 +701,7 @@ private fun NowPlayingAccess() {
                 )
             }
         }
-        OptionRow("Reproductor en la barra de notificaciones", inShade) { on ->
+        OptionRow(stringResource(R.string.shade_player), inShade) { on ->
             inShade = on
             PlayerNotification.setEnabled(ctx, on)
             if (on && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -726,7 +715,7 @@ private fun NowPlayingAccess() {
         LaunchedEffect(state, canNotify) { if (canNotify) PlayerNotification.update(ctx) }
         if (inShade && !canNotify) {
             Text(
-                "Android no le permite a Ecualizador mostrar notificaciones, así que el reproductor no aparece en la barra.",
+                stringResource(R.string.notif_blocked),
                 fontSize = 12.sp, lineHeight = 16.sp, color = Warn
             )
             OutlinedButton(onClick = {
@@ -739,17 +728,16 @@ private fun NowPlayingAccess() {
                             .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, ctx.packageName)
                     )
                 }
-            }) { Text("Permitir notificaciones") }
+            }) { Text(stringResource(R.string.allow_notifs)) }
         }
     } else {
         Text(
-            "Para ver en el reproductor el título, el tiempo y si está en pausa, y para que sus botones controlen " +
-                "la música, Android pide el «acceso a las notificaciones». La app solo lo usa para eso: no lee tus notificaciones.",
+            stringResource(R.string.np_explain),
             fontSize = 12.sp, lineHeight = 16.sp, color = Muted
         )
         OutlinedButton(onClick = {
             runCatching { ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
-        }) { Text("Mostrar lo que suena") }
+        }) { Text(stringResource(R.string.show_now_playing)) }
     }
 }
 
@@ -771,7 +759,7 @@ private fun WallpaperCard() {
             // La foto se copia entera (puede pesar decenas de MB): fuera del hilo principal
             val ok = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { WallpaperPrefs.saveImage(ctx, uri) }
             saving = false
-            message = if (ok) null else "No se pudo usar esa imagen."
+            message = if (ok) null else ctx.getString(R.string.image_failed)
         }
     }
     val imageSize = remember(ws.imageVersion, ws.hasImage) {
@@ -783,40 +771,38 @@ private fun WallpaperCard() {
         Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Card).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text("Fondo de pantalla animado", fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.live_wallpaper), fontWeight = FontWeight.SemiBold)
         Text(
-            "El espectro sobre tu foto en la pantalla de inicio, a 60 cuadros por segundo. " +
-                "Usa el mismo estilo y colores del visor, y se detiene cuando no se ve (con una app abierta o la pantalla apagada).",
+            stringResource(R.string.wallpaper_hint),
             fontSize = 12.sp, lineHeight = 16.sp, color = Muted
         )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(enabled = !saving, onClick = {
                 picker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            }) { Text(if (saving) "Guardando…" else if (ws.hasImage) "Cambiar foto" else "Elegir foto") }
-            if (ws.hasImage && !saving) TextButton(onClick = { WallpaperPrefs.removeImage(ctx) }) { Text("Quitar foto") }
+            }) { Text(if (saving) stringResource(R.string.saving) else if (ws.hasImage) stringResource(R.string.change_photo) else stringResource(R.string.pick_photo)) }
+            if (ws.hasImage && !saving) TextButton(onClick = { WallpaperPrefs.removeImage(ctx) }) { Text(stringResource(R.string.remove_photo)) }
         }
         if (ws.hasImage) imageSize?.let { (w, h) ->
             val drawn = render?.let { r ->
-                " Se dibuja a ${r.surfaceW}×${r.surfaceH} (pantalla ${r.displayW}×${r.displayH})" +
-                    (if (r.enlarged) ", pedido a resolución completa porque el sistema daba menos." else ".")
-            } ?: " Pon el fondo para ver con qué resolución se dibuja."
-            Text("Foto original de ${w}×${h}, sin recomprimir.$drawn", fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+                stringResource(R.string.drawn_at_fmt, r.surfaceW, r.surfaceH, r.displayW, r.displayH) +
+                    (if (r.enlarged) stringResource(R.string.drawn_enlarged) else ".")
+            } ?: stringResource(R.string.drawn_unknown)
+            Text(stringResource(R.string.photo_original_fmt, w, h, drawn), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
         }
-        Text("Qué se ve", color = Muted, fontSize = 13.sp)
+        Text(stringResource(R.string.what_shows), color = Muted, fontSize = 13.sp)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             WallpaperView.entries.forEach { v ->
-                FilterChip(selected = ws.view == v, onClick = { set { it.copy(view = v) } }, label = { Text(v.label) })
+                FilterChip(selected = ws.view == v, onClick = { set { it.copy(view = v) } }, label = { Text(stringResource(v.label)) })
             }
         }
         val spectrum by SpectrumPrefs.settings.collectAsState()
         val winampLook = ws.view != WallpaperView.SPECTRUM || spectrum.style.winamp
         Text(
             when {
-                ws.view == WallpaperView.PLAYER -> "La ventana del skin de Winamp elegido a todo el ancho, con el espectro en su visor."
-                ws.view == WallpaperView.FULL_SKIN -> "El skin completo hacia abajo: el reproductor, el ecualizador con tus bandas " +
-                    "(se tocan para cambiarlas; AUTO activa el ajuste automático) y la lista con la cola de lo que suena."
-                spectrum.style.winamp -> "El espectro con el marco y los colores del skin; arriba, lo que suena y el tiempo."
-                else -> "Solo el espectro, con el estilo y los colores del visor."
+                ws.view == WallpaperView.PLAYER -> stringResource(R.string.view_player_hint)
+                ws.view == WallpaperView.FULL_SKIN -> stringResource(R.string.view_full_hint)
+                spectrum.style.winamp -> stringResource(R.string.view_spectrum_winamp_hint)
+                else -> stringResource(R.string.view_spectrum_hint)
             },
             fontSize = 12.sp, lineHeight = 16.sp, color = Muted
         )
@@ -837,17 +823,17 @@ private fun WallpaperCard() {
             WinampSkinPicker(ws.view.spectrumSettings(spectrum).copy(winampStack = false)) { change -> SpectrumPrefs.update(ctx, change) }
             NowPlayingAccess()
         }
-        Text("Posición", color = Muted, fontSize = 13.sp)
+        Text(stringResource(R.string.position), color = Muted, fontSize = 13.sp)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             WallpaperPosition.entries.forEach { p ->
-                FilterChip(selected = ws.position == p, onClick = { set { it.copy(position = p) } }, label = { Text(p.label) })
+                FilterChip(selected = ws.position == p, onClick = { set { it.copy(position = p) } }, label = { Text(stringResource(p.label)) })
             }
         }
         if (ws.view == WallpaperView.SPECTRUM) {
-            LabeledSlider("Alto", ws.height, 0.1f..0.6f, "%.0f%%".format(ws.height * 100)) { v -> set { it.copy(height = v) } }
+            LabeledSlider(stringResource(R.string.height), ws.height, 0.1f..0.6f, "%.0f%%".format(ws.height * 100)) { v -> set { it.copy(height = v) } }
         }
         if (ws.hasImage) {
-            LabeledSlider("Oscurecer foto", ws.dim, 0f..0.7f, "%.0f%%".format(ws.dim * 100)) { v -> set { it.copy(dim = v) } }
+            LabeledSlider(stringResource(R.string.dim_photo), ws.dim, 0f..0.7f, "%.0f%%".format(ws.dim * 100)) { v -> set { it.copy(dim = v) } }
         }
         Button(onClick = {
             val intent = android.content.Intent(android.app.WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).putExtra(
@@ -855,10 +841,10 @@ private fun WallpaperCard() {
                 android.content.ComponentName(ctx, SpectrumWallpaperService::class.java)
             )
             message = if (runCatching { ctx.startActivity(intent) }.isSuccess) null
-            else "Este teléfono no permite fondos animados desde aquí. Búscalo en Ajustes › Fondo de pantalla › Fondos animados."
-        }, modifier = Modifier.fillMaxWidth()) { Text("Establecer como fondo de pantalla") }
+            else ctx.getString(R.string.no_live_wallpaper)
+        }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.set_wallpaper)) }
         Text(
-            "Necesita el permiso del espectro: activa primero «Espectro en tiempo real» arriba. Los cambios se aplican al instante si ya está puesto.",
+            stringResource(R.string.wallpaper_perm_hint),
             fontSize = 11.sp, color = Muted
         )
         message?.let { Text(it, fontSize = 12.sp, color = Warn) }
@@ -1018,14 +1004,14 @@ private fun WinampSkinPicker(settings: SpectrumSettings, set: ((SpectrumSettings
                             val n = input.read(buf)
                             if (n < 0) break
                             out.write(buf, 0, n)
-                            if (out.size() > 30 shl 20) throw IllegalArgumentException("El skin es demasiado grande")
+                            if (out.size() > 30 shl 20) throw IllegalArgumentException(ctx.getString(R.string.skin_too_big))
                         }
                         out.toByteArray()
-                    } ?: throw IllegalArgumentException("No se pudo abrir el archivo")
+                    } ?: throw IllegalArgumentException(ctx.getString(R.string.cant_open_file))
                     val archive = SkinArchive.read(bytes.inputStream())
                     val skins = SkinImport.import(archive, fileName.substringBeforeLast('.').replace('_', ' '), SkinImport.ANDROID_DECODER)
-                    if (SkinImport.isModern(archive)) throw IllegalArgumentException("Solo se aceptan skins clásicos (.wsz); los modernos (.wal) no.")
-                    if (skins.isEmpty()) throw IllegalArgumentException("No es un skin clásico de Winamp (no trae MAIN.BMP ni VISCOLOR.TXT)")
+                    if (SkinImport.isModern(archive)) throw IllegalArgumentException(ctx.getString(R.string.only_classic))
+                    if (skins.isEmpty()) throw IllegalArgumentException(ctx.getString(R.string.not_classic))
                     WinampSkins.add(ctx, skins, bytes)
                 }
             }
@@ -1034,16 +1020,16 @@ private fun WinampSkinPicker(settings: SpectrumSettings, set: ((SpectrumSettings
             result.onSuccess { added ->
                 group = SkinImport.GROUP_IMPORTED
                 set { it.copy(winampSkin = added.first().name) }
-                message = "Importado: ${added.first().name}"
-            }.onFailure { message = it.message ?: "No se pudo importar el skin" }
+                message = ctx.getString(R.string.imported_fmt, added.first().name)
+            }.onFailure { message = it.message ?: ctx.getString(R.string.import_failed) }
         }
     }
 
-    Text("Skin de Winamp", color = Muted, fontSize = 13.sp)
+    Text(stringResource(R.string.winamp_skin), color = Muted, fontSize = 13.sp)
     val groups = remember(all) { all.map { it.group }.distinct() }
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         groups.forEach { g ->
-            FilterChip(selected = group == g, onClick = { group = g }, label = { Text("$g (${all.count { it.group == g }})") })
+            FilterChip(selected = group == g, onClick = { group = g }, label = { Text("${groupLabel(g)} (${all.count { it.group == g }})") })
         }
     }
     val shown = remember(all, group) { all.filter { it.group == group }.ifEmpty { all } }
@@ -1065,26 +1051,25 @@ private fun WinampSkinPicker(settings: SpectrumSettings, set: ((SpectrumSettings
     }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(enabled = !busy, onClick = { picker.launch(arrayOf("*/*")) }) {
-            Text(if (busy) "Importando…" else "Importar skin (.wsz)")
+            Text(if (busy) stringResource(R.string.importing) else stringResource(R.string.import_skin))
         }
         if (selected.group == SkinImport.GROUP_IMPORTED) {
             TextButton(onClick = {
                 WinampSkins.remove(ctx, selected.name)
                 set { it.copy(winampSkin = WinampSkins.DEFAULT.name) }
                 if (WinampSkins.imported.value.isEmpty()) group = WinampSkins.GROUP_CLASSIC
-            }) { Text("Quitar") }
+            }) { Text(stringResource(R.string.remove)) }
         }
     }
     message?.let { Text(it, fontSize = 12.sp, color = if (failed) Warn else Accent) }
     if (selected.group == SkinImport.GROUP_IMPORTED && selected.sourceFile == null && remember(selected) { WinampWindows.isOutdated(selected) }) {
         Text(
-            "Este skin se importó con una versión anterior: quítalo y vuelve a importarlo para ver lo que suena, usar sus botones y verlo completo.",
+            stringResource(R.string.skin_outdated),
             fontSize = 12.sp, lineHeight = 16.sp, color = Warn
         )
     }
     Text(
-        "Skins clásicos de Winamp 2 con su ventana real y sus colores originales (VISCOLOR.TXT, MAIN.BMP, " +
-            "TEXT.BMP y PLEDIT.TXT). Puedes importar tus propios skins clásicos (.wsz); quedan solo en tu teléfono.",
+        stringResource(R.string.skins_hint),
         fontSize = 12.sp, lineHeight = 16.sp, color = Muted
     )
 }
@@ -1101,26 +1086,26 @@ private fun SpectrumSettingsDialog(settings: SpectrumSettings, running: Boolean,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Personalizar visor y tema", Modifier.weight(1f), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-                IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, "Cerrar") }
+                Text(stringResource(R.string.customize_title), Modifier.weight(1f), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, stringResource(R.string.close)) }
             }
             if (running) {
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Bg).padding(6.dp)) {
                     SpectrumView(settings, 0, false, Modifier.fillMaxWidth().height(120.dp))
                 }
             }
-            Text("Estilo", color = Muted, fontSize = 13.sp)
+            Text(stringResource(R.string.style), color = Muted, fontSize = 13.sp)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SpectrumStyle.entries.forEach { st ->
-                    FilterChip(selected = settings.style == st, onClick = { set { it.copy(style = st) } }, label = { Text(st.label) })
+                    FilterChip(selected = settings.style == st, onClick = { set { it.copy(style = st) } }, label = { Text(stringResource(st.label)) })
                 }
             }
-            Text("Colores", color = Muted, fontSize = 13.sp)
+            Text(stringResource(R.string.colors), color = Muted, fontSize = 13.sp)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SpectrumPalette.entries.forEach { pal ->
                     FilterChip(
                         selected = settings.palette == pal, onClick = { set { it.copy(palette = pal) } },
-                        label = { Text(pal.label) },
+                        label = { Text(stringResource(pal.label)) },
                         leadingIcon = {
                             Box(
                                 Modifier.size(14.dp).clip(RoundedCornerShape(50))
@@ -1130,18 +1115,18 @@ private fun SpectrumSettingsDialog(settings: SpectrumSettings, running: Boolean,
                     )
                 }
             }
-            OptionRow("Tema de la app con los colores del skin", settings.appTheme) { v -> set { it.copy(appTheme = v) } }
+            OptionRow(stringResource(R.string.app_theme_option), settings.appTheme) { v -> set { it.copy(appTheme = v) } }
             if (settings.style.winamp || settings.appTheme) {
                 WinampSkinPicker(settings) { change -> set(change) }
             }
             if (settings.style.winamp) {
-                Text("Patrón de color", color = Muted, fontSize = 13.sp)
+                Text(stringResource(R.string.color_pattern), color = Muted, fontSize = 13.sp)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     WinampPattern.entries.forEach { pat ->
                         FilterChip(
                             selected = settings.winampPattern == pat,
                             onClick = { set { it.copy(winampPattern = pat) } },
-                            label = { Text(pat.label) },
+                            label = { Text(stringResource(pat.label)) },
                             leadingIcon = {
                                 val mini = remember(pat, settings.winampSkin, settings.style) {
                                     settings.copy(winampPattern = pat, winampFrame = false)
@@ -1151,14 +1136,14 @@ private fun SpectrumSettingsDialog(settings: SpectrumSettings, running: Boolean,
                         )
                     }
                 }
-                OptionRow("Mostrar la ventana del skin", settings.winampFrame) { v -> set { it.copy(winampFrame = v) } }
+                OptionRow(stringResource(R.string.show_skin_window), settings.winampFrame) { v -> set { it.copy(winampFrame = v) } }
                 Text(
-                    "Como el original: 16 píxeles de alto; el Winamp original tiene 19 bandas gruesas o 75 finas.",
+                    stringResource(R.string.winamp_original_hint),
                     fontSize = 12.sp, lineHeight = 16.sp, color = Muted
                 )
             }
             if (settings.barOptions.isNotEmpty()) {
-                Text("Cantidad de barras", color = Muted, fontSize = 13.sp)
+                Text(stringResource(R.string.bar_count), color = Muted, fontSize = 13.sp)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     val original = when (settings.style) {
                         SpectrumStyle.WINAMP_CLASSIC, SpectrumStyle.WINAMP_FIRE -> SpectrumSettings.WINAMP_BARS_ORIGINAL
@@ -1168,30 +1153,30 @@ private fun SpectrumSettingsDialog(settings: SpectrumSettings, running: Boolean,
                     settings.barOptions.forEach { b ->
                         FilterChip(
                             selected = settings.effectiveBars == b, onClick = { set { it.withBars(b) } },
-                            label = { Text(if (b == original) "$b (original)" else "$b") }
+                            label = { Text(if (b == original) stringResource(R.string.bars_original_fmt, b) else "$b") }
                         )
                     }
                 }
             }
-            Text("Caída de las barras", color = Muted, fontSize = 13.sp)
+            Text(stringResource(R.string.bar_fall), color = Muted, fontSize = 13.sp)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FallSpeed.entries.forEach { f ->
-                    FilterChip(selected = settings.fall == f, onClick = { set { it.copy(fall = f) } }, label = { Text(f.label) })
+                    FilterChip(selected = settings.fall == f, onClick = { set { it.copy(fall = f) } }, label = { Text(stringResource(f.label)) })
                 }
             }
-            LabeledSlider("Sensibilidad", settings.sensitivity, 0.5f..2.5f, "×%.1f".format(settings.sensitivity)) { v ->
+            LabeledSlider(stringResource(R.string.sensitivity), settings.sensitivity, 0.5f..2.5f, "×%.1f".format(settings.sensitivity)) { v ->
                 set { it.copy(sensitivity = v) }
             }
-            OptionRow("Mostrar picos", settings.peaks) { v -> set { it.copy(peaks = v) } }
-            OptionRow("Mostrar guías de frecuencia", settings.grid) { v -> set { it.copy(grid = v) } }
-            Text("Widget: cuadros por segundo", color = Muted, fontSize = 13.sp)
+            OptionRow(stringResource(R.string.show_peaks), settings.peaks) { v -> set { it.copy(peaks = v) } }
+            OptionRow(stringResource(R.string.show_grid), settings.grid) { v -> set { it.copy(grid = v) } }
+            Text(stringResource(R.string.widget_fps), color = Muted, fontSize = 13.sp)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SpectrumSettings.FPS_OPTIONS.forEach { f ->
                     FilterChip(selected = settings.widgetFps == f, onClick = { set { it.copy(widgetFps = f) } }, label = { Text("$f") })
                 }
             }
             Text(
-                "Más cuadros por segundo en el widget se ve más fluido pero gasta más batería. El widget se pausa con la pantalla apagada.",
+                stringResource(R.string.widget_fps_hint),
                 fontSize = 12.sp, lineHeight = 16.sp, color = Muted
             )
         }
@@ -1216,7 +1201,7 @@ private fun CompareButton(enabled: Boolean, onHold: (Boolean) -> Unit) {
             .padding(horizontal = 14.dp, vertical = 8.dp)
     ) {
         Text(
-            if (held) "Sin ecualizador…" else "Mantén para comparar A/B",
+            if (held) stringResource(R.string.no_eq_held) else stringResource(R.string.hold_compare),
             fontSize = 13.sp, color = if (enabled) Ink else Muted
         )
     }
@@ -1230,27 +1215,27 @@ private fun ImportDialog(onDismiss: () -> Unit, onImport: (List<Float>) -> Unit)
     val parsed = remember(text) { EqCore.fromGraphicEq(text) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Importar curva") },
+        title = { Text(stringResource(R.string.import_curve)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Pega una curva en formato GraphicEQ (Equalizer APO). Por ejemplo, las de AutoEQ para tus audífonos.",
+                    stringResource(R.string.import_hint),
                     fontSize = 13.sp, lineHeight = 18.sp
                 )
                 OutlinedTextField(
                     text, { text = it }, Modifier.fillMaxWidth().heightIn(min = 100.dp),
                     placeholder = { Text("GraphicEQ: 20 -1.5; 31 -1.2; …") }
                 )
-                TextButton(onClick = { text = clipboard.getText()?.text.orEmpty() }) { Text("Pegar del portapapeles") }
+                TextButton(onClick = { text = clipboard.getText()?.text.orEmpty() }) { Text(stringResource(R.string.paste_clipboard)) }
                 when {
                     text.isBlank() -> {}
-                    parsed == null -> Text("No se reconoce el formato GraphicEQ.", fontSize = 12.sp, color = Warn)
+                    parsed == null -> Text(stringResource(R.string.bad_graphiceq), fontSize = 12.sp, color = Warn)
                     else -> ResponseGraph(parsed)
                 }
             }
         },
-        confirmButton = { TextButton(enabled = parsed != null, onClick = { parsed?.let(onImport) }) { Text("Aplicar") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+        confirmButton = { TextButton(enabled = parsed != null, onClick = { parsed?.let(onImport) }) { Text(stringResource(R.string.apply)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } }
     )
 }
 
@@ -1304,4 +1289,32 @@ private fun OptionRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
         Text(label, Modifier.weight(1f), fontSize = 13.sp)
         Switch(checked = checked, onCheckedChange = onChange)
     }
+}
+
+/** Nombre de un preajuste en el idioma del teléfono (se guardan con su nombre original). */
+@Composable
+private fun presetLabel(name: String): String = PRESET_LABELS[name]?.let { stringResource(it) } ?: name
+
+private val PRESET_LABELS = mapOf(
+    "Plano" to R.string.preset_flat,
+    "Graves extra" to R.string.preset_bass_extra,
+    "Graves y agudos" to R.string.preset_bass_treble,
+    "Fiesta" to R.string.preset_party,
+    "Rock" to R.string.preset_rock,
+    "Pop" to R.string.preset_pop,
+    "Voces" to R.string.preset_vocals,
+    "Clásica" to R.string.preset_classical,
+    "Podcast" to R.string.preset_podcast,
+    "Volumen bajo" to R.string.preset_low_volume,
+    "Automático" to R.string.preset_automatic,
+    "Calibrado" to R.string.preset_calibrated,
+    "Importado" to R.string.preset_imported
+)
+
+/** Nombre del grupo de skins en el idioma del teléfono (los skins no cambian). */
+@Composable
+private fun groupLabel(group: String): String = when (group) {
+    WinampSkins.GROUP_CLASSIC -> stringResource(R.string.group_classic)
+    SkinImport.GROUP_IMPORTED -> stringResource(R.string.group_imported)
+    else -> group
 }
