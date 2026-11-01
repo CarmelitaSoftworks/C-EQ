@@ -52,6 +52,7 @@ class SpectrumRenderer {
         val n = values.size
         if (w <= 0 || h <= 0) return
         hitPart = null // lo vuelve a fijar el skin real si se dibuja
+        stackScale = 0f
         // Cada estilo deja sus ajustes en los pinceles compartidos: se reinician en cada cuadro.
         fill.shader = null; fill.alpha = 255
         stroke.shader = null; stroke.alpha = 255; stroke.strokeCap = Paint.Cap.ROUND
@@ -220,6 +221,7 @@ class SpectrumRenderer {
         val skin = WinampSkins.byName(s.winampSkin)
         val window = if (s.winampFrame && s.winampWindow) WinampWindows.bitmap(skin) else null
         val area = when {
+            window != null && s.winampStack -> drawSkinStack(canvas, w, h, window, skin, s.winampMarquee)
             window != null -> drawSkinWindow(canvas, w, h, window, s.winampPart, skin, s.winampMarquee)
             s.winampFrame -> drawWinampFrame(canvas, w, h, skin, density)
             else -> null
@@ -329,7 +331,7 @@ class SpectrumRenderer {
         canvas.clipRect(left, top, left + part.w * scale, top + part.h * scale)
         blit(part.x, part.y, part.w, part.h, part.x.toFloat(), part.y.toFloat())
         // Las ventanas importadas antes de la 2.8 no traen las piezas: quedan como estaban
-        if (atlas.height >= WinampWindow.ATLAS_HEIGHT) {
+        if (atlas.height >= WinampWindow.LIVE_HEIGHT) {
             drawNowPlaying(skin, marquee, ::blit)
             // Botón recién tocado: la imagen «presionado» del skin por un instante
             val b = pressed
@@ -359,6 +361,7 @@ class SpectrumRenderer {
      * si no hay skin real o no se tocó nada.
      */
     fun hitAt(x: Float, y: Float): WinampWindow.Hit? {
+        if (stackScale > 0f) return stackHit((x - stackLeft) / stackScale, (y - stackTop) / stackScale)
         val part = hitPart ?: return null
         return WinampWindow.hit(part.x + (x - hitLeft) / hitScale, part.y + (y - hitTop) / hitScale, part)
     }
@@ -367,6 +370,193 @@ class SpectrumRenderer {
     fun press(button: WinampWindow.Button) {
         pressed = button
         pressedUntil = android.os.SystemClock.elapsedRealtime() + 180
+    }
+
+    // ---------------------------------------------------------------- Skin completo
+
+    // Dónde quedó el skin completo en el último cuadro (escala 0: no se dibujó)
+    private var stackScale = 0f
+    private var stackLeft = 0f
+    private var stackTop = 0f
+    private var stackSides = 1
+    private var playlistFirst = 0
+    private var playlistShown = 0
+
+    private fun stackHit(x: Float, y: Float): WinampWindow.Hit? {
+        if (x < 0 || x >= WinampWindow.WIDTH || y < 0) return null
+        val h = WinampWindow.HEIGHT
+        if (y < h) return WinampWindow.hit(x, y, WinampWindow.Part.FULL)
+        if (y < 2 * h) return WinampWindow.eqHit(x, y - h)
+        val py = y - 2 * h - WinampWindow.PL_TOP_H - 2
+        if (x < WinampWindow.PL_LEFT_W || x >= WinampWindow.WIDTH - WinampWindow.PL_RIGHT_W || py < 0) return null
+        if (py >= WinampWindow.PL_SIDE_H * stackSides) return null
+        val row = (py / WinampWindow.PL_ROW_H).toInt()
+        return if (row < playlistShown) WinampWindow.Hit.PlaylistRow(playlistFirst + row) else null
+    }
+
+    /**
+     * Skin completo hacia abajo: el reproductor (como [drawSkinWindow]), la ventana del ecualizador
+     * con las bandas que suenan y la lista de reproducción con la cola. Devuelve el recuadro del visor.
+     */
+    private fun drawSkinStack(
+        canvas: Canvas, w: Float, h: Float, atlas: android.graphics.Bitmap, skin: WinampSkin, marquee: Boolean,
+    ): android.graphics.RectF {
+        val scale = SkinStack.scale(w, h)
+        val sides = SkinStack.sides(h, scale)
+        val total = SkinStack.FIXED + WinampWindow.playlistHeight(sides)
+        val left = kotlin.math.round((w - WinampWindow.WIDTH * scale) / 2)
+        val top = kotlin.math.round((h - total * scale) / 2)
+        val ww = WinampWindow.WIDTH * scale
+        val wh = WinampWindow.HEIGHT * scale
+
+        canvas.save()
+        canvas.translate(left, top)
+        val vis = drawSkinWindow(canvas, ww, wh, atlas, WinampWindow.Part.FULL, skin, marquee)
+        canvas.restore()
+        vis.offset(left, top)
+
+        val (eqAtlas, plAtlas) = WinampWindows.extras(skin)
+        eqAtlas?.let { drawEqualizer(canvas, it, left, top + wh, scale) }
+        plAtlas?.let { drawPlaylist(canvas, it, left, top + 2 * wh, scale, sides, skin) }
+
+        stackScale = scale; stackLeft = left; stackTop = top; stackSides = sides
+        return vis
+    }
+
+    /** Copia un recorte del atlas a ([wx], [wy]) en píxeles del skin, desde ([x0], [y0]) en pantalla. */
+    private fun put(canvas: Canvas, a: android.graphics.Bitmap, sx: Int, sy: Int, sw: Int, sh: Int, x0: Float, y0: Float, scale: Float, wx: Float, wy: Float) {
+        windowSrc.set(sx, sy, sx + sw, sy + sh)
+        val x = x0 + wx * scale
+        val y = y0 + wy * scale
+        windowDst.set(x, y, x + sw * scale, y + sh * scale)
+        canvas.drawBitmap(a, windowSrc, windowDst, pixelPaint)
+    }
+
+    private var graphBitmap: android.graphics.Bitmap? = null
+    private var graphKey: Any? = null
+
+    /** Ventana del ecualizador: ON, AUTO, los 10 deslizadores y el preamplificador, y la curva. */
+    private fun drawEqualizer(canvas: Canvas, a: android.graphics.Bitmap, x0: Float, y0: Float, scale: Float) {
+        val eq = EqEngine.peek()?.state?.value
+        fun p(sx: Int, sy: Int, sw: Int, sh: Int, wx: Float, wy: Float) = put(canvas, a, sx, sy, sw, sh, x0, y0, scale, wx, wy)
+        p(0, WinampWindow.EQ_Y, WinampWindow.WIDTH, WinampWindow.HEIGHT, 0f, 0f)
+        val on = eq?.enabled == true
+        if (on) p(WinampWindow.EQ_THUMB_X + 28, WinampWindow.EQ_ON_Y, 26, 12, 14f, 18f)
+        else p(WinampWindow.EQ_THUMB_X, WinampWindow.EQ_ON_Y, 26, 12, 14f, 18f)
+        p(WinampWindow.EQ_THUMB_X, if (eq?.auto == true) WinampWindow.EQ_AUTO_ON_Y else WinampWindow.EQ_AUTO_Y, 32, 12, 40f, 18f)
+
+        val levels = eq?.shownLevels ?: List(EqCore.BANDS) { 0f }
+        fun fraction(db: Float) = ((db - EqCore.MIN_DB) / (EqCore.MAX_DB - EqCore.MIN_DB)).coerceIn(0f, 1f)
+        fun slider(x: Int, f: Float) {
+            val (fx, fy) = WinampWindow.eqSliderFrame(f)
+            p(fx, fy, 14, WinampWindow.EQ_SLIDER_H, x.toFloat(), WinampWindow.EQ_SLIDER_Y.toFloat())
+            val ty = WinampWindow.EQ_SLIDER_Y + Math.round((1f - f) * (WinampWindow.EQ_SLIDER_H - WinampWindow.EQ_THUMB))
+            p(WinampWindow.EQ_THUMB_X, WinampWindow.EQ_SLIDERS_Y, WinampWindow.EQ_THUMB, WinampWindow.EQ_THUMB, x + 1f, ty.toFloat())
+        }
+        // Preamplificador: el volumen extra, de la mitad (0 dB) hacia arriba
+        slider(WinampWindow.EQ_PREAMP_X, 0.5f + (eq?.boost ?: 0f) / EqCore.BOOST_MAX_DB / 2f)
+        for (i in 0 until EqCore.BANDS) slider(WinampWindow.EQ_BAND_X + i * WinampWindow.EQ_BAND_STEP, fraction(levels.getOrElse(i) { 0f }))
+
+        // Curva: se rearma solo si cambian el skin o las bandas
+        val key = listOf(System.identityHashCode(a), levels)
+        if (key != graphKey || graphBitmap == null) {
+            graphKey = key
+            val gw = WinampWindow.EQ_GRAPH_W
+            val gh = WinampWindow.EQ_GRAPH_H
+            val px = IntArray(gw * gh)
+            a.getPixels(px, 0, gw, WinampWindow.EQ_GRAPH_X, WinampWindow.EQ_Y + WinampWindow.EQ_GRAPH_Y, gw, gh)
+            val colors = IntArray(gh) { a.getPixel(WinampWindow.EQ_LINE_X, WinampWindow.EQ_SLIDERS_Y + it) }
+            var prev = -1
+            for (x in 0 until gw) {
+                val pos = x / (gw - 1f) * (EqCore.BANDS - 1)
+                val i = pos.toInt().coerceAtMost(EqCore.BANDS - 2)
+                val db = levels.getOrElse(i) { 0f } + (levels.getOrElse(i + 1) { 0f } - levels.getOrElse(i) { 0f }) * (pos - i)
+                val y = Math.round((1f - fraction(db)) * (gh - 1)).coerceIn(0, gh - 1)
+                val (from, to) = if (prev < 0) y to y else minOf(prev, y) to maxOf(prev, y)
+                for (yy in from..to) px[yy * gw + x] = colors[yy] or (0xFF shl 24)
+                prev = y
+            }
+            val bmp = graphBitmap ?: android.graphics.Bitmap.createBitmap(gw, gh, android.graphics.Bitmap.Config.ARGB_8888).also { graphBitmap = it }
+            bmp.setPixels(px, 0, gw, 0, 0, gw, gh)
+        }
+        graphBitmap?.let { g ->
+            windowSrc.set(0, 0, g.width, g.height)
+            val x = x0 + WinampWindow.EQ_GRAPH_X * scale
+            val y = y0 + WinampWindow.EQ_GRAPH_Y * scale
+            windowDst.set(x, y, x + g.width * scale, y + g.height * scale)
+            canvas.drawBitmap(g, windowSrc, windowDst, pixelPaint)
+        }
+    }
+
+    private val listFill = Paint().apply { isAntiAlias = false }
+    private val listText = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = android.graphics.Typeface.SANS_SERIF }
+
+    /** Lista de reproducción: el marco del skin del alto pedido y la cola, con la que suena resaltada. */
+    private fun drawPlaylist(canvas: Canvas, a: android.graphics.Bitmap, x0: Float, y0: Float, scale: Float, sides: Int, skin: WinampSkin) {
+        fun p(sx: Int, sy: Int, sw: Int, sh: Int, wx: Float, wy: Float) = put(canvas, a, sx, sy, sw, sh, x0, y0, scale, wx, wy)
+        val W = WinampWindow.WIDTH
+        val topH = WinampWindow.PL_TOP_H
+        val bodyH = WinampWindow.PL_SIDE_H * sides
+        // Arriba: relleno, título al centro y esquinas
+        var x = 0
+        while (x < W) { p(WinampWindow.PL_TOP_TILE_X, WinampWindow.PL_Y, 25, topH, x.toFloat(), 0f); x += 25 }
+        p(WinampWindow.PL_TITLE_X, WinampWindow.PL_Y, 100, topH, ((W - 100) / 2).toFloat(), 0f)
+        p(WinampWindow.PL_TOP_LEFT_X, WinampWindow.PL_Y, 25, topH, 0f, 0f)
+        p(WinampWindow.PL_TOP_RIGHT_X, WinampWindow.PL_Y, 25, topH, (W - 25).toFloat(), 0f)
+        // Lados
+        for (k in 0 until sides) {
+            val y = (topH + k * WinampWindow.PL_SIDE_H).toFloat()
+            p(WinampWindow.PL_LEFT_X, WinampWindow.PL_Y, WinampWindow.PL_LEFT_W, WinampWindow.PL_SIDE_H, 0f, y)
+            p(WinampWindow.PL_RIGHT_X, WinampWindow.PL_Y, WinampWindow.PL_RIGHT_W, WinampWindow.PL_SIDE_H, (W - WinampWindow.PL_RIGHT_W).toFloat(), y)
+        }
+        // Abajo
+        p(0, WinampWindow.PL_BOTTOM_Y, 125, WinampWindow.PL_BOTTOM_H, 0f, (topH + bodyH).toFloat())
+        p(0, WinampWindow.PL_BOTTOM_RIGHT_Y, 150, WinampWindow.PL_BOTTOM_H, 125f, (topH + bodyH).toFloat())
+
+        // Fondo de la lista con su color (PLEDIT.TXT)
+        val textL = x0 + WinampWindow.PL_LEFT_W * scale
+        val textR = x0 + (W - WinampWindow.PL_RIGHT_W) * scale
+        val textT = y0 + topH * scale
+        listFill.color = skin.chrome[WinampChrome.LIST_BG] or (0xFF shl 24)
+        canvas.drawRect(textL, textT, textR, textT + bodyH * scale, listFill)
+
+        val list = NowPlaying.playlist()
+        val active = NowPlaying.activeIndex(list)
+        val rows = WinampWindow.playlistRows(sides)
+        val first = (active - 1).coerceAtMost(list.size - rows).coerceAtLeast(0)
+        val shown = minOf(rows, list.size - first).coerceAtLeast(0)
+        playlistFirst = first
+        playlistShown = shown
+
+        // Barra de desplazamiento según dónde va la lista
+        val handleRoom = bodyH - 18
+        val progress = if (list.size > rows) first / (list.size - rows).toFloat() else 0f
+        p(WinampWindow.PL_HANDLE_X, WinampWindow.PL_Y, 8, 18, (W - 15).toFloat(), topH + Math.round(progress * handleRoom).toFloat())
+
+        if (shown == 0) return
+        listText.textSize = 9f * scale
+        val track = NowPlaying.track.value
+        canvas.save()
+        canvas.clipRect(textL, textT, textR, textT + bodyH * scale)
+        for (r in 0 until shown) {
+            val i = first + r
+            val e = list[i]
+            val baseline = textT + (2 + r * WinampWindow.PL_ROW_H + 10) * scale
+            listText.color = skin.chrome[if (i == active) WinampChrome.LIST_CURRENT else WinampChrome.LIST_TEXT] or (0xFF shl 24)
+            // La duración solo se sabe de la que suena
+            val time = if (i == active && track != null && track.durationMs > 0) PlayingTrack.clock(track.durationMs) else ""
+            val timeW = if (time.isEmpty()) 0f else listText.measureText(time) + 4 * scale
+            val name = "${i + 1}. " + if (e.artist.isBlank()) e.title else "${e.artist} - ${e.title}"
+            val room = textR - textL - 4 * scale - timeW
+            val n = listText.breakText(name, true, room, null)
+            canvas.drawText(if (n < name.length) name.take((n - 1).coerceAtLeast(0)) + "…" else name, textL + 2 * scale, baseline, listText)
+            if (time.isNotEmpty()) {
+                listText.textAlign = Paint.Align.RIGHT
+                canvas.drawText(time, textR - 2 * scale, baseline, listText)
+                listText.textAlign = Paint.Align.LEFT
+            }
+        }
+        canvas.restore()
     }
 
     private var titleSource = ""

@@ -30,8 +30,11 @@ Winamp 2 con su ventana real, botones que funcionan y lo que suena en vivo.
 
   ![Notificación](docs/notificacion.png)
 
-- **Fondo animado** con tu foto en resolución completa y dos modos: el reproductor completo o solo
-  el espectro.
+- **Ajuste automático sin micrófono**: la curva sigue al equipo conectado, a lo que suena (música,
+  voz o video) y al volumen.
+- **Fondo animado** con tu foto en resolución completa y tres modos: el reproductor, **Winamp
+  completo** (reproductor, ecualizador que se toca y lista con la cola de lo que suena) o solo el
+  espectro.
 
   ![Fondo animado](docs/fondo-animado.png)
   ![Modos del fondo](docs/modos-del-fondo.png)

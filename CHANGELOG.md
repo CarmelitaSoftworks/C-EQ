@@ -1,5 +1,15 @@
 # Cambios
 
+## 3.0
+- **Winamp completo** en el fondo: el skin hacia abajo con el reproductor, el ecualizador (con tus
+  bandas reales: se tocan para cambiarlas, ON lo enciende y AUTO activa el ajuste automático) y la
+  lista de reproducción con la cola del reproductor (Spotify y otros); tocar una canción salta a ella.
+- **Ajuste automático sin micrófono**: la curva sigue al equipo conectado, a lo que suena (música,
+  música con graves, acústica, voz o video, por el género o la app) y al volumen (más graves y
+  agudos a poco volumen; protege parlantes chicos y oídos a mucho volumen).
+- Reconoce audífonos y parlantes Bluetooth LE Audio y la TV por HDMI.
+- Créditos y botón de Ko-fi dentro de la app.
+
 ## 2.9.4
 - El reproductor de la barra sale de «Silenciadas» (canal de prioridad normal, sin sonido) y su vista
   compacta es más limpia: título, artista y tiempo con los botones del skin.

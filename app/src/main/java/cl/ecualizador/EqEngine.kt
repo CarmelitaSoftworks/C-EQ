@@ -35,7 +35,16 @@ data class EqUiState(
     val canUndo: Boolean = false,
     val autoReclaim: Boolean = true,
     val customPresets: List<String> = emptyList(),
-)
+    /** Ajuste automático sin micrófono ([AutoEq]): la curva sigue al equipo, lo que suena y el volumen. */
+    val auto: Boolean = false,
+    /** Curva automática que suena ahora y por qué (solo con [auto]). */
+    val autoLevels: List<Float>? = null,
+    val autoWhy: String = "",
+    val autoContent: ListenContent = ListenContent.MUSIC,
+) {
+    /** La curva que se ve: la automática si está activa, si no la del perfil. */
+    val shownLevels: List<Float> get() = autoLevels ?: levels
+}
 
 /**
  * Ecualizador global de 10 bandas sobre la sesión de audio 0 (toda la salida del teléfono):
@@ -52,6 +61,9 @@ class EqEngine private constructor(private val ctx: Context) {
         @Volatile private var instance: EqEngine? = null
         fun get(ctx: Context): EqEngine =
             instance ?: synchronized(this) { instance ?: EqEngine(ctx.applicationContext).also { instance = it } }
+
+        /** El motor si ya se creó (sin crearlo). */
+        fun peek(): EqEngine? = instance
     }
 
     val state = MutableStateFlow(EqUiState())
@@ -69,7 +81,7 @@ class EqEngine private constructor(private val ctx: Context) {
 
     private fun currentOutput(): Pair<String, String> {
         val outs = audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        outs.firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP }?.let {
+        outs.firstOrNull { it.type in DeviceAnalyzer.BLUETOOTH }?.let {
             val name = it.productName?.toString()?.takeIf { n -> n.isNotBlank() } ?: "Bluetooth"
             return "bt:$name" to name
         }
@@ -78,6 +90,7 @@ class EqEngine private constructor(private val ctx: Context) {
             AudioDeviceInfo.TYPE_USB_HEADSET, AudioDeviceInfo.TYPE_USB_DEVICE,
         )
         if (outs.any { it.type in wired }) return "wired" to "Audífonos con cable / USB"
+        if (outs.any { it.type in DeviceAnalyzer.HDMI }) return "hdmi" to "TV por HDMI"
         return "speaker" to "Altavoz del teléfono"
     }
 
@@ -90,7 +103,11 @@ class EqEngine private constructor(private val ctx: Context) {
         }
     }
 
+    /** Tipo del equipo conectado, para el ajuste automático. */
+    private var outputKind = OutputKind.PHONE_SPEAKER
+
     private fun switchProfile(out: Pair<String, String>) {
+        outputKind = runCatching { DeviceAnalyzer.analyze(ctx).kind }.getOrDefault(OutputKind.PHONE_SPEAKER)
         // El historial de deshacer pertenece al perfil anterior: no debe aplicarse a otra salida.
         history.clear()
         val json = prefs.getString("profile_${out.first}", null)?.let { runCatching { JSONObject(it) }.getOrNull() }
@@ -191,15 +208,33 @@ class EqEngine private constructor(private val ctx: Context) {
         }
     }
 
-    /** Curva que debe sonar ahora: la elegida, los graves y la compensación de volumen bajo. */
+    private fun musicVolume(): Float = audio.getStreamVolume(AudioManager.STREAM_MUSIC) /
+        audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1).toFloat()
+
+    /** Curva automática para lo que suena ahora (ver [AutoEq]). */
+    private fun autoCurve(): Pair<AutoCurve, ListenContent> {
+        val t = NowPlaying.track.value
+        val content = if (t == null) ListenContent.MUSIC else AutoEq.contentOf(t.app, t.genre)
+        return AutoEq.curve(outputKind, content, musicVolume()) to content
+    }
+
+    /**
+     * Curva que debe sonar ahora: la automática o la elegida, los graves y la compensación de
+     * volumen bajo (la automática ya la trae).
+     */
     private fun targetGains(): List<Float> {
         val s = state.value
         if (bypass) return List(EqCore.BANDS) { 0f }
+        if (s.auto) {
+            val (curve, content) = autoCurve()
+            if (s.autoLevels != curve.levels || s.autoWhy != curve.why || s.autoContent != content) {
+                state.update { it.copy(autoLevels = curve.levels, autoWhy = curve.why, autoContent = content) }
+            }
+            return EqCore.finalGains(curve.levels, maxOf(curve.bass, s.bass))
+        }
         val base = EqCore.finalGains(s.levels, s.bass)
         if (!s.loudness) return base
-        val volume = audio.getStreamVolume(AudioManager.STREAM_MUSIC) /
-            audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1).toFloat()
-        return base.zip(EqCore.loudness(volume)) { g, l -> g + l }
+        return base.zip(EqCore.loudness(musicVolume())) { g, l -> g + l }
     }
 
     /**
@@ -257,7 +292,13 @@ class EqEngine private constructor(private val ctx: Context) {
         }
     }
 
-    private fun watchVolume(on: Boolean) {
+    private var watchingVolume = false
+
+    /** Sigue el volumen mientras lo necesiten la compensación de volumen bajo o el ajuste automático. */
+    private fun watchVolume() {
+        val on = state.value.loudness || state.value.auto
+        if (on == watchingVolume) return
+        watchingVolume = on
         if (on) {
             androidx.core.content.ContextCompat.registerReceiver(
                 ctx, volumeReceiver, android.content.IntentFilter("android.media.VOLUME_CHANGED_ACTION"),
@@ -311,6 +352,7 @@ class EqEngine private constructor(private val ctx: Context) {
     }
 
     fun setBand(i: Int, db: Float) {
+        leaveAuto()
         snapshot()
         state.update { s -> s.copy(levels = s.levels.toMutableList().also { it[i] = db.coerceIn(EqCore.MIN_DB, EqCore.MAX_DB) }, preset = null) }
         apply(); saveProfile()
@@ -339,6 +381,7 @@ class EqEngine private constructor(private val ctx: Context) {
 
     /** Aplica una curva completa al perfil actual (perfil automático o calibrado). */
     fun applyCurve(levels: List<Float>, bass: Float, name: String) {
+        leaveAuto(keepCurve = false)
         snapshot(force = true)
         state.update {
             it.copy(levels = levels.map { l -> l.coerceIn(EqCore.MIN_DB, EqCore.MAX_DB) }, bass = bass.coerceIn(0f, 1f), preset = name)
@@ -349,6 +392,7 @@ class EqEngine private constructor(private val ctx: Context) {
 
     /** Deja el perfil de la salida actual como recién instalado. */
     fun resetProfile() {
+        leaveAuto(keepCurve = false)
         snapshot(force = true)
         state.update { it.copy(levels = EqCore.PRESETS.getValue("Plano"), bass = 0f, boost = 0f, balance = 0f, preset = "Plano") }
         apply(smooth = true); saveProfile()
@@ -356,6 +400,7 @@ class EqEngine private constructor(private val ctx: Context) {
 
     fun usePreset(name: String) {
         val curve = EqCore.PRESETS[name] ?: customPresets()[name] ?: return
+        leaveAuto(keepCurve = false)
         snapshot(force = true)
         state.update { it.copy(levels = curve, preset = name) }
         apply(smooth = true); saveProfile()
@@ -371,8 +416,54 @@ class EqEngine private constructor(private val ctx: Context) {
     fun setLoudness(on: Boolean) {
         prefs.edit().putBoolean("loudness", on).apply()
         state.update { it.copy(loudness = on) }
-        watchVolume(on)
+        watchVolume()
         apply(smooth = true)
+    }
+
+    /**
+     * Ajuste automático sin micrófono. Al activarlo se enciende el ecualizador; al apagarlo vuelve la
+     * curva del perfil.
+     */
+    fun setAuto(on: Boolean) {
+        prefs.edit().putBoolean("auto", on).apply()
+        state.update { it.copy(auto = on, autoLevels = null, autoWhy = "") }
+        watchVolume()
+        apply(smooth = true)
+        if (on && !state.value.enabled) setEnabled(true)
+    }
+
+    /**
+     * Mover una banda a mano deja el modo automático: con [keepCurve] la curva automática pasa al
+     * perfil, para seguir desde lo que sonaba.
+     */
+    private fun leaveAuto(keepCurve: Boolean = true) {
+        val s = state.value
+        if (!s.auto) return
+        prefs.edit().putBoolean("auto", false).apply()
+        state.update {
+            it.copy(auto = false, autoLevels = null, autoWhy = "", levels = if (keepCurve) s.autoLevels ?: s.levels else s.levels, preset = null)
+        }
+        watchVolume()
+    }
+
+    /** Cambió lo que suena: el ajuste automático puede cambiar (voz, video o música). */
+    fun onMediaChanged() {
+        if (state.value.auto && state.value.enabled) main.post { apply(smooth = true) }
+    }
+
+    /**
+     * Deslizador de la ventana del ecualizador del skin: [band] de 0 a 9, o −1 para el
+     * preamplificador (que maneja el volumen extra: de la mitad hacia arriba). [fraction] va de 0
+     * (−12 dB) a 1 (+12 dB), en pasos de medio dB.
+     */
+    fun setFromSkin(band: Int, fraction: Float) {
+        if (band < 0) {
+            setBoost(((fraction - 0.5f) * 2f).coerceIn(0f, 1f) * EqCore.BOOST_MAX_DB)
+            return
+        }
+        val db = Math.round((EqCore.MIN_DB + fraction.coerceIn(0f, 1f) * (EqCore.MAX_DB - EqCore.MIN_DB)) * 2) / 2f
+        setBand(band, if (kotlin.math.abs(db) <= 0.5f) 0f else db)
+        if (!state.value.enabled) setEnabled(true)
     }
 
     fun setAutoReclaim(on: Boolean) {
@@ -427,11 +518,12 @@ class EqEngine private constructor(private val ctx: Context) {
                 headroom = savedHeadroom(),
                 autoReclaim = prefs.getBoolean("autoReclaim", true),
                 loudness = prefs.getBoolean("loudness", false),
+                auto = prefs.getBoolean("auto", false),
                 customPresets = customPresets().keys.toList(),
             )
         }
         switchProfile(currentOutput())
-        if (state.value.loudness) watchVolume(true)
+        watchVolume()
         audio.registerAudioDeviceCallback(object : AudioDeviceCallback() {
             override fun onAudioDevicesAdded(added: Array<out AudioDeviceInfo>) = onOutputChanged()
             override fun onAudioDevicesRemoved(removed: Array<out AudioDeviceInfo>) = onOutputChanged()

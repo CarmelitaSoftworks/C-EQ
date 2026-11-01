@@ -204,6 +204,7 @@ class SkinImportTest {
             val ids = mapOf(
                 126 to "main.bmp", 127 to "cbuttons.bmp", 128 to "monoster.bmp", 129 to "playpaus.bmp", 130 to "shufrep.bmp",
                 132 to "numbers.bmp", 133 to "volume.bmp", 134 to "text.bmp", 135 to "posbar.bmp", 150 to "titlebar.bmp", 197 to "balance.bmp",
+                194 to "eqmain.bmp", 199 to "pledit.bmp",
             )
             // «<id>.png» reemplaza al .bmp si el recurso venía dañado (p. ej. el RLE de la fuente, 134)
             val archive = SkinArchive(ids.mapNotNull { (id, name) ->

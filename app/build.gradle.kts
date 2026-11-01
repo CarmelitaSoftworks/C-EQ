@@ -13,8 +13,8 @@ android {
         applicationId = "cl.ecualizador"
         minSdk = 26
         targetSdk = 35
-        versionCode = 26
-        versionName = "2.9.4"
+        versionCode = 27
+        versionName = "3.0"
     }
     // Firma de release: datos en keystore.properties (fuera de git). Sin ese archivo, el APK de
     // release sale sin firmar.
@@ -42,7 +42,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
     testOptions {
         unitTests.isIncludeAndroidResources = true
         unitTests.all {

@@ -9,7 +9,8 @@ package cl.ecualizador
  * Lo que cambia con la música (título, reloj, reproducir/pausa y el indicador de posición) no va
  * en la ventana: debajo de ella, en el mismo «atlas» de 275×[ATLAS_HEIGHT], van esas piezas del
  * skin para que el visor las dibuje en cada cuadro (ver SpectrumRenderer). El visor va en
- * [VIS_X], [VIS_Y] de [VIS_W]×[VIS_H].
+ * [VIS_X], [VIS_Y] de [VIS_W]×[VIS_H]. Más abajo van la ventana del ecualizador ([EQ_Y]) y las piezas
+ * de la lista de reproducción ([PL_Y]), para mostrar el skin completo.
  */
 object WinampWindow {
     const val WIDTH = 275
@@ -31,7 +32,51 @@ object WinampWindow {
     const val VOLUME_Y = PRESSED_Y + 18
     const val VOLUME_FRAMES = 28
     const val VOLUME_THUMB_Y = VOLUME_Y + 13 * 7
-    const val ATLAS_HEIGHT = VOLUME_THUMB_Y + 11
+    /** Fin de las piezas de la ventana principal (alto del atlas hasta la 2.9). */
+    const val LIVE_HEIGHT = VOLUME_THUMB_Y + 11
+
+    // Ventana del ecualizador (EQMAIN.BMP), armada como la principal, y sus piezas en vivo: los 28
+    // fondos de los deslizadores (14×63, de −12 a +12 dB), el indicador, los colores de la curva y
+    // los botones ON y AUTO encendidos y apagados
+    const val EQ_Y = LIVE_HEIGHT
+    const val EQ_SLIDERS_Y = EQ_Y + HEIGHT
+    const val EQ_THUMB_X = 212
+    const val EQ_LINE_X = 225
+    const val EQ_ON_Y = EQ_SLIDERS_Y + 20
+    const val EQ_AUTO_Y = EQ_SLIDERS_Y + 34
+    const val EQ_AUTO_ON_Y = EQ_SLIDERS_Y + 48
+    const val EQ_SLIDER_H = 63
+    const val EQ_THUMB = 11
+    const val EQ_SLIDER_FRAMES = 28
+    const val EQ_SLIDER_Y = 38
+    const val EQ_PREAMP_X = 21
+    const val EQ_BAND_X = 78
+    const val EQ_BAND_STEP = 18
+    const val EQ_GRAPH_X = 86
+    const val EQ_GRAPH_Y = 17
+    const val EQ_GRAPH_W = 113
+    const val EQ_GRAPH_H = 19
+
+    // Lista de reproducción (PLEDIT.BMP): sus piezas para armarla del alto que haga falta
+    const val PL_Y = EQ_SLIDERS_Y + 130
+    const val PL_TOP_H = 20
+    const val PL_SIDE_H = 29
+    const val PL_BOTTOM_H = 38
+    const val PL_LEFT_W = 12
+    const val PL_RIGHT_W = 20
+    /** Recortes en el atlas: esquinas y relleno de arriba, lados, barra de desplazamiento y abajo. */
+    const val PL_TOP_LEFT_X = 0
+    const val PL_TITLE_X = 25
+    const val PL_TOP_TILE_X = 125
+    const val PL_TOP_RIGHT_X = 150
+    const val PL_LEFT_X = 176
+    const val PL_RIGHT_X = 188
+    const val PL_HANDLE_X = 208
+    const val PL_BOTTOM_Y = PL_Y + PL_SIDE_H
+    const val PL_BOTTOM_RIGHT_Y = PL_BOTTOM_Y + PL_BOTTOM_H
+    /** Alto de cada fila de la lista. */
+    const val PL_ROW_H = 13
+    const val ATLAS_HEIGHT = PL_BOTTOM_RIGHT_Y + PL_BOTTOM_H
 
     // Volumen en la ventana
     const val VOLUME_X = 107
@@ -77,7 +122,42 @@ object WinampWindow {
         data object OpenPlayer : Hit
         /** EQ: abre el ecualizador. */
         data object OpenEqualizer : Hit
+        /** Deslizador de la ventana del ecualizador ([band] −1 es el preamplificador), de 0 (−12 dB) a 1 (+12 dB). */
+        data class EqBand(val band: Int, val fraction: Float) : Hit
+        /** ON de la ventana del ecualizador. */
+        data object EqToggle : Hit
+        /** AUTO de la ventana del ecualizador: el ajuste automático. */
+        data object EqAuto : Hit
+        /** Fila [index] de la lista de reproducción, tal como se dibujó. */
+        data class PlaylistRow(val index: Int) : Hit
     }
+
+    /** Qué hay en el punto ([x], [y]) de la ventana del ecualizador. */
+    fun eqHit(x: Float, y: Float): Hit? {
+        if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT) return null
+        fun inside(rx: Int, ry: Int, rw: Int, rh: Int) = x >= rx && x < rx + rw && y >= ry && y < ry + rh
+        if (inside(14, 18, 26, 12)) return Hit.EqToggle
+        if (inside(40, 18, 32, 12)) return Hit.EqAuto
+        if (inside(217, 18, 44, 12)) return Hit.OpenEqualizer
+        // Deslizadores, con un poco de margen para el dedo
+        if (y < EQ_SLIDER_Y - 3 || y >= EQ_SLIDER_Y + EQ_SLIDER_H + 3) return null
+        val fraction = (1f - (y - EQ_SLIDER_Y - EQ_THUMB / 2f) / (EQ_SLIDER_H - EQ_THUMB)).coerceIn(0f, 1f)
+        if (x >= EQ_PREAMP_X - 2 && x < EQ_PREAMP_X + 16) return Hit.EqBand(-1, fraction)
+        val band = Math.floor(((x - EQ_BAND_X + 2) / EQ_BAND_STEP).toDouble()).toInt()
+        return if (band in 0 until EqCore.BANDS) Hit.EqBand(band, fraction) else null
+    }
+
+    /** Fondo del deslizador para [fraction] (0 abajo, 1 arriba): columna y fila en el atlas. */
+    fun eqSliderFrame(fraction: Float): Pair<Int, Int> {
+        val i = Math.round(fraction.coerceIn(0f, 1f) * (EQ_SLIDER_FRAMES - 1))
+        return (i % 14) * 15 to EQ_SLIDERS_Y + (i / 14) * 65
+    }
+
+    /** Alto de la lista de reproducción con [sides] tramos de lados. */
+    fun playlistHeight(sides: Int) = PL_TOP_H + PL_SIDE_H * sides.coerceAtLeast(1) + PL_BOTTOM_H
+
+    /** Filas de canciones que caben en una lista de [sides] tramos. */
+    fun playlistRows(sides: Int) = (PL_SIDE_H * sides.coerceAtLeast(1) - 4) / PL_ROW_H
 
     /** Qué hay en el punto ([x], [y]) de la ventana (en píxeles del skin), dentro de la parte visible. */
     fun hit(x: Float, y: Float, part: Part): Hit? {
@@ -164,6 +244,8 @@ object WinampWindow {
         blit(img("playpaus.bmp"), 0, 0, 27, 9, 0, PLAYPAUS_Y)
         // Dígitos 0–9 (NUMS_EX.BMP si lo trae, si no NUMBERS.BMP)
         (img("nums_ex.bmp") ?: img("numbers.bmp")).let { n -> blit(n, 0, 0, 90, 13, 0, NUMS_Y) }
+        composeEqualizer(img("eqmain.bmp"), ::blit)
+        composePlaylist(img("pledit.bmp"), ::blit)
         // Fuente completa, y los kbps/kHz fijos en la ventana
         img("text.bmp")?.let { t ->
             blit(t, 0, 0, minOf(t.width, 155), minOf(t.height, 18), 0, TEXT_Y)
@@ -175,6 +257,40 @@ object WinampWindow {
             write("44", 156, 43)
         }
         return out
+    }
+
+    /**
+     * Ventana del ecualizador (posiciones de Winamp 2, las mismas de Webamp): fondo, barra de título
+     * activa, fondo de la curva y PRESETS; abajo, las piezas que cambian.
+     */
+    private fun composeEqualizer(eq: Pixels?, blit: (Pixels?, Int, Int, Int, Int, Int, Int) -> Unit) {
+        eq ?: return
+        blit(eq, 0, 0, WIDTH, HEIGHT, 0, EQ_Y)
+        blit(eq, 0, 134, WIDTH, 14, 0, EQ_Y)
+        blit(eq, 0, 294, EQ_GRAPH_W, EQ_GRAPH_H, EQ_GRAPH_X, EQ_Y + EQ_GRAPH_Y)
+        blit(eq, 224, 164, 44, 12, 217, EQ_Y + 18)
+        blit(eq, 13, 164, 209, 129, 0, EQ_SLIDERS_Y)
+        blit(eq, 0, 164, EQ_THUMB, EQ_THUMB, EQ_THUMB_X, EQ_SLIDERS_Y)
+        blit(eq, 115, 294, 1, EQ_GRAPH_H, EQ_LINE_X, EQ_SLIDERS_Y)
+        blit(eq, 10, 119, 26, 12, EQ_THUMB_X, EQ_ON_Y)
+        blit(eq, 69, 119, 26, 12, EQ_THUMB_X + 28, EQ_ON_Y)
+        blit(eq, 36, 119, 32, 12, EQ_THUMB_X, EQ_AUTO_Y)
+        blit(eq, 95, 119, 32, 12, EQ_THUMB_X, EQ_AUTO_ON_Y)
+    }
+
+    /** Piezas de la lista de reproducción, en su versión activa. */
+    private fun composePlaylist(pl: Pixels?, blit: (Pixels?, Int, Int, Int, Int, Int, Int) -> Unit) {
+        pl ?: return
+        blit(pl, 0, 0, 25, PL_TOP_H, PL_TOP_LEFT_X, PL_Y)
+        blit(pl, 26, 0, 100, PL_TOP_H, PL_TITLE_X, PL_Y)
+        blit(pl, 127, 0, 25, PL_TOP_H, PL_TOP_TILE_X, PL_Y)
+        blit(pl, 153, 0, 25, PL_TOP_H, PL_TOP_RIGHT_X, PL_Y)
+        blit(pl, 0, 42, PL_LEFT_W, PL_SIDE_H, PL_LEFT_X, PL_Y)
+        blit(pl, 31, 42, PL_RIGHT_W, PL_SIDE_H, PL_RIGHT_X, PL_Y)
+        blit(pl, 52, 53, 8, 18, PL_HANDLE_X, PL_Y)
+        blit(pl, 0, 72, 125, PL_BOTTOM_H, 0, PL_BOTTOM_Y)
+        blit(pl, 179, 0, 25, PL_BOTTOM_H, 125, PL_BOTTOM_Y)
+        blit(pl, 126, 72, 150, PL_BOTTOM_H, 0, PL_BOTTOM_RIGHT_Y)
     }
 
     /** Columna y fila de [c] en TEXT.BMP (celdas de 5×6); lo que no está, como espacio. */

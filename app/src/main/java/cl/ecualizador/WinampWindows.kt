@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 
 /**
- * Ventanas de los skins clásicos (275×116, ver [WinampWindow]): las de los skins incluidos vienen en
+ * Ventanas de los skins clásicos (atlas de 275 de ancho, ver [WinampWindow]): las de los skins incluidos vienen en
  * assets/skins/<archiveId>.png y las de los importados en los archivos de la app. Se guardan unas
  * pocas decodificadas, porque el visor las pide en cada cuadro.
  */
@@ -39,8 +39,24 @@ object WinampWindows {
         return o.outHeight != WinampWindow.ATLAS_HEIGHT
     }
 
+    private val ACCEPTED_HEIGHTS = setOf(WinampWindow.ATLAS_HEIGHT, WinampWindow.LIVE_HEIGHT, WinampWindow.HEIGHT)
+
     @Synchronized
     fun clear() = cache.clear()
+
+    /**
+     * Atlas para el ecualizador y la lista de [skin]: el suyo si los trae; si no (skin sin EQMAIN.BMP
+     * o PLEDIT.BMP, o atlas de un formato anterior), el del skin base, como hace Winamp con lo que
+     * le falta a un skin.
+     */
+    fun extras(skin: WinampSkin): Pair<Bitmap?, Bitmap?> {
+        val own = bitmap(skin)?.takeIf { it.height >= WinampWindow.ATLAS_HEIGHT }
+        val base by lazy { bitmap(WinampSkins.DEFAULT)?.takeIf { it.height >= WinampWindow.ATLAS_HEIGHT } }
+        fun has(b: Bitmap?, y: Int) = b != null && (b.getPixel(0, y) ushr 24) != 0
+        val eq = if (has(own, WinampWindow.EQ_Y)) own else base
+        val pl = if (has(own, WinampWindow.PL_Y)) own else base
+        return eq to pl
+    }
 
     @Synchronized
     fun bitmap(skin: WinampSkin): Bitmap? {
@@ -50,8 +66,8 @@ object WinampWindows {
         val bmp = runCatching {
             if (src.startsWith("asset:")) app?.assets?.open(src.removePrefix("asset:"))?.use { BitmapFactory.decodeStream(it, null, opts) }
             else BitmapFactory.decodeFile(src, opts)
-        // Atlas con las piezas en vivo, o la ventana sola de los importados antes de la 2.8
-        }.getOrNull()?.takeIf { it.width == WinampWindow.WIDTH && (it.height == WinampWindow.ATLAS_HEIGHT || it.height == WinampWindow.HEIGHT) }
+        // Atlas completo, sin el ecualizador ni la lista (2.8 a 2.9) o la ventana sola (antes de la 2.8)
+        }.getOrNull()?.takeIf { it.width == WinampWindow.WIDTH && it.height in ACCEPTED_HEIGHTS }
         cache[src] = bmp
         return bmp
     }

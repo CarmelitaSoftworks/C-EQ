@@ -17,14 +17,30 @@ data class OutputInfo(val key: String, val name: String, val kind: OutputKind, v
 object DeviceAnalyzer {
     private val WIRED = setOf(AudioDeviceInfo.TYPE_WIRED_HEADSET, AudioDeviceInfo.TYPE_WIRED_HEADPHONES)
     private val USB = setOf(AudioDeviceInfo.TYPE_USB_HEADSET, AudioDeviceInfo.TYPE_USB_DEVICE)
+    // Bluetooth LE Audio (Android 12+): audífonos y parlantes nuevos, p. ej. Galaxy Buds2 Pro
+    private const val BLE_HEADSET = 26
+    private const val BLE_SPEAKER = 27
+    private const val BLE_BROADCAST = 30
+    val HDMI = setOf(AudioDeviceInfo.TYPE_HDMI, AudioDeviceInfo.TYPE_HDMI_ARC, 29 /* HDMI eARC */)
+
+    /** Salidas Bluetooth: la clásica (A2DP) y LE Audio. */
+    val BLUETOOTH = setOf(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, BLE_HEADSET, BLE_SPEAKER, BLE_BROADCAST)
 
     fun analyze(ctx: Context): OutputInfo {
         val outs = ctx.getSystemService(AudioManager::class.java).getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        val bt = outs.firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP }
+        val bt = outs.firstOrNull { it.type in BLUETOOTH }
         if (bt != null) {
             val name = bt.productName?.toString()?.takeIf { it.isNotBlank() } ?: "Bluetooth"
             val btClass = bluetoothClass(ctx, bt, name)
-            val kind = AutoProfile.classifyBluetooth(name, btClass)
+            // LE Audio dice si es audífono o parlante aunque el nombre no se reconozca
+            val kind = AutoProfile.classifyBluetooth(name, btClass).let { k ->
+                when {
+                    k != OutputKind.BT_UNKNOWN -> k
+                    bt.type == BLE_HEADSET -> OutputKind.BT_HEADPHONES
+                    bt.type == BLE_SPEAKER -> OutputKind.BT_PORTABLE_SPEAKER
+                    else -> k
+                }
+            }
             val details = formatDetails(bt) + listOfNotNull(
                 btClass?.let { "Clase Bluetooth: ${classLabel(it)} (0x%04X)".format(it) }
                     ?: if (!hasBtPermission(ctx)) "Clase Bluetooth: sin permiso para leerla" else null,
@@ -38,6 +54,10 @@ object DeviceAnalyzer {
         outs.firstOrNull { it.type in USB }?.let {
             val name = it.productName?.toString()?.takeIf { n -> n.isNotBlank() } ?: "Audio USB"
             return OutputInfo("wired", name, OutputKind.USB_AUDIO, formatDetails(it))
+        }
+        outs.firstOrNull { it.type in HDMI }?.let {
+            val name = it.productName?.toString()?.takeIf { n -> n.isNotBlank() } ?: "TV por HDMI"
+            return OutputInfo("hdmi", name, OutputKind.BT_TV_SOUNDBAR, formatDetails(it) + "Conectado por HDMI")
         }
         val speaker = outs.firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
         return OutputInfo("speaker", "Altavoz del teléfono", OutputKind.PHONE_SPEAKER, speaker?.let { formatDetails(it) }.orEmpty())

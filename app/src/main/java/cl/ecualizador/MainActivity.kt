@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Speaker
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -165,7 +166,7 @@ private fun EqualizerScreen() {
             notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else engine.setEnabled(on)
     }
-    val gains = EqCore.finalGains(eq.levels, eq.bass)
+    val gains = EqCore.finalGains(eq.shownLevels, eq.bass)
 
     Column(
         Modifier.fillMaxSize().systemBarsPadding().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -187,6 +188,7 @@ private fun EqualizerScreen() {
                 when {
                     eq.profileKey.startsWith("bt:") -> Icons.Filled.Bluetooth
                     eq.profileKey == "wired" -> Icons.Filled.Headphones
+                    eq.profileKey == "hdmi" -> Icons.Filled.Tv
                     else -> Icons.Filled.Speaker
                 }, null, tint = Accent, modifier = Modifier.size(18.dp)
             )
@@ -244,10 +246,11 @@ private fun EqualizerScreen() {
                 IconButton(onClick = engine::undo, enabled = eq.canUndo) { Icon(Icons.AutoMirrored.Filled.Undo, "Deshacer") }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                eq.levels.forEachIndexed { i, level -> BandSlider(level, EqCore.label(i)) { engine.setBand(i, it) } }
+                eq.shownLevels.forEachIndexed { i, level -> BandSlider(level, EqCore.label(i)) { engine.setBand(i, it) } }
             }
             Text(
-                "Arrastra o toca una banda · doble toque la deja en 0 dB",
+                if (eq.auto) "Ajuste automático: si mueves una banda, sigues a mano desde esta curva"
+                else "Arrastra o toca una banda · doble toque la deja en 0 dB",
                 fontSize = 11.sp, color = Muted, modifier = Modifier.padding(start = 8.dp, top = 4.dp)
             )
         }
@@ -318,10 +321,11 @@ private fun EqualizerScreen() {
 
         Text(
             "Cada salida tiene su propio ajuste: tu equipo Bluetooth, los audífonos y el altavoz. " +
-                "Agrega el mosaico «Ecualizador» en Ajustes rápidos para activarlo sin abrir la app.\n\n" +
-                "Diseño inspirado en Equalizer314 (F-Droid, GPL-3.0): DynamicsProcessing sobre la mezcla global. Código propio.",
+                "Agrega el mosaico «Ecualizador» en Ajustes rápidos para activarlo sin abrir la app.",
             fontSize = 12.sp, lineHeight = 17.sp, color = Muted
         )
+
+        CreditsCard()
     }
 
     if (importing) ImportDialog(onDismiss = { importing = false }) { curve ->
@@ -340,6 +344,34 @@ private fun EqualizerScreen() {
             },
             dismissButton = { TextButton(onClick = { saving = false }) { Text("Cancelar") } }
         )
+    }
+}
+
+/** Créditos y apoyo al proyecto. */
+@Composable
+private fun CreditsCard() {
+    val ctx = LocalContext.current
+    fun open(url: String) = runCatching {
+        ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)))
+    }
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Card).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text("C-EQ ${BuildConfig.VERSION_NAME}", fontWeight = FontWeight.SemiBold)
+        Text(
+            "Hecho por Carmelita Softworks. Código abierto (GPL-3.0).\n" +
+                "Winamp es de Nullsoft / Winamp SA. Cada skin incluido es obra de su autor o autora y viene de la " +
+                "colección «winampskins» de Internet Archive. Posiciones de las ventanas según Webamp.\n" +
+                "Diseño del ecualizador inspirado en Equalizer314 (F-Droid, GPL-3.0): DynamicsProcessing sobre la mezcla global.",
+            fontSize = 12.sp, lineHeight = 17.sp, color = Muted
+        )
+        Button(onClick = { open("https://ko-fi.com/carmelitasoftworks") }, modifier = Modifier.fillMaxWidth()) {
+            Text("Apoyar en Ko-fi ☕")
+        }
+        TextButton(onClick = { open("https://github.com/CarmelitaSoftworks/C-EQ/blob/main/CREDITS.md") }) {
+            Text("Créditos completos y lista de skins")
+        }
     }
 }
 
@@ -427,7 +459,15 @@ private fun DeviceCard(profileKey: String, engine: EqEngine) {
                 Text("Permitir leer el tipo de equipo Bluetooth")
             }
         }
-        Button(onClick = { showAuto = true }, modifier = Modifier.fillMaxWidth()) { Text("Crear perfil automático") }
+        val eq by engine.state.collectAsState()
+        OptionRow("Ajuste automático sin micrófono", eq.auto, engine::setAuto)
+        Text(
+            if (eq.auto) "Suena: ${eq.autoContent.label.lowercase()}. ${eq.autoWhy}"
+            else "La curva sigue sola al equipo conectado, a lo que suena (música, voz o video) y al volumen. " +
+                "También se activa con AUTO en el ecualizador del skin.",
+            fontSize = 12.sp, lineHeight = 16.sp, color = Muted
+        )
+        OutlinedButton(onClick = { showAuto = true }, modifier = Modifier.fillMaxWidth()) { Text("Crear perfil fijo para este equipo") }
         if (AutoProfile.canCalibrate(info.kind)) {
             OutlinedButton(onClick = { calib = CalibState.Intro }, modifier = Modifier.fillMaxWidth()) {
                 Text("Calibrar con el micrófono")
@@ -769,18 +809,32 @@ private fun WallpaperCard() {
             }
         }
         val spectrum by SpectrumPrefs.settings.collectAsState()
-        val winampLook = ws.view == WallpaperView.PLAYER || spectrum.style.winamp
+        val winampLook = ws.view != WallpaperView.SPECTRUM || spectrum.style.winamp
         Text(
             when {
                 ws.view == WallpaperView.PLAYER -> "La ventana del skin de Winamp elegido a todo el ancho, con el espectro en su visor."
+                ws.view == WallpaperView.FULL_SKIN -> "El skin completo hacia abajo: el reproductor, el ecualizador con tus bandas " +
+                    "(se tocan para cambiarlas; AUTO activa el ajuste automático) y la lista con la cola de lo que suena."
                 spectrum.style.winamp -> "El espectro con el marco y los colores del skin; arriba, lo que suena y el tiempo."
                 else -> "Solo el espectro, con el estilo y los colores del visor."
             },
-            fontSize = 12.sp, color = Muted
+            fontSize = 12.sp, lineHeight = 16.sp, color = Muted
         )
+        if (ws.view == WallpaperView.FULL_SKIN) {
+            // Se vuelve a dibujar cuando cambian el ecualizador o lo que suena
+            val eqState by EqEngine.get(ctx).state.collectAsState()
+            val queue by NowPlaying.queue.collectAsState()
+            val track by NowPlaying.track.collectAsState()
+            key(eqState, queue, track) {
+                WinampPreview(
+                    ws.view.spectrumSettings(spectrum).copy(winampMarquee = false),
+                    Modifier.fillMaxWidth().aspectRatio(WinampWindow.WIDTH / (SkinStack.FIXED + WinampWindow.playlistHeight(3)).toFloat())
+                )
+            }
+        }
         if (winampLook) {
-            // Las miniaturas muestran el skin como se verá en el fondo
-            WinampSkinPicker(ws.view.spectrumSettings(spectrum)) { change -> SpectrumPrefs.update(ctx, change) }
+            // Las miniaturas muestran el skin como se verá en el fondo (solo el reproductor)
+            WinampSkinPicker(ws.view.spectrumSettings(spectrum).copy(winampStack = false)) { change -> SpectrumPrefs.update(ctx, change) }
             NowPlayingAccess()
         }
         Text("Posición", color = Muted, fontSize = 13.sp)
@@ -1024,7 +1078,7 @@ private fun WinampSkinPicker(settings: SpectrumSettings, set: ((SpectrumSettings
     message?.let { Text(it, fontSize = 12.sp, color = if (failed) Warn else Accent) }
     if (selected.group == SkinImport.GROUP_IMPORTED && selected.sourceFile == null && remember(selected) { WinampWindows.isOutdated(selected) }) {
         Text(
-            "Este skin se importó con una versión anterior: quítalo y vuelve a importarlo para ver lo que suena y usar sus botones.",
+            "Este skin se importó con una versión anterior: quítalo y vuelve a importarlo para ver lo que suena, usar sus botones y verlo completo.",
             fontSize = 12.sp, lineHeight = 16.sp, color = Warn
         )
     }

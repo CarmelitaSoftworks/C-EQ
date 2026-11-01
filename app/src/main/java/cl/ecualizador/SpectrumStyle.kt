@@ -203,6 +203,8 @@ data class SpectrumSettings(
     val winampWindow: Boolean = true,
     /** Desplazar el título largo como Winamp (no en la notificación, que se dibuja por segundo). */
     val winampMarquee: Boolean = true,
+    /** Skin completo hacia abajo: reproductor, ecualizador y lista de reproducción (no se guarda). */
+    val winampStack: Boolean = false,
 ) {
     /** Barras que se dibujan con el estilo elegido. */
     val effectiveBars: Int

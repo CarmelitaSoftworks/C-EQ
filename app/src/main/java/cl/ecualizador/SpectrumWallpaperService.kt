@@ -51,6 +51,8 @@ class SpectrumWallpaperService : WallpaperService() {
             surfaceHolder.setFormat(PixelFormat.RGBA_8888)
             // Para que los botones del skin respondan aunque el launcher no avise de los toques
             setTouchEventsEnabled(true)
+            // La ventana del ecualizador del skin completo muestra y cambia el ecualizador
+            EqEngine.get(this@SpectrumWallpaperService)
         }
 
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {
@@ -101,8 +103,9 @@ class SpectrumWallpaperService : WallpaperService() {
             val hit = renderer.hitAt(x - drawnX, y - drawnY) ?: return
             lastTapAt = now
             val ctx = this@SpectrumWallpaperService
-            // El volumen y el EQ no dependen del reproductor que suena
-            val needsSession = hit !is WinampWindow.Hit.Volume && hit != WinampWindow.Hit.OpenEqualizer
+            // El volumen y el ecualizador no dependen del reproductor que suena
+            val needsSession = hit !is WinampWindow.Hit.Volume && hit != WinampWindow.Hit.OpenEqualizer &&
+                hit !is WinampWindow.Hit.EqBand && hit != WinampWindow.Hit.EqToggle && hit != WinampWindow.Hit.EqAuto
             when {
                 needsSession && !NowPlaying.hasAccess(ctx) -> if (!accessHintShown) {
                     accessHintShown = true

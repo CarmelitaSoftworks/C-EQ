@@ -39,7 +39,15 @@ class VivoV30PreviewTest {
         val values = FloatArray(SpectrumSettings.WINAMP_BARS_ORIGINAL) { i -> (0.95f - i * 0.04f + 0.15f * kotlin.math.sin(i * 1.3f)).coerceIn(0.05f, 1f) }
         val peaks = FloatArray(values.size) { (values[it] + 0.1f).coerceAtMost(1f) }
         // Reproductor completo con cada skin y, al final, «Solo el espectro» con el primero
-        val modes = names.map { it to WallpaperView.PLAYER } + names.map { it to WallpaperView.SPECTRUM }
+        val modes = names.map { it to WallpaperView.PLAYER } + names.map { it to WallpaperView.FULL_SKIN } +
+            names.map { it to WallpaperView.SPECTRUM }
+        // Una cola como la de Spotify para la lista del skin completo
+        NowPlaying.queue.value = listOf(
+            "Llama Whippin' Intro (versión extendida para el fondo)" to "DJ Mike Llama", "Stumble" to "Just Plain Ant",
+            "Ocean Eyes" to "Neon Tide", "Sábado en la noche" to "Los Ejemplos", "Midnight Drive" to "Synth Club",
+            "Canción de prueba con un nombre larguísimo que no cabe" to "Artista", "Último tema" to "Banda",
+        ).mapIndexed { i, (t, a) -> QueueEntry(i.toLong(), t, a) }
+        NowPlaying.activeQueueId = 0
         // Una canción sonando, con título largo para ver el desplazamiento
         NowPlaying.track.value = PlayingTrack(
             "Llama Whippin' Intro (versión extendida para el fondo)", "DJ Mike Llama", 225_000, 83_000,

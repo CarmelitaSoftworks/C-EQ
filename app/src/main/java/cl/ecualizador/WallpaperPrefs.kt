@@ -10,7 +10,9 @@ enum class WallpaperPosition(val label: String) { BOTTOM("Abajo"), CENTER("Centr
 /** Qué se ve en el fondo animado. */
 enum class WallpaperView(val label: String) {
     /** La ventana del skin de Winamp a todo el ancho, con el espectro en su visor. */
-    PLAYER("Reproductor completo"),
+    PLAYER("Reproductor"),
+    /** El skin completo hacia abajo: reproductor, ecualizador y lista de reproducción con la cola. */
+    FULL_SKIN("Winamp completo"),
     /** Solo el espectro, con el estilo y el alto elegidos. */
     SPECTRUM("Solo el espectro");
 
@@ -23,12 +25,14 @@ enum class WallpaperView(val label: String) {
             style = if (s.style.winamp) s.style else SpectrumStyle.WINAMP_CLASSIC, winampFrame = true, grid = false,
             winampPart = WinampWindow.Part.FULL,
         )
+        FULL_SKIN -> PLAYER.spectrumSettings(s).copy(winampStack = true)
         SPECTRUM -> s.copy(winampFrame = true, grid = false, winampWindow = false)
     }
 
     /** Alto del visor en el fondo: el reproductor, con su proporción; el espectro, el alto elegido. */
     fun height(s: SpectrumSettings, width: Float, screenHeight: Float, heightFraction: Float): Float = when (this) {
         PLAYER -> width * WinampWindow.HEIGHT / WinampWindow.WIDTH
+        FULL_SKIN -> SkinStack.height(width, screenHeight * 0.72f)
         SPECTRUM -> screenHeight * heightFraction.coerceIn(0.1f, 0.6f)
     }
 }

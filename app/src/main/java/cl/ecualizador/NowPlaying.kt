@@ -20,6 +20,10 @@ data class PlayingTrack(
     val updatedAt: Long,
     val speed: Float,
     val state: State,
+    /** Género, si el reproductor lo informa (casi solo los de archivos locales). */
+    val genre: String = "",
+    /** App que reproduce. */
+    val app: String = "",
 ) {
     enum class State { PLAYING, PAUSED, STOPPED }
 
@@ -43,12 +47,38 @@ data class PlayingTrack(
     }
 }
 
+/** Una canción de la cola del reproductor. */
+data class QueueEntry(val id: Long, val title: String, val artist: String)
+
 /**
  * La canción que suena en cualquier app, leída de las sesiones multimedia de Android. Para eso
  * Android exige el acceso a las notificaciones ([NowPlayingService]); sin él, [track] queda en null.
  */
 object NowPlaying {
     val track = MutableStateFlow<PlayingTrack?>(null)
+
+    /**
+     * La cola del reproductor que suena, si la publica (Spotify y otros lo hacen para Android Auto);
+     * vacía si no. [activeQueueId] es la que suena (−1 si no se sabe).
+     */
+    val queue = MutableStateFlow<List<QueueEntry>>(emptyList())
+
+    @Volatile
+    var activeQueueId: Long = -1
+
+    /** Lo que muestra la lista de reproducción del skin: la cola o, si no hay, la canción actual. */
+    fun playlist(): List<QueueEntry> = queue.value.ifEmpty {
+        track.value?.let { listOf(QueueEntry(-1, it.title, it.artist)) }.orEmpty()
+    }
+
+    /** Posición de la canción que suena en [list] (o −1). */
+    fun activeIndex(list: List<QueueEntry>): Int =
+        list.indexOfFirst { it.id == activeQueueId && it.id != -1L }.takeIf { it >= 0 } ?: if (list.size == 1 && list[0].id == -1L) 0 else -1
+
+    fun queueFrom(c: MediaController): List<QueueEntry> = c.queue.orEmpty().map { item ->
+        val d = item.description
+        QueueEntry(item.queueId, d.title?.toString().orEmpty(), d.subtitle?.toString().orEmpty())
+    }
 
     /** Si Android tiene conectado [NowPlayingService] (con el permiso dado, debería estarlo). */
     val connected = MutableStateFlow(false)
@@ -90,6 +120,20 @@ object NowPlaying {
                 return true
             }
             WinampWindow.Hit.OpenEqualizer -> return open(ctx, android.content.Intent(ctx, MainActivity::class.java))
+            is WinampWindow.Hit.EqBand -> {
+                EqEngine.get(ctx).setFromSkin(hit.band, hit.fraction)
+                return true
+            }
+            WinampWindow.Hit.EqToggle -> {
+                val e = EqEngine.get(ctx)
+                e.setEnabled(!e.state.value.enabled)
+                return true
+            }
+            WinampWindow.Hit.EqAuto -> {
+                val e = EqEngine.get(ctx)
+                e.setAuto(!e.state.value.auto)
+                return true
+            }
             else -> {}
         }
         val c = controller ?: return false
@@ -115,6 +159,10 @@ object NowPlaying {
                 }
                 WinampWindow.Hit.TogglePlay ->
                     if (track.value?.state == PlayingTrack.State.PLAYING) t.pause() else t.play()
+                is WinampWindow.Hit.PlaylistRow -> {
+                    val entry = playlist().getOrNull(hit.index) ?: return false
+                    if (entry.id != -1L) t.skipToQueueItem(entry.id)
+                }
                 else -> {}
             }
         }.isSuccess
@@ -147,6 +195,8 @@ object NowPlaying {
             updatedAt = ps?.lastPositionUpdateTime?.takeIf { it > 0 } ?: SystemClock.elapsedRealtime(),
             speed = ps?.playbackSpeed?.takeIf { it > 0f } ?: 1f,
             state = state,
+            genre = md.getString(MediaMetadata.METADATA_KEY_GENRE).orEmpty(),
+            app = controller.packageName.orEmpty(),
         )
     }
 }
@@ -162,6 +212,7 @@ class NowPlayingService : NotificationListenerService() {
         override fun onMetadataChanged(metadata: MediaMetadata?) = refresh()
         override fun onPlaybackStateChanged(state: PlaybackState?) = refresh()
         override fun onSessionDestroyed() = refresh()
+        override fun onQueueChanged(queue: MutableList<android.media.session.MediaSession.QueueItem>?) = refresh()
     }
     private val sessionsChanged = MediaSessionManager.OnActiveSessionsChangedListener { list -> follow(list.orEmpty()) }
     private val main = android.os.Handler(android.os.Looper.getMainLooper())
@@ -221,7 +272,11 @@ class NowPlayingService : NotificationListenerService() {
         val tracks = controllers.mapNotNull { c -> runCatching { NowPlaying.from(c) }.getOrNull()?.let { c to it } }
         val chosen = tracks.firstOrNull { it.second.state == PlayingTrack.State.PLAYING } ?: tracks.firstOrNull()
         NowPlaying.controller = chosen?.first
+        NowPlaying.activeQueueId = chosen?.first?.let { c -> runCatching { c.playbackState?.activeQueueItemId }.getOrNull() } ?: -1
+        NowPlaying.queue.value = chosen?.first?.let { c -> runCatching { NowPlaying.queueFrom(c) }.getOrNull() }.orEmpty()
         NowPlaying.track.value = chosen?.second
+        // El ajuste automático depende de qué suena (voz, video o música)
+        EqEngine.peek()?.onMediaChanged()
         main.removeCallbacks(tick)
         tick.run()
     }
