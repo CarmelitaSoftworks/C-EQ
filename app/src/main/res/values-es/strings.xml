@@ -204,4 +204,19 @@
     <string name="widget_description">Espectro de audio en tiempo real de lo que suena en el teléfono</string>
     <string name="profile_for_fmt">Perfil para %1$s</string>
     <string name="add_auto_fmt">Sumar el perfil automático de %1$s</string>
+    <string name="multi_title">Varios parlantes</string>
+    <string name="multi_intro">Android no deja que una app una parlantes de distintas marcas: eso lo hacen el sistema del teléfono o cada parlante. Aquí ves la forma que funciona con tu teléfono y tus equipos, y el ecualizador sigue sonando en todas.</string>
+    <string name="multi_need_permission">Permitir ver los equipos Bluetooth vinculados</string>
+    <string name="multi_no_speakers">No hay parlantes Bluetooth vinculados.</string>
+    <string name="multi_speakers_fmt">Parlantes vinculados: %1$s</string>
+    <string name="multi_brand_title_fmt">Modo fiesta de %1$s</string>
+    <string name="multi_brand_desc_fmt">Tienes %1$d parlantes %2$s: únelos con %3$s desde la app %4$s. Suenan juntos y sincronizados.</string>
+    <string name="multi_find_app_fmt">Buscar la app %1$s</string>
+    <string name="multi_auracast_title">Compartir audio (Auracast)</string>
+    <string name="multi_auracast_desc">Tu teléfono puede transmitir LE Audio: funciona entre marcas si los parlantes son compatibles con Auracast. Búscalo en los ajustes de Bluetooth como «Compartir audio» o «Auracast».</string>
+    <string name="multi_dual_title">Audio dual (Samsung)</string>
+    <string name="multi_dual_desc">Samsung permite enviar el sonido a dos equipos Bluetooth de cualquier marca: conecta los dos y elígelos en la salida de medios del panel rápido o en los ajustes de Bluetooth. Puede haber un pequeño desfase entre ellos.</string>
+    <string name="multi_cable_title">Cable AUX</string>
+    <string name="multi_cable_desc">Si un parlante tiene entrada AUX, conéctale el otro (o el teléfono) con un cable: funciona con cualquier marca y sin desfase.</string>
+    <string name="multi_open_bluetooth">Abrir ajustes de Bluetooth</string>
 </resources>

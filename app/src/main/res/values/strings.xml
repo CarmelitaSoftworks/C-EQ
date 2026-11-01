@@ -204,4 +204,19 @@
     <string name="widget_description">Real-time audio spectrum of what\'s playing on the phone</string>
     <string name="profile_for_fmt">Profile for %1$s</string>
     <string name="add_auto_fmt">Add the automatic profile for %1$s</string>
+    <string name="multi_title">Multiple speakers</string>
+    <string name="multi_intro">Android doesn\'t let apps link speakers from different brands: the phone\'s system or each speaker does that. Here you\'ll see the way that works with your phone and devices, and the equalizer keeps working in all of them.</string>
+    <string name="multi_need_permission">Allow seeing paired Bluetooth devices</string>
+    <string name="multi_no_speakers">No paired Bluetooth speakers.</string>
+    <string name="multi_speakers_fmt">Paired speakers: %1$s</string>
+    <string name="multi_brand_title_fmt">%1$s party mode</string>
+    <string name="multi_brand_desc_fmt">You have %1$d %2$s speakers: link them with %3$s from the %4$s app. They play together, in sync.</string>
+    <string name="multi_find_app_fmt">Find the %1$s app</string>
+    <string name="multi_auracast_title">Audio sharing (Auracast)</string>
+    <string name="multi_auracast_desc">Your phone can broadcast LE Audio: it works across brands if the speakers support Auracast. Look for it in Bluetooth settings as “Audio sharing” or “Auracast”.</string>
+    <string name="multi_dual_title">Dual audio (Samsung)</string>
+    <string name="multi_dual_desc">Samsung lets you send sound to two Bluetooth devices of any brand: connect both and pick them in the media output of the quick panel or in Bluetooth settings. There may be a slight delay between them.</string>
+    <string name="multi_cable_title">AUX cable</string>
+    <string name="multi_cable_desc">If a speaker has an AUX input, connect the other one (or the phone) to it with a cable: it works with any brand and with no delay.</string>
+    <string name="multi_open_bluetooth">Open Bluetooth settings</string>
 </resources>

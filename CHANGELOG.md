@@ -1,5 +1,12 @@
 # Cambios
 
+## 3.2
+- Asistente **Varios parlantes**: revisa tus parlantes vinculados y tu teléfono y te lleva a lo que
+  funciona: el modo fiesta de la marca si tienes dos de la misma (Sony Party Connect, JBL PartyBoost,
+  UE PartyUp, Soundcore PartyCast, Marshall Stack Mode…), Compartir audio (Auracast) si el teléfono
+  transmite LE Audio, Audio dual en Samsung o un cable AUX. Android no deja que una app una
+  parlantes de distintas marcas por sí sola.
+
 ## 3.1
 - El menú de la app sigue el idioma del teléfono: inglés por defecto y español si el teléfono está
   en español (en Android 13+ también se elige en Ajustes › Idioma de las apps). Los skins no cambian;

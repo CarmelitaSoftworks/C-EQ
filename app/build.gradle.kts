@@ -13,8 +13,8 @@ android {
         applicationId = "cl.ecualizador"
         minSdk = 26
         targetSdk = 35
-        versionCode = 29
-        versionName = "3.1"
+        versionCode = 30
+        versionName = "3.2"
     }
     // Firma de release: datos en keystore.properties (fuera de git). Sin ese archivo, el APK de
     // release sale sin firmar.

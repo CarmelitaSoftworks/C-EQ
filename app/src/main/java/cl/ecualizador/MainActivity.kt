@@ -210,6 +210,8 @@ private fun EqualizerScreen() {
 
         DeviceCard(eq.profileKey, engine)
 
+        MultiSpeakerCard()
+
         SpectrumCard(
             running = spectrumOn && "app" in spectrumUsers,
             error = spectrumError,
@@ -1288,6 +1290,75 @@ private fun OptionRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(label, Modifier.weight(1f), fontSize = 13.sp)
         Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+/**
+ * Asistente «Varios parlantes»: qué camino funciona con este teléfono y estos parlantes (ver
+ * [MultiSpeaker]) y un botón al ajuste o a la app que corresponde.
+ */
+@Composable
+private fun MultiSpeakerCard() {
+    val ctx = LocalContext.current
+    // Se revisa al volver a la app (el permiso o los equipos vinculados pueden cambiar)
+    val lifecycle by LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
+    var permission by remember { mutableStateOf(MultiSpeaker.hasPermission(ctx)) }
+    val speakers = remember(lifecycle, permission) { MultiSpeaker.pairedSpeakers(ctx) }
+    val options = remember(speakers) { MultiSpeaker.plan(speakers, MultiSpeaker.canBroadcast(ctx), MultiSpeaker.isSamsung()) }
+    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permission = MultiSpeaker.hasPermission(ctx) }
+    fun open(intent: android.content.Intent) = runCatching { ctx.startActivity(intent) }
+    fun bluetoothSettings() = open(android.content.Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+    fun findApp(name: String) {
+        val q = android.net.Uri.encode(name)
+        if (open(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("market://search?q=$q&c=apps"))).isFailure) {
+            open(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://play.google.com/store/search?q=$q&c=apps")))
+        }
+    }
+
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Card).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(stringResource(R.string.multi_title), fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.multi_intro), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+        when {
+            !permission -> TextButton(onClick = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ask.launch(Manifest.permission.BLUETOOTH_CONNECT)
+            }) { Text(stringResource(R.string.multi_need_permission)) }
+            speakers.isEmpty() -> Text(stringResource(R.string.multi_no_speakers), fontSize = 13.sp)
+            else -> Text(stringResource(R.string.multi_speakers_fmt, speakers.joinToString(", ")), fontSize = 13.sp)
+        }
+        options.forEach { option ->
+            Column(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Bg).padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                when (option) {
+                    is MultiSpeaker.Option.SameBrand -> {
+                        Text(stringResource(R.string.multi_brand_title_fmt, option.brand.name), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(
+                            stringResource(R.string.multi_brand_desc_fmt, option.count, option.brand.name, option.brand.mode, option.brand.app),
+                            fontSize = 12.sp, lineHeight = 16.sp, color = Muted
+                        )
+                        TextButton(onClick = { findApp(option.brand.app) }) { Text(stringResource(R.string.multi_find_app_fmt, option.brand.app)) }
+                    }
+                    MultiSpeaker.Option.Auracast -> {
+                        Text(stringResource(R.string.multi_auracast_title), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(stringResource(R.string.multi_auracast_desc), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+                        TextButton(onClick = ::bluetoothSettings) { Text(stringResource(R.string.multi_open_bluetooth)) }
+                    }
+                    MultiSpeaker.Option.DualAudio -> {
+                        Text(stringResource(R.string.multi_dual_title), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(stringResource(R.string.multi_dual_desc), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+                        TextButton(onClick = ::bluetoothSettings) { Text(stringResource(R.string.multi_open_bluetooth)) }
+                    }
+                    MultiSpeaker.Option.Cable -> {
+                        Text(stringResource(R.string.multi_cable_title), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(stringResource(R.string.multi_cable_desc), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+                    }
+                }
+            }
+        }
     }
 }
 
