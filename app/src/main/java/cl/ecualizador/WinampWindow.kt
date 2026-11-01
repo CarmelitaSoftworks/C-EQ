@@ -226,10 +226,10 @@ object WinampWindow {
             blit(b, 9, 0, 38, 13, 177, 57)
             blit(b, 15, 422, 14, 11, 177 + 12, 58)
         }
-        // Repetir, aleatorio, EQ y lista
+        // Repetir, aleatorio (encendido), EQ y lista
         img("shufrep.bmp").let { s ->
             blit(s, 0, 0, 28, 15, 210, 89)
-            blit(s, 28, 0, 47, 15, 164, 89)
+            blit(s, 28, 30, 47, 15, 164, 89)
             blit(s, 0, 61, 23, 12, 219, 58)
             blit(s, 23, 61, 23, 12, 242, 58)
         }

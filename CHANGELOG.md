@@ -9,6 +9,7 @@
   agudos a poco volumen; protege parlantes chicos y oídos a mucho volumen).
 - Reconoce audífonos y parlantes Bluetooth LE Audio y la TV por HDMI.
 - Créditos y botón de Ko-fi dentro de la app.
+- El botón de aleatorio (SHUFFLE) se ve encendido en todos los skins.
 
 ## 2.9.4
 - El reproductor de la barra sale de «Silenciadas» (canal de prioridad normal, sin sonido) y su vista
