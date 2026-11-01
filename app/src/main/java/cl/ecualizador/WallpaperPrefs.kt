@@ -13,6 +13,8 @@ enum class WallpaperView(@androidx.annotation.StringRes val label: Int) {
     PLAYER(R.string.view_player),
     /** El skin completo hacia abajo: reproductor, ecualizador y lista de reproducción con la cola. */
     FULL_SKIN(R.string.view_full_skin),
+    /** La ventana plegada de Winamp: una barra delgada con el mini visor, el reloj y los botones. */
+    SHADE(R.string.view_shade),
     /** Solo el espectro, con el estilo y el alto elegidos. */
     SPECTRUM(R.string.view_spectrum);
 
@@ -26,6 +28,7 @@ enum class WallpaperView(@androidx.annotation.StringRes val label: Int) {
             winampPart = WinampWindow.Part.FULL,
         )
         FULL_SKIN -> PLAYER.spectrumSettings(s).copy(winampStack = true)
+        SHADE -> PLAYER.spectrumSettings(s).copy(winampShade = true)
         SPECTRUM -> s.copy(winampFrame = true, grid = false, winampWindow = false)
     }
 
@@ -33,6 +36,7 @@ enum class WallpaperView(@androidx.annotation.StringRes val label: Int) {
     fun height(s: SpectrumSettings, width: Float, screenHeight: Float, heightFraction: Float): Float = when (this) {
         PLAYER -> width * WinampWindow.HEIGHT / WinampWindow.WIDTH
         FULL_SKIN -> SkinStack.height(width, screenHeight * 0.72f)
+        SHADE -> width * WinampWindow.SHADE_H / WinampWindow.WIDTH
         SPECTRUM -> screenHeight * heightFraction.coerceIn(0.1f, 0.6f)
     }
 }
@@ -58,6 +62,8 @@ data class WallpaperSettings(
     /** Cambia cada vez que se elige otra foto, para recargarla. */
     val imageVersion: Long = 0,
     val touch: WallpaperTouch = WallpaperTouch.DOUBLE,
+    /** La carátula de lo que suena, desenfocada, como fondo en vez de la foto (si hay carátula). */
+    val artBackground: Boolean = false,
 )
 
 /** Resolución con que se dibujó el fondo: superficie que dio el sistema, pantalla real y foto. */
@@ -102,6 +108,7 @@ object WallpaperPrefs {
                 hasImage = currentImage(ctx) != null,
                 imageVersion = p.getLong("imageVersion", 0),
                 touch = runCatching { WallpaperTouch.valueOf(p.getString("touch", "DOUBLE")!!) }.getOrDefault(WallpaperTouch.DOUBLE),
+                artBackground = p.getBoolean("artBackground", false),
             )
             loaded = true
         }
@@ -113,7 +120,7 @@ object WallpaperPrefs {
         settings.value = s
         ctx.getSharedPreferences("wallpaper", Context.MODE_PRIVATE).edit()
             .putString("position", s.position.name).putString("view", s.view.name).putFloat("height", s.height).putFloat("dim", s.dim)
-            .putLong("imageVersion", s.imageVersion).putString("touch", s.touch.name).apply()
+            .putLong("imageVersion", s.imageVersion).putString("touch", s.touch.name).putBoolean("artBackground", s.artBackground).apply()
     }
 
     /**

@@ -93,7 +93,7 @@
     <string name="view_spectrum_hint">Just the spectrum, with the visualizer\'s style and colors.</string>
     <string name="position">Position</string>
     <string name="height">Height</string>
-    <string name="dim_photo">Darken photo</string>
+    <string name="dim_photo">Darken background</string>
     <string name="no_live_wallpaper">This phone doesn\'t allow live wallpapers from here. Look for it in Settings › Wallpaper › Live wallpapers.</string>
     <string name="set_wallpaper">Set as wallpaper</string>
     <string name="wallpaper_perm_hint">It needs the spectrum permission: first turn on “Live spectrum” above. Changes apply instantly if it\'s already set.</string>
@@ -266,4 +266,13 @@
     <string name="touch_single">Single tap</string>
     <string name="touch_off">Off</string>
     <string name="touch_hint">Android also passes touches on icons and the app drawer to the wallpaper. With double tap, the skin\'s buttons only respond when you tap them twice in a row, so they don\'t trigger by accident.</string>
+    <string name="view_shade">Bar (shade)</string>
+    <string name="view_shade_hint">Winamp\'s folded window: a thin bar with the mini visualizer, the clock and the mini buttons. It takes very little space.</string>
+    <string name="player_shade_widget_name">Winamp bar (shade)</string>
+    <string name="player_shade_widget_description">Winamp\'s folded window: mini visualizer, clock and buttons in a single row</string>
+    <string name="player_play">Play</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_stop">Stop</string>
+    <string name="player_open">Open the music app</string>
+    <string name="art_background">Album art of what\'s playing as background</string>
 </resources>

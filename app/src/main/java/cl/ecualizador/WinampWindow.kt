@@ -9,8 +9,9 @@ package cl.ecualizador
  * Lo que cambia con la música (título, reloj, reproducir/pausa y el indicador de posición) no va
  * en la ventana: debajo de ella, en el mismo «atlas» de 275×[ATLAS_HEIGHT], van esas piezas del
  * skin para que el visor las dibuje en cada cuadro (ver SpectrumRenderer). El visor va en
- * [VIS_X], [VIS_Y] de [VIS_W]×[VIS_H]. Más abajo van la ventana del ecualizador ([EQ_Y]) y las piezas
- * de la lista de reproducción ([PL_Y]), para mostrar el skin completo.
+ * [VIS_X], [VIS_Y] de [VIS_W]×[VIS_H]. Más abajo van la ventana del ecualizador ([EQ_Y]), las piezas
+ * de la lista de reproducción ([PL_Y]), para mostrar el skin completo, y la ventana plegada
+ * ([SHADE_Y]).
  */
 object WinampWindow {
     const val WIDTH = 275
@@ -76,7 +77,25 @@ object WinampWindow {
     const val PL_BOTTOM_RIGHT_Y = PL_BOTTOM_Y + PL_BOTTOM_H
     /** Alto de cada fila de la lista: la letra del skin (6 px) y 2 de separación. */
     const val PL_ROW_H = 8
-    const val ATLAS_HEIGHT = PL_BOTTOM_RIGHT_Y + PL_BOTTOM_H
+
+    // Ventana plegada («shade», TITLEBAR.BMP): 275×14 con mini visor, reloj, mini botones y una
+    // barra de posición; abajo, el fondo de esa barra y su indicador
+    const val SHADE_Y = PL_BOTTOM_RIGHT_Y + PL_BOTTOM_H
+    const val SHADE_H = 14
+    const val SHADE_POS_Y = SHADE_Y + SHADE_H
+    const val SHADE_POS_X = 226
+    const val SHADE_POS_W = 17
+    const val SHADE_POS_H = 7
+    const val SHADE_THUMB_X = 20
+    const val SHADE_THUMB_W = 3
+    /** Mini visor y reloj (dígitos de TEXT.BMP alrededor de los dos puntos del fondo). */
+    const val SHADE_VIS_X = 79
+    const val SHADE_VIS_Y = 5
+    const val SHADE_VIS_W = 38
+    const val SHADE_VIS_H = 5
+    val SHADE_CLOCK_X = intArrayOf(132, 137, 147, 152)
+    const val SHADE_CLOCK_Y = 5
+    const val ATLAS_HEIGHT = SHADE_POS_Y + SHADE_POS_H
 
     // Volumen en la ventana
     const val VOLUME_X = 107
@@ -132,6 +151,28 @@ object WinampWindow {
         data object EqPresets : Hit
         /** Fila [index] de la lista de reproducción, tal como se dibujó. */
         data class PlaylistRow(val index: Int) : Hit
+    }
+
+    /**
+     * Mini botones de la ventana plegada: posición x y ancho (alto 10 desde y = 2), como en Winamp 2
+     * y Webamp.
+     */
+    private val SHADE_BUTTONS = listOf(
+        Triple(169, 7, Hit.Press(Button.PREVIOUS)), Triple(176, 10, Hit.Press(Button.PLAY)),
+        Triple(186, 9, Hit.Press(Button.PAUSE)), Triple(195, 9, Hit.Press(Button.STOP)),
+        Triple(204, 10, Hit.Press(Button.NEXT)), Triple(215, 9, Hit.OpenPlayer),
+    )
+
+    /** Qué hay en ([x], [y]) de la ventana plegada (275×14), con margen para el dedo. */
+    fun shadeHit(x: Float, y: Float): Hit? {
+        if (x < 0 || x >= WIDTH || y < -4 || y >= SHADE_H + 4) return null
+        SHADE_BUTTONS.firstOrNull { (bx, bw, _) -> x >= bx && x < bx + bw }?.let { return it.third }
+        if (x >= SHADE_POS_X - 2 && x < SHADE_POS_X + SHADE_POS_W + 2) {
+            return Hit.Seek(((x - SHADE_POS_X - SHADE_THUMB_W / 2f) / (SHADE_POS_W - SHADE_THUMB_W)).coerceIn(0f, 1f))
+        }
+        // El visor y el reloj: reproducir/pausa
+        if (x >= SHADE_VIS_X - 4 && x < 160) return Hit.TogglePlay
+        return null
     }
 
     /** Qué hay en el punto ([x], [y]) de la ventana del ecualizador. */
@@ -247,6 +288,11 @@ object WinampWindow {
         // Dígitos 0–9 (NUMS_EX.BMP si lo trae, si no NUMBERS.BMP)
         (img("nums_ex.bmp") ?: img("numbers.bmp")).let { n -> blit(n, 0, 0, 90, 13, 0, NUMS_Y) }
         composeEqualizer(img("eqmain.bmp"), ::blit)
+        img("titlebar.bmp").let { t ->
+            blit(t, 27, 29, WIDTH, SHADE_H, 0, SHADE_Y)
+            blit(t, 0, 36, SHADE_POS_W, SHADE_POS_H, 0, SHADE_POS_Y)
+            blit(t, 20, 36, SHADE_THUMB_W, SHADE_POS_H, SHADE_THUMB_X, SHADE_POS_Y)
+        }
         composePlaylist(img("pledit.bmp"), ::blit)
         // Fuente completa, y los kbps/kHz fijos en la ventana
         img("text.bmp")?.let { t ->

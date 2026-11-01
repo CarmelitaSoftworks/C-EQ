@@ -39,7 +39,9 @@ object WinampWindows {
         return o.outHeight != WinampWindow.ATLAS_HEIGHT
     }
 
-    private val ACCEPTED_HEIGHTS = setOf(WinampWindow.ATLAS_HEIGHT, WinampWindow.LIVE_HEIGHT, WinampWindow.HEIGHT)
+    private val ACCEPTED_HEIGHTS = setOf(
+        WinampWindow.ATLAS_HEIGHT, WinampWindow.SHADE_Y, WinampWindow.LIVE_HEIGHT, WinampWindow.HEIGHT,
+    )
 
     @Synchronized
     fun clear() = cache.clear()
@@ -49,9 +51,16 @@ object WinampWindows {
      * o PLEDIT.BMP, o atlas de un formato anterior), el del skin base, como hace Winamp con lo que
      * le falta a un skin.
      */
+    /** Atlas con la ventana plegada de [skin], o la del skin base si el suyo no la trae. */
+    fun shade(skin: WinampSkin): Bitmap? {
+        fun has(b: Bitmap?) = b != null && b.height >= WinampWindow.ATLAS_HEIGHT && (b.getPixel(0, WinampWindow.SHADE_Y) ushr 24) != 0
+        return bitmap(skin).takeIf(::has) ?: bitmap(WinampSkins.DEFAULT).takeIf(::has)
+    }
+
     fun extras(skin: WinampSkin): Pair<Bitmap?, Bitmap?> {
-        val own = bitmap(skin)?.takeIf { it.height >= WinampWindow.ATLAS_HEIGHT }
-        val base by lazy { bitmap(WinampSkins.DEFAULT)?.takeIf { it.height >= WinampWindow.ATLAS_HEIGHT } }
+        // Desde la 3.0 el atlas trae el ecualizador y la lista (antes de la ventana plegada de la 3.4)
+        val own = bitmap(skin)?.takeIf { it.height >= WinampWindow.SHADE_Y }
+        val base by lazy { bitmap(WinampSkins.DEFAULT)?.takeIf { it.height >= WinampWindow.SHADE_Y } }
         fun has(b: Bitmap?, y: Int) = b != null && (b.getPixel(0, y) ushr 24) != 0
         val eq = if (has(own, WinampWindow.EQ_Y)) own else base
         val pl = if (has(own, WinampWindow.PL_Y)) own else base

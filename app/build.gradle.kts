@@ -13,8 +13,8 @@ android {
         applicationId = "cl.ecualizador"
         minSdk = 26
         targetSdk = 35
-        versionCode = 33
-        versionName = "3.3.1"
+        versionCode = 34
+        versionName = "3.4"
         // Día del último commit (días desde 1970), para recordar buscar una versión nueva sin usar
         // Internet. Sale del commit y no del reloj: el mismo código da siempre el mismo APK
         buildConfigField("long", "BUILD_DAY", "${commitDay()}L")

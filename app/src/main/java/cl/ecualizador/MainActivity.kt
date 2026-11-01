@@ -773,11 +773,21 @@ private fun NowPlayingAccess() {
         }) { Text(stringResource(R.string.open_notif_access)) }
     }
     if (access) {
-        Text(
-            (track?.let { stringResource(R.string.np_playing_fmt, it.winampTitle()) } ?: stringResource(R.string.np_idle)) +
-                " " + stringResource(R.string.np_buttons_hint),
-            fontSize = 12.sp, color = Muted
-        )
+        val art by NowPlaying.art.collectAsState()
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            art?.let { a ->
+                val image = remember(a) { a.asImageBitmap() }
+                androidx.compose.foundation.Image(
+                    image, null, Modifier.size(52.dp).clip(RoundedCornerShape(6.dp)),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                )
+            }
+            Text(
+                (track?.let { stringResource(R.string.np_playing_fmt, it.winampTitle()) } ?: stringResource(R.string.np_idle)) +
+                    " " + stringResource(R.string.np_buttons_hint),
+                Modifier.weight(1f), fontSize = 12.sp, color = Muted
+            )
+        }
         var inShade by remember { mutableStateOf(PlayerNotification.isEnabled(ctx)) }
         val notifyPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
             if (ok) PlayerNotification.update(ctx)
@@ -889,6 +899,7 @@ private fun WallpaperCard() {
             when {
                 ws.view == WallpaperView.PLAYER -> stringResource(R.string.view_player_hint)
                 ws.view == WallpaperView.FULL_SKIN -> stringResource(R.string.view_full_hint)
+                ws.view == WallpaperView.SHADE -> stringResource(R.string.view_shade_hint)
                 spectrum.style.winamp -> stringResource(R.string.view_spectrum_winamp_hint)
                 else -> stringResource(R.string.view_spectrum_hint)
             },
@@ -908,7 +919,13 @@ private fun WallpaperCard() {
         }
         if (winampLook) {
             // Las miniaturas muestran el skin como se verá en el fondo (solo el reproductor)
-            WinampSkinPicker(ws.view.spectrumSettings(spectrum).copy(winampStack = false)) { change -> SpectrumPrefs.update(ctx, change) }
+            if (ws.view == WallpaperView.SHADE) {
+                WinampPreview(
+                    ws.view.spectrumSettings(spectrum).copy(winampMarquee = false),
+                    Modifier.fillMaxWidth().aspectRatio(WinampWindow.WIDTH / WinampWindow.SHADE_H.toFloat())
+                )
+            }
+            WinampSkinPicker(ws.view.spectrumSettings(spectrum).copy(winampStack = false, winampShade = false)) { change -> SpectrumPrefs.update(ctx, change) }
             var shuffle by remember { mutableStateOf(SkinShuffle.mode(ctx)) }
             Text(stringResource(R.string.shuffle_title), color = Muted, fontSize = 13.sp)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -936,7 +953,8 @@ private fun WallpaperCard() {
         if (ws.view == WallpaperView.SPECTRUM) {
             LabeledSlider(stringResource(R.string.height), ws.height, 0.1f..0.6f, "%.0f%%".format(ws.height * 100)) { v -> set { it.copy(height = v) } }
         }
-        if (ws.hasImage) {
+        OptionRow(stringResource(R.string.art_background), ws.artBackground) { on -> set { it.copy(artBackground = on) } }
+        if (ws.hasImage || ws.artBackground) {
             LabeledSlider(stringResource(R.string.dim_photo), ws.dim, 0f..0.7f, "%.0f%%".format(ws.dim * 100)) { v -> set { it.copy(dim = v) } }
         }
         Button(onClick = {

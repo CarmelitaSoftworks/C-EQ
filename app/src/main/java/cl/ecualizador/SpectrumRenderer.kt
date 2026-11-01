@@ -53,6 +53,7 @@ class SpectrumRenderer {
         if (w <= 0 || h <= 0) return
         hitPart = null // lo vuelve a fijar el skin real si se dibuja
         stackScale = 0f
+        shadeScale = 0f
         // Cada estilo deja sus ajustes en los pinceles compartidos: se reinician en cada cuadro.
         fill.shader = null; fill.alpha = 255
         stroke.shader = null; stroke.alpha = 255; stroke.strokeCap = Paint.Cap.ROUND
@@ -221,7 +222,9 @@ class SpectrumRenderer {
         val skin = WinampSkins.byName(s.winampSkin)
         val window = if (s.winampFrame && s.winampWindow) WinampWindows.bitmap(skin) else null
         val area = when {
-            window != null && s.winampStack -> drawSkinStack(canvas, w, h, window, skin, s.winampMarquee)
+            window != null && s.winampShade && WinampWindows.shade(skin) != null ->
+                drawSkinShade(canvas, w, h, WinampWindows.shade(skin)!!, window)
+            window != null && s.winampStack -> drawSkinStack(canvas, w, h, window, skin, s.winampMarquee, values)
             window != null -> drawSkinWindow(canvas, w, h, window, s.winampPart, skin, s.winampMarquee)
             s.winampFrame -> drawWinampFrame(canvas, w, h, skin, density)
             else -> null
@@ -361,6 +364,7 @@ class SpectrumRenderer {
      * si no hay skin real o no se tocó nada.
      */
     fun hitAt(x: Float, y: Float): WinampWindow.Hit? {
+        if (shadeScale > 0f) return WinampWindow.shadeHit((x - shadeLeft) / shadeScale, (y - shadeTop) / shadeScale)
         if (stackScale > 0f) return stackHit((x - stackLeft) / stackScale, (y - stackTop) / stackScale)
         val part = hitPart ?: return null
         return WinampWindow.hit(part.x + (x - hitLeft) / hitScale, part.y + (y - hitTop) / hitScale, part)
@@ -399,7 +403,7 @@ class SpectrumRenderer {
      * con las bandas que suenan y la lista de reproducción con la cola. Devuelve el recuadro del visor.
      */
     private fun drawSkinStack(
-        canvas: Canvas, w: Float, h: Float, atlas: android.graphics.Bitmap, skin: WinampSkin, marquee: Boolean,
+        canvas: Canvas, w: Float, h: Float, atlas: android.graphics.Bitmap, skin: WinampSkin, marquee: Boolean, values: FloatArray,
     ): android.graphics.RectF {
         val scale = SkinStack.scale(w, h)
         val sides = SkinStack.sides(h, scale)
@@ -416,7 +420,7 @@ class SpectrumRenderer {
         vis.offset(left, top)
 
         val (eqAtlas, plAtlas) = WinampWindows.extras(skin)
-        eqAtlas?.let { drawEqualizer(canvas, it, left, top + wh, scale) }
+        eqAtlas?.let { drawEqualizer(canvas, it, left, top + wh, scale, values, skin) }
         plAtlas?.let { drawPlaylist(canvas, it, left, top + 2 * wh, scale, sides, skin) }
 
         stackScale = scale; stackLeft = left; stackTop = top; stackSides = sides
@@ -434,9 +438,63 @@ class SpectrumRenderer {
 
     private var graphBitmap: android.graphics.Bitmap? = null
     private var graphKey: Any? = null
+    private var graphAtlas: android.graphics.Bitmap? = null
+    private var graphBg = IntArray(0)
+    private var graphColors = IntArray(0)
+
+    // ---------------------------------------------------------------- Ventana plegada
+
+    // Dónde quedó la ventana plegada en el último cuadro (escala 0: no se dibujó)
+    private var shadeScale = 0f
+    private var shadeLeft = 0f
+    private var shadeTop = 0f
+
+    /**
+     * Ventana plegada («shade») de Winamp: una barra de 275×14 con el mini visor, el reloj con la letra
+     * del skin, los mini botones y la barra de posición. [main] es el atlas del skin (su letra).
+     * Devuelve el recuadro del mini visor.
+     */
+    private fun drawSkinShade(
+        canvas: Canvas, w: Float, h: Float, a: android.graphics.Bitmap, main: android.graphics.Bitmap,
+    ): android.graphics.RectF {
+        val fit = minOf(w / WinampWindow.WIDTH, h / WinampWindow.SHADE_H)
+        val scale = if (fit >= 2f) kotlin.math.floor(fit) else fit
+        val left = kotlin.math.round((w - WinampWindow.WIDTH * scale) / 2)
+        val top = kotlin.math.round((h - WinampWindow.SHADE_H * scale) / 2)
+        put(canvas, a, 0, WinampWindow.SHADE_Y, WinampWindow.WIDTH, WinampWindow.SHADE_H, left, top, scale, 0f, 0f)
+
+        val track = NowPlaying.track.value
+        val now = android.os.SystemClock.elapsedRealtime()
+        val pos = track?.positionAt(now) ?: 0L
+        // Reloj: minutos y segundos con la letra del skin, alrededor de los dos puntos del fondo
+        if (main.height >= WinampWindow.LIVE_HEIGHT) {
+            val secs = (pos / 1000).coerceAtMost(99 * 60 + 59)
+            val digits = intArrayOf((secs / 60 / 10).toInt(), (secs / 60 % 10).toInt(), (secs % 60 / 10).toInt(), (secs % 60 % 10).toInt())
+            for (k in 0 until 4) {
+                val (col, row) = WinampWindow.glyph('0' + digits[k])
+                put(canvas, main, col * 5, WinampWindow.TEXT_Y + row * 6, 5, 6, left, top, scale,
+                    WinampWindow.SHADE_CLOCK_X[k].toFloat(), WinampWindow.SHADE_CLOCK_Y.toFloat())
+            }
+        }
+        // Indicador de la barra de posición
+        val progress = if (track != null && track.durationMs > 0) pos / track.durationMs.toFloat() else 0f
+        val tx = WinampWindow.SHADE_POS_X + (WinampWindow.SHADE_POS_W - WinampWindow.SHADE_THUMB_W) * progress.coerceIn(0f, 1f)
+        put(canvas, a, WinampWindow.SHADE_THUMB_X, WinampWindow.SHADE_POS_Y, WinampWindow.SHADE_THUMB_W, WinampWindow.SHADE_POS_H,
+            left, top, scale, kotlin.math.floor(tx), 4f)
+
+        shadeScale = scale; shadeLeft = left; shadeTop = top
+        frameArea.set(
+            left + WinampWindow.SHADE_VIS_X * scale, top + WinampWindow.SHADE_VIS_Y * scale,
+            left + (WinampWindow.SHADE_VIS_X + WinampWindow.SHADE_VIS_W) * scale,
+            top + (WinampWindow.SHADE_VIS_Y + WinampWindow.SHADE_VIS_H) * scale,
+        )
+        return frameArea
+    }
 
     /** Ventana del ecualizador: ON, AUTO, los 10 deslizadores y el preamplificador, y la curva. */
-    private fun drawEqualizer(canvas: Canvas, a: android.graphics.Bitmap, x0: Float, y0: Float, scale: Float) {
+    private fun drawEqualizer(
+        canvas: Canvas, a: android.graphics.Bitmap, x0: Float, y0: Float, scale: Float, values: FloatArray, skin: WinampSkin,
+    ) {
         val eq = EqEngine.peek()?.state?.value
         fun p(sx: Int, sy: Int, sw: Int, sh: Int, wx: Float, wy: Float) = put(canvas, a, sx, sy, sw, sh, x0, y0, scale, wx, wy)
         p(0, WinampWindow.EQ_Y, WinampWindow.WIDTH, WinampWindow.HEIGHT, 0f, 0f)
@@ -457,15 +515,33 @@ class SpectrumRenderer {
         slider(WinampWindow.EQ_PREAMP_X, 0.5f + (eq?.boost ?: 0f) / EqCore.BOOST_MAX_DB / 2f)
         for (i in 0 until EqCore.BANDS) slider(WinampWindow.EQ_BAND_X + i * WinampWindow.EQ_BAND_STEP, fraction(levels.getOrElse(i) { 0f }))
 
-        // Curva: se rearma solo si cambian el skin o las bandas
+        // Curva sobre el espectro de lo que suena (con los colores del analizador del skin, a media
+        // luz). El fondo y los colores de la curva se leen una vez por skin; la curva, en cada cuadro
+        val gw = WinampWindow.EQ_GRAPH_W
+        val gh = WinampWindow.EQ_GRAPH_H
+        if (graphAtlas !== a) {
+            graphAtlas = a
+            graphBg = IntArray(gw * gh).also { a.getPixels(it, 0, gw, WinampWindow.EQ_GRAPH_X, WinampWindow.EQ_Y + WinampWindow.EQ_GRAPH_Y, gw, gh) }
+            graphColors = IntArray(gh) { a.getPixel(WinampWindow.EQ_LINE_X, WinampWindow.EQ_SLIDERS_Y + it) }
+        }
+        val quiet = values.all { it < 0.01f }
         val key = listOf(System.identityHashCode(a), levels)
-        if (key != graphKey || graphBitmap == null) {
-            graphKey = key
-            val gw = WinampWindow.EQ_GRAPH_W
-            val gh = WinampWindow.EQ_GRAPH_H
-            val px = IntArray(gw * gh)
-            a.getPixels(px, 0, gw, WinampWindow.EQ_GRAPH_X, WinampWindow.EQ_Y + WinampWindow.EQ_GRAPH_Y, gw, gh)
-            val colors = IntArray(gh) { a.getPixel(WinampWindow.EQ_LINE_X, WinampWindow.EQ_SLIDERS_Y + it) }
+        if (!quiet || key != graphKey || graphBitmap == null) {
+            graphKey = if (quiet) key else null
+            val px = graphBg.copyOf()
+            val colors = graphColors
+            if (!quiet) {
+                val vis = skin.colors
+                for (x in 0 until gw) {
+                    val v = values[(x * values.size / gw).coerceIn(0, values.size - 1)].coerceIn(0f, 1f)
+                    val rows = Math.round(v * gh)
+                    for (r in 0 until rows) {
+                        val y = gh - 1 - r
+                        val c = vis[(17 - r * 16 / gh).coerceIn(2, 17)]
+                        px[y * gw + x] = WinampColors.mix(px[y * gw + x], c, 0.5f) or (0xFF shl 24)
+                    }
+                }
+            }
             var prev = -1
             for (x in 0 until gw) {
                 val pos = x / (gw - 1f) * (EqCore.BANDS - 1)

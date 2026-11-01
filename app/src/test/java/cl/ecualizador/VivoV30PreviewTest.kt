@@ -40,6 +40,7 @@ class VivoV30PreviewTest {
         val peaks = FloatArray(values.size) { (values[it] + 0.1f).coerceAtMost(1f) }
         // Reproductor completo con cada skin y, al final, «Solo el espectro» con el primero
         val modes = names.map { it to WallpaperView.PLAYER } + names.map { it to WallpaperView.FULL_SKIN } +
+            names.map { it to WallpaperView.SHADE } +
             names.map { it to WallpaperView.SPECTRUM }
         // Una cola como la de Spotify para la lista del skin completo
         NowPlaying.queue.value = listOf(

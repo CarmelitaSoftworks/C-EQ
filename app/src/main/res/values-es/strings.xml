@@ -93,7 +93,7 @@
     <string name="view_spectrum_hint">Solo el espectro, con el estilo y los colores del visor.</string>
     <string name="position">Posición</string>
     <string name="height">Alto</string>
-    <string name="dim_photo">Oscurecer foto</string>
+    <string name="dim_photo">Oscurecer fondo</string>
     <string name="no_live_wallpaper">Este teléfono no permite fondos animados desde aquí. Búscalo en Ajustes › Fondo de pantalla › Fondos animados.</string>
     <string name="set_wallpaper">Establecer como fondo de pantalla</string>
     <string name="wallpaper_perm_hint">Necesita el permiso del espectro: activa primero «Espectro en tiempo real» arriba. Los cambios se aplican al instante si ya está puesto.</string>
@@ -266,4 +266,13 @@
     <string name="touch_single">Un toque</string>
     <string name="touch_off">Apagados</string>
     <string name="touch_hint">Android también le pasa al fondo los toques de los íconos y del menú de apps. Con doble toque, los botones del skin solo responden si los tocas dos veces seguidas, así no se activan sin querer.</string>
+    <string name="view_shade">Barra (shade)</string>
+    <string name="view_shade_hint">La ventana plegada de Winamp: una barra delgada con el mini visor, el reloj y los mini botones. Ocupa muy poco espacio.</string>
+    <string name="player_shade_widget_name">Barra Winamp (shade)</string>
+    <string name="player_shade_widget_description">La ventana plegada de Winamp: mini visor, reloj y botones en una sola fila</string>
+    <string name="player_play">Reproducir</string>
+    <string name="player_pause">Pausa</string>
+    <string name="player_stop">Detener</string>
+    <string name="player_open">Abrir la app de música</string>
+    <string name="art_background">Carátula de lo que suena como fondo</string>
 </resources>

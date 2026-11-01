@@ -274,6 +274,25 @@ class SpectrumWallpaperService : WallpaperService() {
             upright.recycle()
         }
 
+        private var artFor: android.graphics.Bitmap? = null
+        private var artBlurred: Bitmap? = null
+
+        /**
+         * La carátula de lo que suena, desenfocada y del tamaño de la pantalla: se achica a 24 px y se
+         * vuelve a agrandar suavizada. Se rehace solo cuando cambia la carátula o la pantalla.
+         */
+        private fun artBackground(): Bitmap? {
+            val art = NowPlaying.art.value ?: return null
+            artBlurred?.let { if (art === artFor && it.width == width && it.height == height) return it }
+            val tiny = Bitmap.createScaledBitmap(art, 24, 24, true)
+            val out = WallpaperImage.cover(tiny, width, height)
+            tiny.recycle()
+            artBlurred?.recycle()
+            artFor = art
+            artBlurred = out
+            return out
+        }
+
         private fun drawFrame() {
             if (width == 0 || height == 0) return
             val holder = surfaceHolder
@@ -282,7 +301,7 @@ class SpectrumWallpaperService : WallpaperService() {
                 val ws = WallpaperPrefs.load(this@SpectrumWallpaperService)
                 val settings = SpectrumPrefs.load(this@SpectrumWallpaperService)
                 loadBackground(ws)
-                val bg = background
+                val bg = (if (ws.artBackground) artBackground() else null) ?: background
                 if (bg != null) {
                     canvas.drawBitmap(bg, 0f, 0f, bitmapPaint)
                     dimPaint.color = ((ws.dim.coerceIn(0f, 0.7f) * 255).toInt() shl 24)

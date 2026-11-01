@@ -45,4 +45,20 @@ class SkinStackTest {
         assertEquals((SkinStack.FIXED + WinampWindow.playlistHeight(sides)) * scale, h, 0.01f)
         assertTrue(WinampWindow.playlistRows(sides) >= 4)
     }
+
+    @Test
+    fun shadeWindowPiecesAndHits() {
+        assertEquals(WinampWindow.PL_BOTTOM_RIGHT_Y + WinampWindow.PL_BOTTOM_H, WinampWindow.SHADE_Y)
+        assertEquals(WinampWindow.SHADE_POS_Y + WinampWindow.SHADE_POS_H, WinampWindow.ATLAS_HEIGHT)
+        assertEquals(WinampWindow.Hit.Press(WinampWindow.Button.PREVIOUS), WinampWindow.shadeHit(172f, 7f))
+        assertEquals(WinampWindow.Hit.Press(WinampWindow.Button.PLAY), WinampWindow.shadeHit(180f, 7f))
+        assertEquals(WinampWindow.Hit.Press(WinampWindow.Button.NEXT), WinampWindow.shadeHit(208f, 7f))
+        assertEquals(WinampWindow.Hit.OpenPlayer, WinampWindow.shadeHit(219f, 7f))
+        assertEquals(WinampWindow.Hit.Seek(0f), WinampWindow.shadeHit(226f, 7f))
+        assertEquals(WinampWindow.Hit.TogglePlay, WinampWindow.shadeHit(100f, 7f))
+        assertNull(WinampWindow.shadeHit(20f, 7f))
+        // La barra del fondo mide lo que mide la ventana plegada a ese ancho
+        val s = SpectrumSettings()
+        assertEquals(1100f * 14 / 275, WallpaperView.SHADE.height(s, 1100f, 2800f, 0.25f), 0.01f)
+    }
 }

@@ -1,5 +1,13 @@
 # Cambios
 
+## 3.4
+- **Barra (shade)**: la ventana plegada de Winamp como modo del fondo y como widget de una fila, con
+  el mini visor, el reloj con la letra del skin, los mini botones y la barra de posición.
+- **El ecualizador del skin se mueve con la música**: el espectro de lo que suena aparece detrás de
+  la curva, con los colores del analizador del skin.
+- **Carátula**: la portada de lo que suena (si el reproductor la entrega) en la app y en la
+  notificación, y opción de usarla desenfocada como fondo de pantalla.
+
 ## 3.3.1
 - **Toques en el fondo**: doble toque (nuevo, por defecto), un toque o apagados. Android le pasa al
   fondo también los toques de los íconos y del menú de apps sin decir cuáles son; con doble toque,
