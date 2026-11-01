@@ -24,6 +24,9 @@ class SpectrumWallpaperService : WallpaperService() {
     private companion object {
         /** Tiempo que se considera abierto el cajón de apps tras abrirlo o tocarlo. */
         const val DRAWER_HOLD_MS = 5000L
+        /** Doble toque: el segundo, antes de este tiempo y a esta distancia del primero. */
+        const val DOUBLE_TAP_MS = 450L
+        const val DOUBLE_TAP_SLOP_DP = 32f
     }
 
     inner class SpectrumEngine : Engine(), Choreographer.FrameCallback {
@@ -159,12 +162,30 @@ class SpectrumWallpaperService : WallpaperService() {
             super.onTouchEvent(event)
         }
 
+        /** Primer toque de un doble toque: cuándo y dónde, y qué del skin tocó. */
+        private var armedAt = 0L
+        private var armedX = 0f
+        private var armedY = 0f
+        private var armedHit: WinampWindow.Hit? = null
+
         private fun tap(x: Float, y: Float) {
             val now = android.os.SystemClock.uptimeMillis()
             // El mismo toque por los dos caminos cuenta una vez; toques seguidos en otro lugar, todos
             if (now - lastTapAt < 250 && kotlin.math.hypot(x - lastTapX, y - lastTapY) < 40f) return
-            val hit = renderer.hitAt(x - drawnX, y - drawnY) ?: return
             lastTapAt = now; lastTapX = x; lastTapY = y
+            val mode = WallpaperPrefs.load(this@SpectrumWallpaperService).touch
+            if (mode == WallpaperTouch.OFF) return
+            val hit = renderer.hitAt(x - drawnX, y - drawnY) ?: return
+            if (mode == WallpaperTouch.DOUBLE) {
+                val second = armedHit != null && now - armedAt < DOUBLE_TAP_MS &&
+                    kotlin.math.hypot(x - armedX, y - armedY) < DOUBLE_TAP_SLOP_DP * resources.displayMetrics.density &&
+                    WallpaperTouches.sameTarget(armedHit!!, hit)
+                if (!second) {
+                    armedAt = now; armedX = x; armedY = y; armedHit = hit
+                    return
+                }
+                armedHit = null
+            }
             val ctx = this@SpectrumWallpaperService
             // El volumen y el ecualizador no dependen del reproductor que suena
             val needsSession = hit !is WinampWindow.Hit.Volume && hit != WinampWindow.Hit.OpenEqualizer &&

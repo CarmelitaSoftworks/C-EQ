@@ -1,5 +1,10 @@
 # Cambios
 
+## 3.3.1
+- **Toques en el fondo**: doble toque (nuevo, por defecto), un toque o apagados. Android le pasa al
+  fondo también los toques de los íconos y del menú de apps sin decir cuáles son; con doble toque,
+  los botones del skin solo responden si se tocan dos veces seguidas en el mismo lugar.
+
 ## 3.3
 - **Curvas medidas de AutoEQ** para 48 audífonos Bluetooth populares (Sony, AirPods Pro 2/3/Max, Galaxy Buds,
   Bose, JBL, Sennheiser, Beats, Pixel Buds, Nothing, Soundcore, Jabra, Audio-Technica…). Se

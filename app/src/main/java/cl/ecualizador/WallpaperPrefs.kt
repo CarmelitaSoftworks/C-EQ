@@ -37,6 +37,16 @@ enum class WallpaperView(@androidx.annotation.StringRes val label: Int) {
     }
 }
 
+/**
+ * Cómo responden los botones del skin en el fondo. Android le entrega al fondo también los toques
+ * de los íconos y del cajón de apps, y no dice cuáles son: con doble toque, uno suelto no hace nada.
+ */
+enum class WallpaperTouch(@androidx.annotation.StringRes val label: Int) {
+    DOUBLE(R.string.touch_double),
+    SINGLE(R.string.touch_single),
+    OFF(R.string.touch_off),
+}
+
 data class WallpaperSettings(
     val position: WallpaperPosition = WallpaperPosition.BOTTOM,
     /** Alto del espectro como fracción de la pantalla. */
@@ -47,6 +57,7 @@ data class WallpaperSettings(
     val hasImage: Boolean = false,
     /** Cambia cada vez que se elige otra foto, para recargarla. */
     val imageVersion: Long = 0,
+    val touch: WallpaperTouch = WallpaperTouch.DOUBLE,
 )
 
 /** Resolución con que se dibujó el fondo: superficie que dio el sistema, pantalla real y foto. */
@@ -90,6 +101,7 @@ object WallpaperPrefs {
                 dim = p.getFloat("dim", 0.25f),
                 hasImage = currentImage(ctx) != null,
                 imageVersion = p.getLong("imageVersion", 0),
+                touch = runCatching { WallpaperTouch.valueOf(p.getString("touch", "DOUBLE")!!) }.getOrDefault(WallpaperTouch.DOUBLE),
             )
             loaded = true
         }
@@ -101,7 +113,7 @@ object WallpaperPrefs {
         settings.value = s
         ctx.getSharedPreferences("wallpaper", Context.MODE_PRIVATE).edit()
             .putString("position", s.position.name).putString("view", s.view.name).putFloat("height", s.height).putFloat("dim", s.dim)
-            .putLong("imageVersion", s.imageVersion).apply()
+            .putLong("imageVersion", s.imageVersion).putString("touch", s.touch.name).apply()
     }
 
     /**

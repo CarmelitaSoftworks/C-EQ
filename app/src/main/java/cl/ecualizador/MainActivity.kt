@@ -918,6 +918,15 @@ private fun WallpaperCard() {
             }
             NowPlayingAccess()
         }
+        if (ws.view != WallpaperView.SPECTRUM) {
+            Text(stringResource(R.string.touch_title), color = Muted, fontSize = 13.sp)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                WallpaperTouch.entries.forEach { t ->
+                    FilterChip(selected = ws.touch == t, onClick = { set { it.copy(touch = t) } }, label = { Text(stringResource(t.label)) })
+                }
+            }
+            Text(stringResource(R.string.touch_hint), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+        }
         Text(stringResource(R.string.position), color = Muted, fontSize = 13.sp)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             WallpaperPosition.entries.forEach { p ->

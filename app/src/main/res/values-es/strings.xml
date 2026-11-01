@@ -261,4 +261,9 @@
     <string name="update_obtainium_hint">Obtainium es una app gratuita que revisa GitHub y te avisa cuando sale una versión nueva de C-EQ.</string>
     <string name="update_reminder_fmt">Tienes C-EQ %1$s desde hace %2$d días: puede que haya una versión nueva.</string>
     <string name="update_later">Más tarde</string>
+    <string name="touch_title">Toques en el fondo</string>
+    <string name="touch_double">Doble toque</string>
+    <string name="touch_single">Un toque</string>
+    <string name="touch_off">Apagados</string>
+    <string name="touch_hint">Android también le pasa al fondo los toques de los íconos y del menú de apps. Con doble toque, los botones del skin solo responden si los tocas dos veces seguidas, así no se activan sin querer.</string>
 </resources>
