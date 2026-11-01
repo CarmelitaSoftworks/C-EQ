@@ -91,6 +91,11 @@ Winamp SA; cada skin incluido es obra de su autor o autora y viene de la colecci
 [«winampskins»](https://archive.org/details/winampskins) de Internet Archive. La lista completa de
 skins, con el enlace a cada uno, está en [CREDITS.md](CREDITS.md).
 
+## Licencia
+
+El código es [GPL-3.0](LICENSE). Los skins de Winamp incluidos (ventanas y colores) siguen siendo
+de sus autores y no quedan bajo esa licencia; ver [CREDITS.md](CREDITS.md).
+
 ## Apoyar
 
 Si C-EQ te gusta, puedes invitar un café en [Ko-fi](https://ko-fi.com/carmelitasoftworks). ☕
