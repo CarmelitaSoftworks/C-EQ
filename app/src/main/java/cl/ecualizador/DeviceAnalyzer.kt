@@ -44,23 +44,23 @@ object DeviceAnalyzer {
             val details = formatDetails(bt) + listOfNotNull(
                 btClass?.let { "Clase Bluetooth: ${classLabel(it)} (0x%04X)".format(it) }
                     ?: if (!hasBtPermission(ctx)) "Clase Bluetooth: sin permiso para leerla" else null,
-                if (kind == OutputKind.BT_UNKNOWN) "Tipo no reconocido por el nombre" else "Reconocido como: ${kind.label}",
+                if (kind == OutputKind.BT_UNKNOWN) "Tipo no reconocido por el nombre" else "Reconocido como: ${ctx.getString(kind.label)}",
             )
             return OutputInfo("bt:$name", name, kind, details)
         }
         outs.firstOrNull { it.type in WIRED }?.let {
-            return OutputInfo("wired", "Audífonos con cable", OutputKind.WIRED_HEADPHONES, formatDetails(it))
+            return OutputInfo("wired", ctx.getString(R.string.kind_wired), OutputKind.WIRED_HEADPHONES, formatDetails(it))
         }
         outs.firstOrNull { it.type in USB }?.let {
-            val name = it.productName?.toString()?.takeIf { n -> n.isNotBlank() } ?: "Audio USB"
+            val name = it.productName?.toString()?.takeIf { n -> n.isNotBlank() } ?: ctx.getString(R.string.kind_usb)
             return OutputInfo("wired", name, OutputKind.USB_AUDIO, formatDetails(it))
         }
         outs.firstOrNull { it.type in HDMI }?.let {
-            val name = it.productName?.toString()?.takeIf { n -> n.isNotBlank() } ?: "TV por HDMI"
+            val name = it.productName?.toString()?.takeIf { n -> n.isNotBlank() } ?: ctx.getString(R.string.out_hdmi)
             return OutputInfo("hdmi", name, OutputKind.BT_TV_SOUNDBAR, formatDetails(it) + "Conectado por HDMI")
         }
         val speaker = outs.firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
-        return OutputInfo("speaker", "Altavoz del teléfono", OutputKind.PHONE_SPEAKER, speaker?.let { formatDetails(it) }.orEmpty())
+        return OutputInfo("speaker", ctx.getString(R.string.kind_phone_speaker), OutputKind.PHONE_SPEAKER, speaker?.let { formatDetails(it) }.orEmpty())
     }
 
     fun hasBtPermission(ctx: Context) = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||

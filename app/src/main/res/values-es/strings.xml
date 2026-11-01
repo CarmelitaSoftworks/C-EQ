@@ -219,4 +219,15 @@
     <string name="multi_cable_title">Cable AUX</string>
     <string name="multi_cable_desc">Si un parlante tiene entrada AUX, conéctale el otro (o el teléfono) con un cable: funciona con cualquier marca y sin desfase.</string>
     <string name="multi_open_bluetooth">Abrir ajustes de Bluetooth</string>
+    <string name="kind_phone_speaker">Altavoz del teléfono</string>
+    <string name="kind_wired">Audífonos con cable</string>
+    <string name="kind_usb">Audio USB / DAC</string>
+    <string name="kind_bt_headphones">Audífonos Bluetooth</string>
+    <string name="kind_portable">Parlante portátil</string>
+    <string name="kind_party">Equipo de fiesta / minicomponente</string>
+    <string name="kind_car">Radio del auto</string>
+    <string name="kind_tv">TV / barra de sonido</string>
+    <string name="kind_bt_unknown">Equipo Bluetooth</string>
+    <string name="out_wired_usb">Audífonos con cable / USB</string>
+    <string name="out_hdmi">TV por HDMI</string>
 </resources>

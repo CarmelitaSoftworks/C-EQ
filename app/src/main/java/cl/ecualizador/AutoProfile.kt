@@ -1,16 +1,16 @@
 package cl.ecualizador
 
 /** Tipo de salida de audio, para proponer una curva de partida. */
-enum class OutputKind(val label: String) {
-    PHONE_SPEAKER("Altavoz del teléfono"),
-    WIRED_HEADPHONES("Audífonos con cable"),
-    USB_AUDIO("Audio USB / DAC"),
-    BT_HEADPHONES("Audífonos Bluetooth"),
-    BT_PORTABLE_SPEAKER("Parlante portátil"),
-    BT_PARTY_SPEAKER("Equipo de fiesta / minicomponente"),
-    BT_CAR("Radio del auto"),
-    BT_TV_SOUNDBAR("TV / barra de sonido"),
-    BT_UNKNOWN("Equipo Bluetooth"),
+enum class OutputKind(@androidx.annotation.StringRes val label: Int) {
+    PHONE_SPEAKER(R.string.kind_phone_speaker),
+    WIRED_HEADPHONES(R.string.kind_wired),
+    USB_AUDIO(R.string.kind_usb),
+    BT_HEADPHONES(R.string.kind_bt_headphones),
+    BT_PORTABLE_SPEAKER(R.string.kind_portable),
+    BT_PARTY_SPEAKER(R.string.kind_party),
+    BT_CAR(R.string.kind_car),
+    BT_TV_SOUNDBAR(R.string.kind_tv),
+    BT_UNKNOWN(R.string.kind_bt_unknown),
 }
 
 /** Curva propuesta para un tipo de salida, con la explicación que se muestra al usuario. */

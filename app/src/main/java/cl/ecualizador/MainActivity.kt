@@ -194,7 +194,14 @@ private fun EqualizerScreen() {
                 }, null, tint = Accent, modifier = Modifier.size(18.dp)
             )
             Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.profile_fmt, eq.profileName), fontSize = 14.sp)
+            // Los perfiles del teléfono se nombran en el idioma actual; los Bluetooth, con el nombre del equipo
+            val profileName = when (eq.profileKey) {
+                "speaker" -> stringResource(R.string.kind_phone_speaker)
+                "wired" -> stringResource(R.string.out_wired_usb)
+                "hdmi" -> stringResource(R.string.out_hdmi)
+                else -> eq.profileName
+            }
+            Text(stringResource(R.string.profile_fmt, profileName), fontSize = 14.sp)
         }
 
         eq.error?.let { Text(it, color = Color(0xFFEF5350), fontSize = 13.sp) }
@@ -448,7 +455,7 @@ private fun DeviceCard(profileKey: String, engine: EqEngine) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.connected_device), fontSize = 12.sp, color = Muted)
                 Text(info.name, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
-                Text(info.kind.label, color = Accent, fontSize = 13.sp)
+                Text(stringResource(info.kind.label), color = Accent, fontSize = 13.sp)
             }
             IconButton(onClick = { info = DeviceAnalyzer.analyze(ctx) }) { Icon(Icons.Filled.Refresh, stringResource(R.string.analyze_again)) }
         }
@@ -477,7 +484,7 @@ private fun DeviceCard(profileKey: String, engine: EqEngine) {
         val curve = AutoProfile.curveFor(info.kind)
         AlertDialog(
             onDismissRequest = { showAuto = false },
-            title = { Text(stringResource(R.string.profile_for_fmt, info.kind.label.lowercase())) },
+            title = { Text(stringResource(R.string.profile_for_fmt, stringResource(info.kind.label).lowercase())) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ResponseGraph(EqCore.finalGains(curve.levels, curve.bass))
@@ -550,7 +557,7 @@ private fun CalibrationDialog(
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(checked = addBase, onCheckedChange = { addBase = it })
-                            Text(stringResource(R.string.add_auto_fmt, info.kind.label.lowercase()), fontSize = 13.sp)
+                            Text(stringResource(R.string.add_auto_fmt, stringResource(info.kind.label).lowercase()), fontSize = 13.sp)
                         }
                     }
                 }

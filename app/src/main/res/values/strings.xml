@@ -219,4 +219,15 @@
     <string name="multi_cable_title">AUX cable</string>
     <string name="multi_cable_desc">If a speaker has an AUX input, connect the other one (or the phone) to it with a cable: it works with any brand and with no delay.</string>
     <string name="multi_open_bluetooth">Open Bluetooth settings</string>
+    <string name="kind_phone_speaker">Phone speaker</string>
+    <string name="kind_wired">Wired headphones</string>
+    <string name="kind_usb">USB audio / DAC</string>
+    <string name="kind_bt_headphones">Bluetooth headphones</string>
+    <string name="kind_portable">Portable speaker</string>
+    <string name="kind_party">Party speaker / mini system</string>
+    <string name="kind_car">Car stereo</string>
+    <string name="kind_tv">TV / soundbar</string>
+    <string name="kind_bt_unknown">Bluetooth device</string>
+    <string name="out_wired_usb">Wired headphones / USB</string>
+    <string name="out_hdmi">TV over HDMI</string>
 </resources>

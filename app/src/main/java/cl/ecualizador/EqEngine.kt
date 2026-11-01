@@ -21,7 +21,7 @@ data class EqUiState(
     val error: String? = null,
     val hasControl: Boolean = true,
     val profileKey: String = "speaker",
-    val profileName: String = "Altavoz del teléfono",
+    val profileName: String = "",
     val levels: List<Float> = List(EqCore.BANDS) { 0f },
     val bass: Float = 0f,
     val boost: Float = 0f,
@@ -89,9 +89,9 @@ class EqEngine private constructor(private val ctx: Context) {
             AudioDeviceInfo.TYPE_WIRED_HEADSET, AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
             AudioDeviceInfo.TYPE_USB_HEADSET, AudioDeviceInfo.TYPE_USB_DEVICE,
         )
-        if (outs.any { it.type in wired }) return "wired" to "Audífonos con cable / USB"
-        if (outs.any { it.type in DeviceAnalyzer.HDMI }) return "hdmi" to "TV por HDMI"
-        return "speaker" to "Altavoz del teléfono"
+        if (outs.any { it.type in wired }) return "wired" to ctx.getString(R.string.out_wired_usb)
+        if (outs.any { it.type in DeviceAnalyzer.HDMI }) return "hdmi" to ctx.getString(R.string.out_hdmi)
+        return "speaker" to ctx.getString(R.string.kind_phone_speaker)
     }
 
     private fun onOutputChanged() {
