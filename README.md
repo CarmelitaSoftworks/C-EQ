@@ -101,7 +101,7 @@ ecualizador sin abrir la app.
 1. Descarga [**C-EQ.apk**](https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk)
    (Android 8.0 o superior).
 2. Ábrelo y permite instalar apps de esa fuente si Android lo pide.
-   Si aparece un aviso de Play Protect, lee [por qué avisa](#️-por-qué-avisa-play-protect).
+   Si aparece un aviso de Play Protect, lee [por qué avisa](#play-protect).
 3. Actualiza encima de la versión anterior sin perder tus ajustes.
 
 SHA-256 del APK 3.0.1: `6e9157621ef767ecdb8ddb772da50082fb41c0f889508dc346de812bb234905d`
@@ -115,6 +115,8 @@ SHA-256 del APK 3.0.1: `6e9157621ef767ecdb8ddb772da50082fb41c0f889508dc346de812b
 | Notificaciones | Mostrar el reproductor en la barra. |
 | Bluetooth | Reconocer el equipo conectado para usar su perfil. |
 | Servicio en primer plano / al iniciar | Mantener el ecualizador activo y encenderlo al reiniciar. |
+
+<a id="play-protect"></a>
 
 ### 🛡️ ¿Por qué avisa Play Protect?
 
