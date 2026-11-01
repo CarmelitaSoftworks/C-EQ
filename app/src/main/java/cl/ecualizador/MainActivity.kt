@@ -213,6 +213,8 @@ private fun EqualizerScreen() {
             Text(stringResource(R.string.profile_fmt, profileName), fontSize = 14.sp)
         }
 
+        UpdateReminder()
+
         eq.error?.let { Text(it, color = Color(0xFFEF5350), fontSize = 13.sp) }
         if (eq.enabled && !eq.hasControl) {
             Row(
@@ -375,6 +377,24 @@ private fun EqualizerScreen() {
     }
 }
 
+/** Aviso para buscar una versión nueva cuando la instalada ya tiene un tiempo (ver [Updates]). */
+@Composable
+private fun UpdateReminder() {
+    val ctx = LocalContext.current
+    var show by remember { mutableStateOf(Updates.shouldRemind(ctx)) }
+    if (!show) return
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Card).padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(stringResource(R.string.update_reminder_fmt, BuildConfig.VERSION_NAME, Updates.daysSinceBuild()), fontSize = 13.sp, color = Warn)
+        Row {
+            TextButton(onClick = { Updates.openReleases(ctx) }) { Text(stringResource(R.string.update_check)) }
+            TextButton(onClick = { Updates.snooze(ctx); show = false }) { Text(stringResource(R.string.update_later)) }
+        }
+    }
+}
+
 /** Créditos y apoyo al proyecto. */
 @Composable
 private fun CreditsCard() {
@@ -387,6 +407,12 @@ private fun CreditsCard() {
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text("C-EQ ${BuildConfig.VERSION_NAME}", fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.update_installed_fmt, BuildConfig.VERSION_NAME, Updates.daysSinceBuild()), fontSize = 12.sp, color = Muted)
+        Row {
+            TextButton(onClick = { Updates.openReleases(ctx) }) { Text(stringResource(R.string.update_check)) }
+            TextButton(onClick = { Updates.openObtainium(ctx) }) { Text(stringResource(R.string.update_obtainium)) }
+        }
+        Text(stringResource(R.string.update_obtainium_hint), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
         Text(
             stringResource(R.string.credits_text),
             fontSize = 12.sp, lineHeight = 17.sp, color = Muted

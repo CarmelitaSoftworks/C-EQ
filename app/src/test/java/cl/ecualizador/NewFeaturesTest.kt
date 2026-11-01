@@ -72,4 +72,12 @@ class NewFeaturesTest {
         repeat(50) { assertNotEquals("B", SkinShuffle.pick(names, "B", r)) }
         assertNull(SkinShuffle.pick(listOf("A"), "A", r))
     }
+
+    @Test
+    fun remindsToCheckForUpdatesOnlyWhenTheVersionIsOld() {
+        assertTrue(!Updates.shouldRemind(daysSinceBuild = 10, today = 100, snoozedUntil = 0))
+        assertTrue(Updates.shouldRemind(daysSinceBuild = Updates.REMIND_AFTER_DAYS, today = 100, snoozedUntil = 0))
+        assertTrue(!Updates.shouldRemind(daysSinceBuild = 60, today = 100, snoozedUntil = 120))
+        assertTrue(Updates.shouldRemind(daysSinceBuild = 60, today = 120, snoozedUntil = 120))
+    }
 }

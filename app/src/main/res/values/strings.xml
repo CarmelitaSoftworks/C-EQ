@@ -255,4 +255,10 @@
     <string name="shuffle_off">Off</string>
     <string name="shuffle_daily">Every day</string>
     <string name="shuffle_screen_on">When the screen turns on</string>
+    <string name="update_installed_fmt">Installed version: %1$s (built %2$d days ago). The app doesn\'t use the Internet, so it can\'t check for a new one by itself.</string>
+    <string name="update_check">Check for updates</string>
+    <string name="update_obtainium">Alerts with Obtainium</string>
+    <string name="update_obtainium_hint">Obtainium is a free app that checks GitHub and tells you when a new C-EQ version is out.</string>
+    <string name="update_reminder_fmt">You\'ve had C-EQ %1$s for %2$d days: there may be a new version.</string>
+    <string name="update_later">Later</string>
 </resources>

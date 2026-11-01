@@ -15,6 +15,8 @@ android {
         targetSdk = 35
         versionCode = 32
         versionName = "3.3"
+        // Día de la compilación (días desde 1970), para recordar buscar una versión nueva sin usar Internet
+        buildConfigField("long", "BUILD_DAY", "${System.currentTimeMillis() / 86_400_000L}L")
     }
     // Firma de release: datos en keystore.properties (fuera de git). Sin ese archivo, el APK de
     // release sale sin firmar.

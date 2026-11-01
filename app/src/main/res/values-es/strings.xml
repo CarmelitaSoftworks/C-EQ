@@ -255,4 +255,10 @@
     <string name="shuffle_off">No</string>
     <string name="shuffle_daily">Cada día</string>
     <string name="shuffle_screen_on">Al encender la pantalla</string>
+    <string name="update_installed_fmt">Versión instalada: %1$s (compilada hace %2$d días). La app no usa Internet, así que no revisa sola si hay una nueva.</string>
+    <string name="update_check">Buscar actualización</string>
+    <string name="update_obtainium">Avisos con Obtainium</string>
+    <string name="update_obtainium_hint">Obtainium es una app gratuita que revisa GitHub y te avisa cuando sale una versión nueva de C-EQ.</string>
+    <string name="update_reminder_fmt">Tienes C-EQ %1$s desde hace %2$d días: puede que haya una versión nueva.</string>
+    <string name="update_later">Más tarde</string>
 </resources>
