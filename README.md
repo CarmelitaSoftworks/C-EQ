@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml"><img src="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml/badge.svg" alt="Compilación"></a>
-  <img src="https://img.shields.io/badge/versi%C3%B3n-3.0.1-B388FF" alt="Versión 3.0.1">
+  <img src="https://img.shields.io/badge/versi%C3%B3n-3.1-B388FF" alt="Versión 3.1">
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0 o superior">
   <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-blue" alt="GPL-3.0"></a>
   <a href="https://ko-fi.com/carmelitasoftworks"><img src="https://img.shields.io/badge/Ko--fi-apoyar-FF5E5B?logo=ko-fi&logoColor=white" alt="Apoyar en Ko-fi"></a>
@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Descargar APK (3.0.1)</b></a>
+  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Descargar APK (3.1)</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Novedades</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Créditos</a>
   &nbsp;·&nbsp; <a href="https://ko-fi.com/carmelitasoftworks">Apoyar ☕</a>
@@ -41,6 +41,7 @@
   volumen.
 - Audífonos y parlantes **Bluetooth LE Audio** y TV por **HDMI** reconocidos.
 - Aleatorio encendido en todos los skins, créditos y Ko-fi dentro de la app.
+- **3.1:** el menú sigue el idioma del teléfono (inglés o español).
 
 <p align="center">
   <img src="docs/winamp-completo.png" alt="Winamp completo con tres skins: el original, Major Tom y uno de Sony" width="90%">
@@ -108,7 +109,7 @@ ecualizador sin abrir la app.
    Si aparece un aviso de Play Protect, lee [por qué avisa](#play-protect).
 3. Actualiza encima de la versión anterior sin perder tus ajustes.
 
-SHA-256 del APK 3.0.1: `6e9157621ef767ecdb8ddb772da50082fb41c0f889508dc346de812bb234905d`
+SHA-256 del APK 3.1: `592f56d895e687440b06ca77f4b77521fe18165d126be17e0dd092005c7a8cee`
 
 ### Permisos
 
@@ -143,11 +144,11 @@ desactivar Play Protect.
 
 | | SHA-256 |
 |---|---|
-| APK 3.0.1 | `6e9157621ef767ecdb8ddb772da50082fb41c0f889508dc346de812bb234905d` |
+| APK 3.1 | `592f56d895e687440b06ca77f4b77521fe18165d126be17e0dd092005c7a8cee` |
 | Certificado de firma | `e399d964d3de12bc48776c779b65ab49be2ca6ec8eaeb64f4cb8e61d7948b2d0` |
 
 Con las herramientas del SDK de Android también puedes ver que no pide Internet:
-`aapt2 dump permissions C-EQ-3.0.1.apk` (no aparece `android.permission.INTERNET`).
+`aapt2 dump permissions C-EQ-3.1.apk` (no aparece `android.permission.INTERNET`).
 
 ## 🛠️ Compilar
 

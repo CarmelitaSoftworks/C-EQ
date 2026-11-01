@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml"><img src="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml/badge.svg" alt="Build"></a>
-  <img src="https://img.shields.io/badge/version-3.0.1-B388FF" alt="Version 3.0.1">
+  <img src="https://img.shields.io/badge/version-3.1-B388FF" alt="Version 3.1">
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0 or later">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="GPL-3.0"></a>
   <a href="https://ko-fi.com/carmelitasoftworks"><img src="https://img.shields.io/badge/Ko--fi-support-FF5E5B?logo=ko-fi&logoColor=white" alt="Support on Ko-fi"></a>
@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Download APK (3.0.1)</b></a>
+  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Download APK (3.1)</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Credits</a>
   &nbsp;·&nbsp; <a href="https://ko-fi.com/carmelitasoftworks">Support ☕</a>
@@ -30,8 +30,8 @@
   <img src="docs/promo.gif" alt="C-EQ in motion: the full skin with the queue, the equalizer and skin changes" width="380">
 </p>
 
-> The app's interface is in Spanish for now; the skins, the player and the wallpaper look the same in
-> any language.
+> The app's menu follows your phone's language: English, or Spanish if your phone is in Spanish.
+> The skins, the player and the wallpaper look the same in any language.
 
 ---
 
@@ -67,7 +67,7 @@
 
 </td>
 <td width="50%" valign="top">
-<img src="docs/pantalla-principal.png" alt="Main screen" width="100%">
+<img src="docs/pantalla-principal-en.png" alt="Main screen" width="100%">
 </td>
 </tr>
 </table>
@@ -110,7 +110,7 @@ without opening the app.
    If a Play Protect warning shows up, read [why it warns](#play-protect).
 3. Updates install over the previous version without losing your settings.
 
-APK 3.0.1 SHA-256: `6e9157621ef767ecdb8ddb772da50082fb41c0f889508dc346de812bb234905d`
+APK 3.1 SHA-256: `592f56d895e687440b06ca77f4b77521fe18165d126be17e0dd092005c7a8cee`
 
 ### Permissions
 
@@ -145,11 +145,11 @@ Play Protect off.
 
 | | SHA-256 |
 |---|---|
-| APK 3.0.1 | `6e9157621ef767ecdb8ddb772da50082fb41c0f889508dc346de812bb234905d` |
+| APK 3.1 | `592f56d895e687440b06ca77f4b77521fe18165d126be17e0dd092005c7a8cee` |
 | Signing certificate | `e399d964d3de12bc48776c779b65ab49be2ca6ec8eaeb64f4cb8e61d7948b2d0` |
 
 With the Android SDK tools you can also see it doesn't ask for Internet:
-`aapt2 dump permissions C-EQ-3.0.1.apk` (`android.permission.INTERNET` is not listed).
+`aapt2 dump permissions C-EQ-3.1.apk` (`android.permission.INTERNET` is not listed).
 
 ## 🛠️ Build
 

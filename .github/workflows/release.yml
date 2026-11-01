@@ -28,6 +28,8 @@ jobs:
           cp dist/C-EQ.apk "C-EQ-$version.apk"
           echo "VERSION=$version" >> "$GITHUB_ENV"
           echo "TAG=$tag" >> "$GITHUB_ENV"
+          # Título: la primera línea «# …» de las notas
+          echo "TITLE=$(sed -n 's/^# //p' "$notes" | head -1)" >> "$GITHUB_ENV"
       # Si la etiqueta ya existe en otro commit (p. ej. tras reescribir el historial), se mueve a este
       - name: Etiqueta en este commit
         run: |
@@ -37,7 +39,7 @@ jobs:
         with:
           tag_name: ${{ env.TAG }}
           target_commitish: ${{ github.sha }}
-          name: C-EQ ${{ env.VERSION }} — Winamp completo en tu pantalla de inicio
+          name: ${{ env.TITLE }}
           body_path: .github/releases/${{ env.TAG }}.md
           files: C-EQ-${{ env.VERSION }}.apk
           make_latest: true
