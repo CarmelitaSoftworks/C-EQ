@@ -1302,9 +1302,10 @@ private fun MultiSpeakerCard() {
     val ctx = LocalContext.current
     // Se revisa al volver a la app (el permiso o los equipos vinculados pueden cambiar)
     val lifecycle by LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
-    var permission by remember { mutableStateOf(MultiSpeaker.hasPermission(ctx)) }
-    val speakers = remember(lifecycle, permission) { MultiSpeaker.pairedSpeakers(ctx) }
-    val options = remember(speakers) { MultiSpeaker.plan(speakers, MultiSpeaker.canBroadcast(ctx), MultiSpeaker.isSamsung()) }
+    val demo = MultiSpeaker.demo
+    var permission by remember { mutableStateOf(demo != null || MultiSpeaker.hasPermission(ctx)) }
+    val speakers = remember(lifecycle, permission) { demo?.first ?: MultiSpeaker.pairedSpeakers(ctx) }
+    val options = remember(speakers) { demo?.second ?: MultiSpeaker.plan(speakers, MultiSpeaker.canBroadcast(ctx), MultiSpeaker.isSamsung()) }
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permission = MultiSpeaker.hasPermission(ctx) }
     fun open(intent: android.content.Intent) = runCatching { ctx.startActivity(intent) }
     fun bluetoothSettings() = open(android.content.Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))

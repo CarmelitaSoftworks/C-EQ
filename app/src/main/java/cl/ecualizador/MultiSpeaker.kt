@@ -30,6 +30,11 @@ object MultiSpeaker {
         Brand("Tribit", "Party Mode", "Tribit", r("""tribit|stormbox|xsound""")),
     )
 
+    /** Solo para las capturas de la portada: parlantes y opciones de ejemplo en vez de los reales. */
+    @androidx.annotation.VisibleForTesting
+    @Volatile
+    var demo: Pair<List<String>, List<Option>>? = null
+
     fun brandOf(name: String): Brand? = BRANDS.firstOrNull { it.pattern.containsMatchIn(name) }
 
     /** Lo que se puede hacer, en el orden en que conviene. */

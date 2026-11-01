@@ -21,6 +21,7 @@
 
 <p align="center">
   <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Download APK (3.2)</b></a>
+  &nbsp;·&nbsp; <a href="https://github.com/CarmelitaSoftworks/C-EQ/releases">All versions</a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Credits</a>
   &nbsp;·&nbsp; <a href="https://ko-fi.com/carmelitasoftworks">Support ☕</a>
@@ -35,8 +36,15 @@
 
 ---
 
-## ✨ New in 3.0
+## ✨ What's new
 
+**3.2 — Multiple speakers.** An assistant looks at your paired speakers and your phone and takes you
+to the way of using two or more that actually works: the brand's party mode, Audio sharing
+(Auracast), Dual audio on Samsung or an AUX cable.
+
+**3.1 — English and Spanish.** The menu follows your phone's language.
+
+**3.0 — Full Winamp.**
 - **Full Winamp on your wallpaper**: the skin stacked downwards with the player, the equalizer and
   the playlist. The bands, ON and AUTO respond to touch; the playlist shows the queue of what's
   playing in the skin's own font, and tapping a song jumps to it.
@@ -44,7 +52,6 @@
   volume on its own.
 - **Bluetooth LE Audio** headphones and speakers and **HDMI** TVs are recognized.
 - Shuffle shown as on in every skin; credits and Ko-fi inside the app.
-- The menu follows your phone's language (English or Spanish), and the **Multiple speakers** assistant shows the way to use two or more speakers that works on your phone.
 
 <p align="center">
   <img src="docs/winamp-completo.png" alt="Full Winamp with three skins: the original, Major Tom and a Sony one" width="90%">
@@ -93,6 +100,23 @@ Your photo at full resolution with the spectrum at 60 frames per second, in thre
   <img src="docs/fondo-animado.png" alt="Live wallpaper" width="90%">
 </p>
 
+### Multiple speakers
+Android doesn't let an app link speakers from different brands: the phone's system or each speaker
+does that. The assistant looks at your paired speakers and your phone and shows you what works, with
+a button to the brand's app or to Bluetooth settings:
+
+- **The brand's party mode** if you have two or more of the same one: Sony Party Connect, JBL
+  PartyBoost, UE PartyUp, Soundcore PartyCast, Marshall Stack Mode, Bose and Tribit.
+- **Audio sharing (Auracast)** if your phone broadcasts LE Audio: it works across compatible brands.
+- **Dual audio** on Samsung phones, with any brand.
+- **AUX cable**, which always works.
+
+The equalizer keeps working in all of them.
+
+<p align="center">
+  <img src="docs/varios-parlantes-en.png" alt="Multiple speakers assistant with two JBL and a Sony" width="50%">
+</p>
+
 ### Player in the notification shade
 Like Spotify's, but with the window of the chosen skin and its buttons.
 
@@ -102,6 +126,10 @@ Like Spotify's, but with the window of the chosen skin and its buttons.
 
 It also comes with a spectrum **widget** and a **Quick Settings tile** to turn the equalizer on
 without opening the app.
+
+### Languages
+The menu follows your phone's language: **English** or **Spanish**. On Android 13+ you can also pick
+it in Settings › App languages.
 
 ## 📲 Install
 

@@ -21,6 +21,7 @@
 
 <p align="center">
   <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Descargar APK (3.2)</b></a>
+  &nbsp;·&nbsp; <a href="https://github.com/CarmelitaSoftworks/C-EQ/releases">Todas las versiones</a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Novedades</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Créditos</a>
   &nbsp;·&nbsp; <a href="https://ko-fi.com/carmelitasoftworks">Apoyar ☕</a>
@@ -32,8 +33,15 @@
 
 ---
 
-## ✨ Novedades de la 3.0
+## ✨ Novedades
 
+**3.2 — Varios parlantes.** Un asistente revisa tus parlantes vinculados y tu teléfono y te lleva a
+la forma de usar dos o más que sí funciona: el modo fiesta de la marca, Compartir audio (Auracast),
+Audio dual en Samsung o un cable AUX.
+
+**3.1 — Inglés y español.** El menú sigue el idioma del teléfono.
+
+**3.0 — Winamp completo.**
 - **Winamp completo en el fondo de pantalla**: el skin hacia abajo con el reproductor, el
   ecualizador y la lista de reproducción. Las bandas, ON y AUTO se tocan; la lista muestra la cola
   de lo que suena con la letra del propio skin, y tocar una canción salta a ella.
@@ -41,7 +49,6 @@
   volumen.
 - Audífonos y parlantes **Bluetooth LE Audio** y TV por **HDMI** reconocidos.
 - Aleatorio encendido en todos los skins, créditos y Ko-fi dentro de la app.
-- El menú sigue el idioma del teléfono (inglés o español) y el asistente **Varios parlantes** te lleva a la forma de usar dos o más parlantes que funciona en tu teléfono.
 
 <p align="center">
   <img src="docs/winamp-completo.png" alt="Winamp completo con tres skins: el original, Major Tom y uno de Sony" width="90%">
@@ -91,6 +98,23 @@ pantalla de inicio.
   <img src="docs/fondo-animado.png" alt="Fondo animado" width="90%">
 </p>
 
+### Varios parlantes
+Android no deja que una app una parlantes de distintas marcas: eso lo hacen el sistema del teléfono
+o cada parlante. El asistente revisa tus parlantes vinculados y tu teléfono y te muestra lo que
+funciona, con un botón a la app de la marca o a los ajustes de Bluetooth:
+
+- **Modo fiesta de la marca** si tienes dos o más de la misma: Sony Party Connect, JBL PartyBoost,
+  UE PartyUp, Soundcore PartyCast, Marshall Stack Mode, Bose y Tribit.
+- **Compartir audio (Auracast)** si tu teléfono transmite LE Audio: funciona entre marcas compatibles.
+- **Audio dual** en teléfonos Samsung, con cualquier marca.
+- **Cable AUX**, que siempre funciona.
+
+El ecualizador sigue sonando en todas.
+
+<p align="center">
+  <img src="docs/varios-parlantes.png" alt="Asistente Varios parlantes con dos JBL y un Sony" width="50%">
+</p>
+
 ### Reproductor en la barra de notificaciones
 Como el de Spotify, pero con la ventana del skin elegido y sus botones.
 
@@ -100,6 +124,10 @@ Como el de Spotify, pero con la ventana del skin elegido y sus botones.
 
 También trae **widget** con el espectro y **mosaico de Ajustes rápidos** para encender el
 ecualizador sin abrir la app.
+
+### Idiomas
+El menú sigue el idioma del teléfono: **español** o **inglés**. En Android 13 o superior también se
+elige en Ajustes › Idioma de las apps.
 
 ## 📲 Instalar
 
