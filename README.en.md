@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml"><img src="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml/badge.svg" alt="Build"></a>
-  <img src="https://img.shields.io/badge/version-3.1-B388FF" alt="Version 3.1">
+  <img src="https://img.shields.io/badge/version-3.2-B388FF" alt="Version 3.2">
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0 or later">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="GPL-3.0"></a>
   <a href="https://ko-fi.com/carmelitasoftworks"><img src="https://img.shields.io/badge/Ko--fi-support-FF5E5B?logo=ko-fi&logoColor=white" alt="Support on Ko-fi"></a>
@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Download APK (3.1)</b></a>
+  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Download APK (3.2)</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Credits</a>
   &nbsp;·&nbsp; <a href="https://ko-fi.com/carmelitasoftworks">Support ☕</a>
@@ -44,6 +44,7 @@
   volume on its own.
 - **Bluetooth LE Audio** headphones and speakers and **HDMI** TVs are recognized.
 - Shuffle shown as on in every skin; credits and Ko-fi inside the app.
+- The menu follows your phone's language (English or Spanish), and the **Multiple speakers** assistant shows the way to use two or more speakers that works on your phone.
 
 <p align="center">
   <img src="docs/winamp-completo.png" alt="Full Winamp with three skins: the original, Major Tom and a Sony one" width="90%">
@@ -110,7 +111,7 @@ without opening the app.
    If a Play Protect warning shows up, read [why it warns](#play-protect).
 3. Updates install over the previous version without losing your settings.
 
-APK 3.1 SHA-256: `592f56d895e687440b06ca77f4b77521fe18165d126be17e0dd092005c7a8cee`
+APK 3.2 SHA-256: `1912bfc4505c5a5a1fbd4321f44cce7d6b22a9d0ab979dd0335e09355056404a`
 
 ### Permissions
 
@@ -145,11 +146,11 @@ Play Protect off.
 
 | | SHA-256 |
 |---|---|
-| APK 3.1 | `592f56d895e687440b06ca77f4b77521fe18165d126be17e0dd092005c7a8cee` |
+| APK 3.2 | `1912bfc4505c5a5a1fbd4321f44cce7d6b22a9d0ab979dd0335e09355056404a` |
 | Signing certificate | `e399d964d3de12bc48776c779b65ab49be2ca6ec8eaeb64f4cb8e61d7948b2d0` |
 
 With the Android SDK tools you can also see it doesn't ask for Internet:
-`aapt2 dump permissions C-EQ-3.1.apk` (`android.permission.INTERNET` is not listed).
+`aapt2 dump permissions C-EQ-3.2.apk` (`android.permission.INTERNET` is not listed).
 
 ## 🛠️ Build
 

@@ -8,12 +8,34 @@ on:
     branches: [main]
     paths: [".github/releases/**", "dist/C-EQ.apk"]
   workflow_dispatch:
+    inputs:
+      retag:
+        description: "Solo mover esta etiqueta (p. ej. v3.1) a 'commit', sin publicar nada"
+        required: false
+        default: ""
+      commit:
+        description: "Commit al que se mueve la etiqueta"
+        required: false
+        default: ""
 
 permissions:
   contents: write
 
 jobs:
+  # Tras reescribir el historial: lleva una etiqueta vieja a su commit nuevo (el release no cambia)
+  retag:
+    if: github.event.inputs.retag != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: |
+          git tag -f "${{ github.event.inputs.retag }}" "${{ github.event.inputs.commit }}"
+          git push -f origin "refs/tags/${{ github.event.inputs.retag }}"
+
   release:
+    if: github.event.inputs.retag == ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
