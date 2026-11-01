@@ -26,6 +26,8 @@ class SpectrumWallpaperService : WallpaperService() {
         const val DRAWER_HOLD_MS = 5000L
         /** Doble toque: el segundo, antes de este tiempo y a esta distancia del primero. */
         const val DOUBLE_TAP_MS = 450L
+        /** El mismo toque recibido por el launcher (COMMAND_TAP) y directamente llega con menos de esto. */
+        const val SAME_TAP_MS = 80L
         const val DOUBLE_TAP_SLOP_DP = 32f
     }
 
@@ -170,8 +172,9 @@ class SpectrumWallpaperService : WallpaperService() {
 
         private fun tap(x: Float, y: Float) {
             val now = android.os.SystemClock.uptimeMillis()
-            // El mismo toque por los dos caminos cuenta una vez; toques seguidos en otro lugar, todos
-            if (now - lastTapAt < 250 && kotlin.math.hypot(x - lastTapX, y - lastTapY) < 40f) return
+            // El mismo toque llega casi a la vez por los dos caminos: cuenta una vez. Un doble toque
+            // rápido (más de 80 ms entre toques) sí son dos
+            if (now - lastTapAt < SAME_TAP_MS && kotlin.math.hypot(x - lastTapX, y - lastTapY) < 40f) return
             lastTapAt = now; lastTapX = x; lastTapY = y
             val mode = WallpaperPrefs.load(this@SpectrumWallpaperService).touch
             if (mode == WallpaperTouch.OFF) return
@@ -286,7 +289,8 @@ class SpectrumWallpaperService : WallpaperService() {
             artBlurred?.let { if (art === artFor && it.width == width && it.height == height) return it }
             val tiny = Bitmap.createScaledBitmap(art, 24, 24, true)
             val out = WallpaperImage.cover(tiny, width, height)
-            tiny.recycle()
+            // Si la carátula ya medía 24×24, Android devuelve la misma imagen: esa no se suelta
+            if (tiny !== art) tiny.recycle()
             artBlurred?.recycle()
             artFor = art
             artBlurred = out

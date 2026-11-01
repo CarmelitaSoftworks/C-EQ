@@ -2,7 +2,12 @@
 
 ## 3.4
 - **Barra (shade)**: la ventana plegada de Winamp como modo del fondo y como widget de una fila, con
-  el mini visor, el reloj con la letra del skin, los mini botones y la barra de posición.
+  el mini visor (5 filas, como el de Winamp), el reloj con la letra del skin, los mini botones y la
+  barra de posición.
+- Los skins importados en la 3.0–3.3 no piden reimportarse: usan la barra plegada del skin base
+  hasta rearmarse solos desde su .wsz.
+- Arreglos de la revisión: el doble toque rápido ya cuenta, la carátula se actualiza aunque llegue
+  después del título, y menos trabajo por cuadro en el fondo y en los widgets.
 - **El ecualizador del skin se mueve con la música**: el espectro de lo que suena aparece detrás de
   la curva, con los colores del analizador del skin.
 - **Carátula**: la portada de lo que suena (si el reproductor la entrega) en la app y en la

@@ -32,11 +32,21 @@ object WinampWindows {
     }
 
     /** La ventana del skin importado es de un formato anterior (sin las piezas en vivo) o no existe. */
-    fun isOutdated(skin: WinampSkin): Boolean {
-        val f = skin.windowFile ?: return true
+    /**
+     * La ventana del skin importado le falta algo que se nota (lo que suena, el ecualizador o la
+     * lista) o no existe: hay que volver a importarlo si no se guardó su .wsz. Sin la ventana plegada
+     * (atlas de la 3.0 a la 3.3) no cuenta: se usa la del skin base.
+     */
+    fun isOutdated(skin: WinampSkin): Boolean = atlasHeight(skin) < WinampWindow.SHADE_Y
+
+    /** Se puede rearmar con lo nuevo (la ventana plegada) porque se guardó su .wsz. */
+    fun canUpgrade(skin: WinampSkin): Boolean = skin.sourceFile != null && atlasHeight(skin) < WinampWindow.ATLAS_HEIGHT
+
+    private fun atlasHeight(skin: WinampSkin): Int {
+        val f = skin.windowFile ?: return 0
         val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(f, o)
-        return o.outHeight != WinampWindow.ATLAS_HEIGHT
+        return o.outHeight
     }
 
     private val ACCEPTED_HEIGHTS = setOf(

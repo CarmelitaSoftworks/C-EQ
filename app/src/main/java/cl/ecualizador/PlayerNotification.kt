@@ -43,8 +43,13 @@ object PlayerNotification {
         // El widget del reproductor se actualiza al mismo ritmo, haya o no notificación; la ventana
         // se dibuja una sola vez para los dos, y nada si no hay ninguno
         val widgets = runCatching { PlayerWidget.ids(ctx) }.getOrDefault(IntArray(0))
+        // La barra plegada solo se redibuja si cambió algo que muestra (o mientras suena: el visor y el reloj)
         val shades = runCatching { PlayerShadeWidget.ids(ctx) }.getOrDefault(IntArray(0))
-        if (shades.isNotEmpty()) runCatching { PlayerShadeWidget.push(ctx, shades, shadeBitmap(ctx)) }
+        val shadeKey = listOf(SpectrumPrefs.load(ctx).winampSkin, track?.title, track?.state, shades.toList())
+        if (shades.isNotEmpty() && (track?.state == PlayingTrack.State.PLAYING || shadeKey != lastShadeKey)) {
+            lastShadeKey = shadeKey
+            runCatching { PlayerShadeWidget.push(ctx, shades, shadeBitmap(ctx)) }
+        }
         if (!notify && widgets.isEmpty()) return
         val window = windowBitmap(ctx)
         if (widgets.isNotEmpty()) runCatching { PlayerWidget.push(ctx, widgets, window) }
@@ -82,9 +87,9 @@ object PlayerNotification {
         val time = if (track.durationMs > 0) "$pos / ${PlayingTrack.clock(track.durationMs)}" else pos
         val collapsed = RemoteViews(ctx.packageName, R.layout.player_collapsed).apply {
             setTextViewText(R.id.player_title, track.title.ifBlank { track.winampTitle() })
-            val art = NowPlaying.art.value
+            val art = NowPlaying.artThumb
             if (art != null) {
-                setImageViewBitmap(R.id.player_art, art.takeIf { maxOf(it.width, it.height) <= 192 } ?: scaledArt(art))
+                setImageViewBitmap(R.id.player_art, art)
                 setViewVisibility(R.id.player_art, android.view.View.VISIBLE)
             } else setViewVisibility(R.id.player_art, android.view.View.GONE)
             setTextViewText(R.id.player_subtitle, if (track.artist.isBlank()) time else "${track.artist} · $time")
@@ -125,16 +130,9 @@ object PlayerNotification {
         return render(2, WinampWindow.Part.FULL, settings, bars)
     }
 
-    private var artSource: Bitmap? = null
-    private var artSmall: Bitmap? = null
-
-    /** La carátula reducida para la notificación (se reduce una vez por imagen). */
-    private fun scaledArt(art: Bitmap): Bitmap {
-        if (art === artSource) artSmall?.let { return it }
-        val k = 192f / maxOf(art.width, art.height)
-        return Bitmap.createScaledBitmap(art, (art.width * k).toInt().coerceAtLeast(1), (art.height * k).toInt().coerceAtLeast(1), true)
-            .also { artSource = art; artSmall = it }
-    }
+    private var lastShadeKey: Any? = null
+    /** Una sola imagen para la barra plegada, que se vuelve a dibujar (el widget recibe una copia). */
+    private val shadeImage by lazy { Bitmap.createBitmap(WinampWindow.WIDTH * 4, WinampWindow.SHADE_H * 4, Bitmap.Config.RGB_565) }
 
     /** La ventana plegada del skin elegido con lo que suena, al cuádruple, para su widget. */
     internal fun shadeBitmap(ctx: Context): Bitmap {
@@ -143,8 +141,8 @@ object PlayerNotification {
             style = SpectrumStyle.WINAMP_CLASSIC, winampSkin = skinName, winampFrame = true, winampMarquee = false, winampShade = true,
         )
         val bars = if (Spectrum.running.value) SpectrumShape.resample(Spectrum.bars.value, settings.effectiveBars) else FloatArray(settings.effectiveBars)
-        val scale = 4
-        val bmp = Bitmap.createBitmap(WinampWindow.WIDTH * scale, WinampWindow.SHADE_H * scale, Bitmap.Config.RGB_565)
+        val bmp = shadeImage
+        bmp.eraseColor(0xFF000000.toInt())
         renderer.draw(Canvas(bmp), bmp.width.toFloat(), bmp.height.toFloat(), bars, null, settings)
         return bmp
     }

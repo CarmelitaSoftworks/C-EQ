@@ -221,9 +221,11 @@ class SpectrumRenderer {
     ) {
         val skin = WinampSkins.byName(s.winampSkin)
         val window = if (s.winampFrame && s.winampWindow) WinampWindows.bitmap(skin) else null
+        val shade = if (window != null && s.winampShade) WinampWindows.shade(skin) else null
         val area = when {
-            window != null && s.winampShade && WinampWindows.shade(skin) != null ->
-                drawSkinShade(canvas, w, h, WinampWindows.shade(skin)!!, window)
+            shade != null && window != null -> drawSkinShade(canvas, w, h, shade, window)
+            // Sin ventana plegada en el skin ni en el base: el marco simple, que cabe en una barra
+            s.winampShade -> drawWinampFrame(canvas, w, h, skin, density)
             window != null && s.winampStack -> drawSkinStack(canvas, w, h, window, skin, s.winampMarquee, values)
             window != null -> drawSkinWindow(canvas, w, h, window, s.winampPart, skin, s.winampMarquee)
             s.winampFrame -> drawWinampFrame(canvas, w, h, skin, density)
@@ -235,9 +237,35 @@ class SpectrumRenderer {
         }
         val aw = area?.width() ?: w
         val ah = area?.height() ?: h
-        if (s.style == SpectrumStyle.WINAMP_SCOPE) drawWinampScope(canvas, aw, ah, wave, skin, s.winampPattern)
+        if (shade != null) drawShadeAnalyzer(canvas, aw, ah, values, skin)
+        else if (s.style == SpectrumStyle.WINAMP_SCOPE) drawWinampScope(canvas, aw, ah, wave, skin, s.winampPattern)
         else drawWinampAnalyzer(canvas, aw, ah, values, peaks, s.style, skin, s.winampPattern)
         if (area != null) canvas.restore()
+    }
+
+    private var shadePixels = IntArray(WinampWindow.SHADE_VIS_W * WinampWindow.SHADE_VIS_H)
+    private var shadeVis: android.graphics.Bitmap? = null
+
+    /**
+     * Mini visor de la ventana plegada, como el de Winamp: 38×5 píxeles, barras de 1 px con uno de
+     * separación y los colores del analizador del skin repartidos en sus 5 filas.
+     */
+    private fun drawShadeAnalyzer(canvas: Canvas, w: Float, h: Float, values: FloatArray, skin: WinampSkin) {
+        val pw = WinampWindow.SHADE_VIS_W
+        val ph = WinampWindow.SHADE_VIS_H
+        val vis = skin.colors
+        val px = shadePixels
+        java.util.Arrays.fill(px, vis[0])
+        val n = values.size.coerceAtLeast(1)
+        for (x in 0 until pw step 2) {
+            val v = values[(x / 2 * n / (pw / 2)).coerceIn(0, n - 1)].coerceIn(0f, 1f)
+            val rows = Math.round(v * ph)
+            for (r in 0 until rows) px[(ph - 1 - r) * pw + x] = vis[(17 - r * 16 / (ph - 1).coerceAtLeast(1)).coerceIn(2, 17)]
+        }
+        val bmp = shadeVis ?: android.graphics.Bitmap.createBitmap(pw, ph, android.graphics.Bitmap.Config.ARGB_8888).also { shadeVis = it }
+        bmp.setPixels(px, 0, pw, 0, 0, pw, ph)
+        dst.set(0f, 0f, w, h)
+        canvas.drawBitmap(bmp, null, dst, pixelPaint)
     }
 
     /** Analizador de Winamp 2: 19 bandas de 3 px (o 75 líneas de 1 px) en 16 px de alto. */
@@ -441,6 +469,8 @@ class SpectrumRenderer {
     private var graphAtlas: android.graphics.Bitmap? = null
     private var graphBg = IntArray(0)
     private var graphColors = IntArray(0)
+    /** Arreglo de trabajo de la curva: se reutiliza en cada cuadro en vez de crear uno nuevo. */
+    private var graphPx = IntArray(0)
 
     // ---------------------------------------------------------------- Ventana plegada
 
@@ -528,7 +558,9 @@ class SpectrumRenderer {
         val key = listOf(System.identityHashCode(a), levels)
         if (!quiet || key != graphKey || graphBitmap == null) {
             graphKey = if (quiet) key else null
-            val px = graphBg.copyOf()
+            if (graphPx.size != graphBg.size) graphPx = IntArray(graphBg.size)
+            val px = graphPx
+            System.arraycopy(graphBg, 0, px, 0, px.size)
             val colors = graphColors
             if (!quiet) {
                 val vis = skin.colors

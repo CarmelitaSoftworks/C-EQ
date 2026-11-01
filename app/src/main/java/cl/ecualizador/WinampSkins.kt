@@ -59,7 +59,7 @@ object WinampSkins {
         loaded = true
         imported.value = runCatching { fromJson(file(ctx).readText()) }.getOrDefault(emptyList())
         // Ventanas de un formato anterior: se rearman del .wsz guardado, sin bloquear el inicio
-        if (imported.value.any { it.sourceFile != null && WinampWindows.isOutdated(it) }) {
+        if (imported.value.any { WinampWindows.canUpgrade(it) }) {
             Thread { upgradeWindows(ctx.applicationContext) }.start()
         }
     }
@@ -69,7 +69,7 @@ object WinampSkins {
     internal fun upgradeWindows(ctx: Context) {
         var changed = false
         val list = imported.value.map { s ->
-            val src = s.sourceFile?.let(::File)?.takeIf { it.exists() && WinampWindows.isOutdated(s) } ?: return@map s
+            val src = s.sourceFile?.let(::File)?.takeIf { it.exists() && WinampWindows.canUpgrade(s) } ?: return@map s
             val pixels = runCatching { WinampWindow.compose(SkinArchive.read(src.inputStream()), SkinImport.ANDROID_DECODER) }.getOrNull()
                 ?: return@map s
             val window = saveWindow(ctx, pixels) ?: return@map s

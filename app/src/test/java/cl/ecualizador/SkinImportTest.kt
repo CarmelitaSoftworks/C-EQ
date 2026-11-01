@@ -108,6 +108,15 @@ class SkinImportTest {
         WinampSkins.upgradeWindows(ctx)
         val upgraded = WinampSkins.imported.value.single { it.name == added.name }
         assertEquals(false, WinampWindows.isOutdated(upgraded))
+        assertEquals(false, WinampWindows.canUpgrade(upgraded))
+        // Como un atlas de la 3.0 a la 3.3 (sin la ventana plegada): no pide reimportarlo, pero se
+        // puede rearmar desde su .wsz
+        File(upgraded.windowFile!!).outputStream().use {
+            android.graphics.Bitmap.createBitmap(WinampWindow.WIDTH, WinampWindow.SHADE_Y, android.graphics.Bitmap.Config.ARGB_8888)
+                .compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+        }
+        assertEquals(false, WinampWindows.isOutdated(upgraded))
+        assertTrue(WinampWindows.canUpgrade(upgraded))
         WinampSkins.remove(ctx, added.name)
         assertEquals(false, File(added.sourceFile!!).exists())
     }

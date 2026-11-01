@@ -16,13 +16,26 @@ import android.widget.RemoteViews
 class PlayerWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) = PlayerNotification.update(context)
 
+    /** Zonas táctiles de un widget del reproductor (ids de su layout). */
+    class Buttons(val display: Int, val previous: Int, val play: Int, val pause: Int, val stop: Int, val next: Int, val eject: Int)
+
     companion object {
         /** Los widgets del reproductor puestos en la pantalla de inicio. */
         fun ids(ctx: Context): IntArray =
             AppWidgetManager.getInstance(ctx)?.getAppWidgetIds(ComponentName(ctx, PlayerWidget::class.java)) ?: IntArray(0)
 
         /** Muestra en [ids] la ventana ya dibujada ([window], ver PlayerNotification.windowBitmap). */
-        fun push(ctx: Context, ids: IntArray, window: android.graphics.Bitmap) {
+        fun push(ctx: Context, ids: IntArray, window: android.graphics.Bitmap) = push(
+            ctx, ids, R.layout.player_expanded, R.id.player_window, window,
+            Buttons(R.id.player_display, R.id.player_previous, R.id.player_play, R.id.player_pause, R.id.player_stop, R.id.player_next, R.id.player_eject),
+        )
+
+        /**
+         * Pone [image] en [imageId] del layout [layout] y conecta sus botones: los de la música si hay
+         * acceso a lo que suena (si no, abren la app para darlo) y expulsar, a la app de música.
+         * Lo comparten el widget del reproductor y el de la barra plegada.
+         */
+        internal fun push(ctx: Context, ids: IntArray, layout: Int, imageId: Int, image: android.graphics.Bitmap, b: Buttons) {
             val manager = AppWidgetManager.getInstance(ctx) ?: return
             if (ids.isEmpty()) return
             val app = PendingIntent.getActivity(
@@ -31,15 +44,15 @@ class PlayerWidget : AppWidgetProvider() {
             )
             val access = NowPlaying.hasAccess(ctx)
             fun tap(name: String) = if (access) PlayerNotification.action(ctx, name) else app
-            val views = RemoteViews(ctx.packageName, R.layout.player_expanded).apply {
-                setImageViewBitmap(R.id.player_window, window)
-                setOnClickPendingIntent(R.id.player_display, tap("toggle"))
-                setOnClickPendingIntent(R.id.player_previous, tap("previous"))
-                setOnClickPendingIntent(R.id.player_play, tap("play"))
-                setOnClickPendingIntent(R.id.player_pause, tap("pause"))
-                setOnClickPendingIntent(R.id.player_stop, tap("stop"))
-                setOnClickPendingIntent(R.id.player_next, tap("next"))
-                setOnClickPendingIntent(R.id.player_eject, PlayerNotification.openPlayer(ctx) ?: app)
+            val views = RemoteViews(ctx.packageName, layout).apply {
+                setImageViewBitmap(imageId, image)
+                setOnClickPendingIntent(b.display, tap("toggle"))
+                setOnClickPendingIntent(b.previous, tap("previous"))
+                setOnClickPendingIntent(b.play, tap("play"))
+                setOnClickPendingIntent(b.pause, tap("pause"))
+                setOnClickPendingIntent(b.stop, tap("stop"))
+                setOnClickPendingIntent(b.next, tap("next"))
+                setOnClickPendingIntent(b.eject, PlayerNotification.openPlayer(ctx) ?: app)
             }
             manager.updateAppWidget(ids, views)
         }

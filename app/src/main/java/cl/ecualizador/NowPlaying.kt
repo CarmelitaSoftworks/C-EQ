@@ -60,15 +60,36 @@ object NowPlaying {
     /** Carátula de lo que suena, si el reproductor la entrega como imagen (Spotify lo hace). */
     val art = MutableStateFlow<android.graphics.Bitmap?>(null)
 
-    /** La carátula de la sesión, reducida a [max] px de lado como mucho (las notificaciones tienen un límite). */
-    fun artFrom(c: MediaController, max: Int = 512): android.graphics.Bitmap? {
-        val md = c.metadata ?: return null
-        val bmp = listOf(MediaMetadata.METADATA_KEY_ALBUM_ART, MediaMetadata.METADATA_KEY_ART, MediaMetadata.METADATA_KEY_DISPLAY_ICON)
-            .firstNotNullOfOrNull { runCatching { md.getBitmap(it) }.getOrNull() } ?: return null
+    /** La carátula chica para la notificación (se hace una vez por carátula). */
+    @Volatile
+    var artThumb: android.graphics.Bitmap? = null
+        private set
+
+    /** [bmp] reducida a [max] px de lado como mucho, sin deformarla (la misma si ya cabe). */
+    fun fit(bmp: android.graphics.Bitmap, max: Int): android.graphics.Bitmap {
         val side = maxOf(bmp.width, bmp.height)
         if (side <= max) return bmp
         val k = max / side.toFloat()
         return android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * k).toInt().coerceAtLeast(1), (bmp.height * k).toInt().coerceAtLeast(1), true)
+    }
+
+    /** La carátula de la sesión, reducida a 512 px de lado como mucho. */
+    fun artFrom(c: MediaController): android.graphics.Bitmap? {
+        val md = c.metadata ?: return null
+        val bmp = listOf(MediaMetadata.METADATA_KEY_ALBUM_ART, MediaMetadata.METADATA_KEY_ART, MediaMetadata.METADATA_KEY_DISPLAY_ICON)
+            .firstNotNullOfOrNull { runCatching { md.getBitmap(it) }.getOrNull() } ?: return null
+        return fit(bmp, 512)
+    }
+
+    /**
+     * Cambia la carátula si es otra imagen. Cada aviso del reproductor trae una copia nueva, así que
+     * se compara por contenido; algunos mandan el título nuevo antes que su carátula.
+     */
+    fun setArt(new: android.graphics.Bitmap?) {
+        val old = art.value
+        if (old === new || (old != null && new != null && runCatching { old.sameAs(new) }.getOrDefault(false))) return
+        artThumb = new?.let { fit(it, 192) }
+        art.value = new
     }
 
     /**
@@ -234,7 +255,6 @@ class NowPlayingService : NotificationListenerService() {
     }
     private val sessionsChanged = MediaSessionManager.OnActiveSessionsChangedListener { list -> follow(list.orEmpty()) }
     private val main = android.os.Handler(android.os.Looper.getMainLooper())
-    private var lastArtKey: String? = null
     /** Mientras suena, el reproductor de la notificación avanza su reloj una vez por segundo. */
     private val tick = object : Runnable {
         override fun run() {
@@ -298,12 +318,7 @@ class NowPlayingService : NotificationListenerService() {
         NowPlaying.activeQueueId = chosen?.first?.let { c -> runCatching { c.playbackState?.activeQueueItemId }.getOrNull() } ?: -1
         NowPlaying.queue.value = chosen?.first?.let { c -> runCatching { NowPlaying.queueFrom(c) }.getOrNull() }.orEmpty()
         NowPlaying.track.value = chosen?.second
-        // La misma carátula llega como una imagen nueva en cada aviso: solo se cambia si cambió la canción
-        val artKey = chosen?.second?.let { "${it.app}|${it.artist}|${it.title}" }
-        if (artKey != lastArtKey || NowPlaying.art.value == null) {
-            lastArtKey = artKey
-            NowPlaying.art.value = chosen?.first?.let { c -> runCatching { NowPlaying.artFrom(c) }.getOrNull() }
-        }
+        NowPlaying.setArt(chosen?.first?.let { c -> runCatching { NowPlaying.artFrom(c) }.getOrNull() })
         // El ajuste automático depende de qué suena (voz, video o música)
         EqEngine.peek()?.onMediaChanged()
         main.removeCallbacks(tick)

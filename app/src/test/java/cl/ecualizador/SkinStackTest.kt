@@ -12,7 +12,7 @@ class SkinStackTest {
         assertTrue(WinampWindow.EQ_SLIDERS_Y + 129 <= WinampWindow.PL_Y)
         assertTrue(WinampWindow.EQ_THUMB_X + 28 + 26 <= WinampWindow.WIDTH)
         assertTrue(WinampWindow.PL_HANDLE_X + 8 <= WinampWindow.WIDTH)
-        assertEquals(WinampWindow.PL_BOTTOM_RIGHT_Y + WinampWindow.PL_BOTTOM_H, WinampWindow.ATLAS_HEIGHT)
+        assertEquals(WinampWindow.PL_BOTTOM_RIGHT_Y + WinampWindow.PL_BOTTOM_H, WinampWindow.SHADE_Y)
     }
 
     @Test
