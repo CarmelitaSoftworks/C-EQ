@@ -1,0 +1,32 @@
+name: Release
+
+# Al subir una etiqueta vX.Y.Z publica el release con el APK firmado de dist/ (la clave de firma no
+# está en GitHub) y las notas de .github/releases/vX.Y.Z.md.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Revisar versión, notas y APK
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          version="${tag#v}"
+          grep -q "versionName = \"$version\"" app/build.gradle.kts || { echo "versionName no es $version"; exit 1; }
+          test -f ".github/releases/$tag.md" || { echo "Faltan las notas .github/releases/$tag.md"; exit 1; }
+          sha=$(sha256sum dist/C-EQ.apk | cut -c1-64)
+          grep -q "$sha" ".github/releases/$tag.md" || { echo "El SHA-256 de las notas no es el de dist/C-EQ.apk ($sha)"; exit 1; }
+          cp dist/C-EQ.apk "C-EQ-$version.apk"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: C-EQ ${{ env.VERSION }} — Winamp completo en tu pantalla de inicio
+          body_path: .github/releases/${{ github.ref_name }}.md
+          files: C-EQ-${{ env.VERSION }}.apk
+          make_latest: true
