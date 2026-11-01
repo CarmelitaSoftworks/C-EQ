@@ -43,10 +43,13 @@ object PlayerNotification {
         }
         SpectrumPrefs.load(ctx)
         if (nm.getNotificationChannel(CHANNEL) == null) {
-            // Android no deja subir la prioridad de un canal existente: se crea otro y se borra el viejo
+            // Android no deja subir la prioridad de un canal existente: se crea otro y se borra el viejo.
+            // Si el usuario había desactivado el viejo, el nuevo también nace desactivado.
+            val blocked = nm.getNotificationChannel(OLD_CHANNEL)?.importance == NotificationManager.IMPORTANCE_NONE
             runCatching { nm.deleteNotificationChannel(OLD_CHANNEL) }
+            val importance = if (blocked) NotificationManager.IMPORTANCE_NONE else NotificationManager.IMPORTANCE_DEFAULT
             nm.createNotificationChannel(
-                NotificationChannel(CHANNEL, ctx.getString(R.string.player_channel), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                NotificationChannel(CHANNEL, ctx.getString(R.string.player_channel), importance).apply {
                     setSound(null, null)
                     enableVibration(false)
                     enableLights(false)
@@ -77,7 +80,7 @@ object PlayerNotification {
         val pos = PlayingTrack.clock(track.positionAt(android.os.SystemClock.elapsedRealtime()))
         val time = if (track.durationMs > 0) "$pos / ${PlayingTrack.clock(track.durationMs)}" else pos
         val collapsed = RemoteViews(ctx.packageName, R.layout.player_collapsed).apply {
-            setTextViewText(R.id.player_title, track.title)
+            setTextViewText(R.id.player_title, track.title.ifBlank { track.winampTitle() })
             setTextViewText(R.id.player_subtitle, if (track.artist.isBlank()) time else "${track.artist} · $time")
             buttons(skin, playing)?.let { setImageViewBitmap(R.id.player_buttons, it) }
             setOnClickPendingIntent(R.id.player_previous_small, action(ctx, "previous"))
@@ -110,21 +113,35 @@ object PlayerNotification {
         return bmp
     }
 
+    /** Botones de la tira plegada, en orden; sus anchos son los pesos de las zonas de player_collapsed.xml. */
+    fun stripButtons(playing: Boolean) =
+        listOf(WinampWindow.Button.PREVIOUS, if (playing) WinampWindow.Button.PAUSE else WinampWindow.Button.PLAY, WinampWindow.Button.NEXT)
+
+    private var stripKey: Triple<String, Boolean, Bitmap>? = null
+    private var strip: Bitmap? = null
+
     /**
      * Tira de botones del skin, tal como se ven en su ventana y juntos: anterior, reproducir (o pausa
-     * si suena) y siguiente, al triple para que se vean nítidos.
+     * si suena) y siguiente, al triple para que se vean nítidos. Se rearma solo si cambian el skin o
+     * el estado (la notificación se actualiza cada segundo).
      */
     private fun buttons(skin: WinampSkin, playing: Boolean): Bitmap? {
         val atlas = WinampWindows.bitmap(skin) ?: return null
-        val parts = listOf(WinampWindow.Button.PREVIOUS, if (playing) WinampWindow.Button.PAUSE else WinampWindow.Button.PLAY, WinampWindow.Button.NEXT)
-        val strip = Bitmap.createBitmap(parts.sumOf { it.w }, 18, Bitmap.Config.ARGB_8888)
-        val c = Canvas(strip)
+        val key = Triple(skin.name, playing, atlas)
+        if (key == stripKey) strip?.let { return it }
+        val parts = stripButtons(playing)
+        val raw = Bitmap.createBitmap(parts.sumOf { it.w }, parts.maxOf { it.h }, Bitmap.Config.ARGB_8888)
+        val c = Canvas(raw)
         var x = 0f
         for (b in parts) {
-            c.drawBitmap(Bitmap.createBitmap(atlas, b.x, b.y, b.w, b.h), x, 0f, null)
+            c.drawBitmap(atlas, android.graphics.Rect(b.x, b.y, b.x + b.w, b.y + b.h), android.graphics.RectF(x, 0f, x + b.w, b.h.toFloat()), null)
             x += b.w
         }
-        return Bitmap.createScaledBitmap(strip, strip.width * 3, strip.height * 3, false)
+        val scaled = Bitmap.createScaledBitmap(raw, raw.width * 3, raw.height * 3, false)
+        if (scaled !== raw) raw.recycle()
+        stripKey = key
+        strip = scaled
+        return scaled
     }
 
     /**

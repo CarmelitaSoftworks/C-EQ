@@ -309,7 +309,7 @@ class SpectrumRenderer {
      */
     private fun drawSkinWindow(
         canvas: Canvas, w: Float, h: Float, atlas: android.graphics.Bitmap, part: WinampWindow.Part, skin: WinampSkin,
-        marquee: Boolean = true,
+        marquee: Boolean,
     ): android.graphics.RectF {
         val fit = minOf(w / part.w, h / part.h)
         val scale = if (fit >= 2f) kotlin.math.floor(fit) else fit

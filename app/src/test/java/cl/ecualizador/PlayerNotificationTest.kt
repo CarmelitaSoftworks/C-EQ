@@ -99,4 +99,28 @@ class PlayerNotificationTest {
         NowPlaying.track.value = null; NowPlaying.controller = null
         assertNull(null)
     }
+
+    @Test
+    fun collapsedTapZonesMatchSkinButtonWidths() {
+        val root = android.view.LayoutInflater.from(ctx).inflate(R.layout.player_collapsed, null)
+        val ids = listOf(R.id.player_previous_small, R.id.player_toggle_small, R.id.player_next_small)
+        for (playing in listOf(true, false)) {
+            val widths = PlayerNotification.stripButtons(playing).map { it.w.toFloat() }
+            assertEquals(widths, ids.map { (root.findViewById<View>(it).layoutParams as android.widget.LinearLayout.LayoutParams).weight })
+        }
+        // Las zonas se pueden tocar aunque la tira no tenga imagen
+        root.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED)
+        val ws = listOf(R.id.player_buttons, R.id.player_previous_small, R.id.player_toggle_small).map { root.findViewById<View>(it).measuredWidth }
+        org.junit.Assert.assertTrue(ws.toString(), ws.all { it > 0 })
+    }
+
+    @Test
+    fun blockedOldChannelStaysBlocked() {
+        nm.createNotificationChannel(android.app.NotificationChannel("player", "Reproductor", NotificationManager.IMPORTANCE_NONE))
+        playing()
+        PlayerNotification.update(ctx)
+        assertEquals(NotificationManager.IMPORTANCE_NONE, nm.getNotificationChannel("player_winamp")?.importance)
+        assertNull(nm.getNotificationChannel("player"))
+        NowPlaying.track.value = null; NowPlaying.controller = null
+    }
 }

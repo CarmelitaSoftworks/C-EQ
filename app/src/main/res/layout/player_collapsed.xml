@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Reproductor plegado: título y artista con el tiempo, y a la derecha la tira de botones del skin
-  (anterior | reproducir o pausa | siguiente) con zonas táctiles encima, con pesos en píxeles del skin.
+  (anterior | reproducir o pausa | siguiente) con zonas táctiles encima, con pesos en píxeles del skin:
+  los anchos de WinampWindow.Button (PREVIOUS, PLAY/PAUSE, NEXT); PlayerNotificationTest los compara.
+  La tira mide 68×18 px del skin: a 36 dp de alto, 136 dp de ancho fijos, para que las zonas se puedan
+  tocar aunque no haya imagen.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -39,15 +42,17 @@
 
         <ImageView
             android:id="@+id/player_buttons"
-            android:layout_width="wrap_content"
+            android:layout_width="136dp"
             android:layout_height="36dp"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/player_toggle"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"
             android:scaleType="fitXY" />
 
+        <!-- Mismo tamaño fijo que la tira: con match_parent dentro de un FrameLayout que se ajusta al
+             contenido, Android no lo estira y las zonas quedaban de 0 dp (sin poder tocarse) -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="136dp"
+            android:layout_height="36dp"
             android:orientation="horizontal">
 
             <FrameLayout android:id="@+id/player_previous_small" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="23" android:contentDescription="@string/player_previous" />
