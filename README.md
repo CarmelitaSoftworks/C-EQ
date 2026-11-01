@@ -22,6 +22,10 @@
   &nbsp;·&nbsp; <a href="https://ko-fi.com/carmelitasoftworks">Apoyar ☕</a>
 </p>
 
+<p align="center">
+  <img src="docs/promo.gif" alt="C-EQ en movimiento: el skin completo con la cola, el ecualizador y cambio de skins" width="380">
+</p>
+
 ---
 
 ## ✨ Novedades de la 3.0
