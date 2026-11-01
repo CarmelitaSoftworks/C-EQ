@@ -74,8 +74,8 @@ object WinampWindow {
     const val PL_HANDLE_X = 208
     const val PL_BOTTOM_Y = PL_Y + PL_SIDE_H
     const val PL_BOTTOM_RIGHT_Y = PL_BOTTOM_Y + PL_BOTTOM_H
-    /** Alto de cada fila de la lista. */
-    const val PL_ROW_H = 13
+    /** Alto de cada fila de la lista: la letra del skin (6 px) y 2 de separación. */
+    const val PL_ROW_H = 8
     const val ATLAS_HEIGHT = PL_BOTTOM_RIGHT_Y + PL_BOTTOM_H
 
     // Volumen en la ventana

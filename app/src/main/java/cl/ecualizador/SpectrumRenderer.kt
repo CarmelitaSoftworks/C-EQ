@@ -534,29 +534,108 @@ class SpectrumRenderer {
         p(WinampWindow.PL_HANDLE_X, WinampWindow.PL_Y, 8, 18, (W - 15).toFloat(), topH + Math.round(progress * handleRoom).toFloat())
 
         if (shown == 0) return
-        listText.textSize = 9f * scale
         val track = NowPlaying.track.value
-        canvas.save()
-        canvas.clipRect(textL, textT, textR, textT + bodyH * scale)
-        for (r in 0 until shown) {
+        val duration = track?.durationMs?.takeIf { it > 0 }?.let { PlayingTrack.clock(it) }.orEmpty()
+        val lines = List(shown) { r ->
             val i = first + r
             val e = list[i]
-            val baseline = textT + (2 + r * WinampWindow.PL_ROW_H + 10) * scale
-            listText.color = skin.chrome[if (i == active) WinampChrome.LIST_CURRENT else WinampChrome.LIST_TEXT] or (0xFF shl 24)
-            // La duración solo se sabe de la que suena
-            val time = if (i == active && track != null && track.durationMs > 0) PlayingTrack.clock(track.durationMs) else ""
-            val timeW = if (time.isEmpty()) 0f else listText.measureText(time) + 4 * scale
-            val name = "${i + 1}. " + if (e.artist.isBlank()) e.title else "${e.artist} - ${e.title}"
-            val room = textR - textL - 4 * scale - timeW
-            val n = listText.breakText(name, true, room, null)
-            canvas.drawText(if (n < name.length) name.take((n - 1).coerceAtLeast(0)) + "…" else name, textL + 2 * scale, baseline, listText)
-            if (time.isNotEmpty()) {
-                listText.textAlign = Paint.Align.RIGHT
-                canvas.drawText(time, textR - 2 * scale, baseline, listText)
-                listText.textAlign = Paint.Align.LEFT
+            Triple("${i + 1}. " + if (e.artist.isBlank()) e.title else "${e.artist} - ${e.title}", if (i == active) duration else "", i == active)
+        }
+        val font = WinampWindows.bitmap(skin)?.let(::fontMaskOf)
+        canvas.save()
+        canvas.clipRect(textL, textT, textR, textT + bodyH * scale)
+        if (font != null) {
+            // Con la letra del skin (TEXT.BMP), teñida con los colores de la lista
+            val layer = playlistLayer(font, lines, skin, W - WinampWindow.PL_LEFT_W - WinampWindow.PL_RIGHT_W, bodyH)
+            windowSrc.set(0, 0, layer.width, layer.height)
+            windowDst.set(textL, textT, textL + layer.width * scale, textT + layer.height * scale)
+            canvas.drawBitmap(layer, windowSrc, windowDst, pixelPaint)
+        } else {
+            // Skin sin fuente: letra del sistema
+            listText.textSize = 6.5f * scale
+            lines.forEachIndexed { r, (name, time, current) ->
+                val baseline = textT + (2 + r * WinampWindow.PL_ROW_H + 7) * scale
+                listText.color = skin.chrome[if (current) WinampChrome.LIST_CURRENT else WinampChrome.LIST_TEXT] or (0xFF shl 24)
+                val timeW = if (time.isEmpty()) 0f else listText.measureText(time) + 4 * scale
+                val n = listText.breakText(name, true, textR - textL - 4 * scale - timeW, null)
+                canvas.drawText(if (n < name.length) name.take((n - 1).coerceAtLeast(0)) + "…" else name, textL + 2 * scale, baseline, listText)
+                if (time.isNotEmpty()) {
+                    listText.textAlign = Paint.Align.RIGHT
+                    canvas.drawText(time, textR - 2 * scale, baseline, listText)
+                    listText.textAlign = Paint.Align.LEFT
+                }
             }
         }
         canvas.restore()
+    }
+
+    // Letra del skin como máscara (blanco donde hay trazo), para teñirla con cualquier color
+    private var fontSource: android.graphics.Bitmap? = null
+    private var fontMask: IntArray? = null
+
+    /** Máscara de TEXT.BMP (155×18) del atlas, o null si el skin no la trae. */
+    private fun fontMaskOf(atlas: android.graphics.Bitmap): IntArray? {
+        if (fontSource === atlas) return fontMask
+        fontSource = atlas
+        val w = FONT_W; val h = FONT_H
+        val px = IntArray(w * h)
+        atlas.getPixels(px, 0, w, 0, WinampWindow.TEXT_Y, w, h)
+        // Fondo: el color más común. Trazo: el color frecuente más distinto del fondo (hay letras con
+        // sombra de otro color, que no es trazo). Cada píxel va con el que esté más cerca.
+        val counts = px.filter { (it ushr 24) != 0 }.groupingBy { it }.eachCount()
+        val bg = counts.maxByOrNull { it.value }?.key
+        fun dist(a: Int, b: Int) = kotlin.math.abs(((a shr 16) and 0xFF) - ((b shr 16) and 0xFF)) +
+            kotlin.math.abs(((a shr 8) and 0xFF) - ((b shr 8) and 0xFF)) + kotlin.math.abs((a and 0xFF) - (b and 0xFF))
+        val frequent = counts.entries.filter { it.key != bg }.sortedByDescending { it.value }.take(10).map { it.key }
+        val ink = bg?.let { b -> frequent.maxByOrNull { dist(it, b) } }
+        // Trazo: lo que se aleja del fondo al menos la mitad que el color del trazo (incluye los
+        // degradados de la letra, no las sombras oscuras)
+        val cut = if (bg != null && ink != null) dist(ink, bg) / 2 else 0
+        fontMask = if (bg == null || ink == null || cut < 20) null else IntArray(w * h) { i ->
+            val c = px[i]
+            if ((c ushr 24) != 0 && dist(c, bg) > cut) 1 else 0
+        }
+        return fontMask
+    }
+
+    private var layerBitmap: android.graphics.Bitmap? = null
+    private var layerKey: Any? = null
+
+    /**
+     * Las filas de la lista a tamaño del skin: «N. Artista - Título» y, en la que suena, la duración a
+     * la derecha. Se rearma solo si cambia algo.
+     */
+    private fun playlistLayer(
+        font: IntArray, lines: List<Triple<String, String, Boolean>>, skin: WinampSkin, w: Int, h: Int,
+    ): android.graphics.Bitmap {
+        val key = listOf(lines, skin.name, w, h, font)
+        layerBitmap?.let { if (key == layerKey && it.width == w && it.height == h) return it }
+        layerKey = key
+        val bg = skin.chrome[WinampChrome.LIST_BG] or (0xFF shl 24)
+        val px = IntArray(w * h) { bg }
+        fun write(text: String, x0: Int, y0: Int, color: Int) {
+            val plain = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "")
+            plain.forEachIndexed { k, ch ->
+                val (col, row) = WinampWindow.glyph(ch)
+                for (gy in 0 until 6) for (gx in 0 until 5) {
+                    val x = x0 + k * 5 + gx; val y = y0 + gy
+                    if (x !in 0 until w || y !in 0 until h) continue
+                    if (font[(row * 6 + gy) * FONT_W + col * 5 + gx] != 0) px[y * w + x] = color
+                }
+            }
+        }
+        val chars = (w - 4) / 5
+        lines.forEachIndexed { r, (name, time, current) ->
+            val color = skin.chrome[if (current) WinampChrome.LIST_CURRENT else WinampChrome.LIST_TEXT] or (0xFF shl 24)
+            val y = 2 + r * WinampWindow.PL_ROW_H + 1
+            val room = chars - if (time.isEmpty()) 0 else time.length + 1
+            write(if (name.length > room) name.take((room - 2).coerceAtLeast(0)) + ".." else name, 2, y, color)
+            if (time.isNotEmpty()) write(time, w - 2 - time.length * 5, y, color)
+        }
+        val bmp = layerBitmap?.takeIf { it.width == w && it.height == h }
+            ?: android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888).also { layerBitmap = it }
+        bmp.setPixels(px, 0, w, 0, 0, w, h)
+        return bmp
     }
 
     private var titleSource = ""
@@ -793,6 +872,8 @@ class SpectrumRenderer {
 
     private companion object {
         /** «  ***  » entre vueltas del título, como en Winamp. */
+        const val FONT_W = 155
+        const val FONT_H = 18
         val MARQUEE_GAP: IntArray = "  ***  ".map { WinampWindow.glyph(it).let { (c, r) -> c or (r shl 8) } }.toIntArray()
     }
 }

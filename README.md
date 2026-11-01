@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml"><img src="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml/badge.svg" alt="Compilación"></a>
-  <img src="https://img.shields.io/badge/versi%C3%B3n-3.0-B388FF" alt="Versión 3.0">
+  <img src="https://img.shields.io/badge/versi%C3%B3n-3.0.1-B388FF" alt="Versión 3.0.1">
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0 o superior">
   <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-blue" alt="GPL-3.0"></a>
   <a href="https://ko-fi.com/carmelitasoftworks"><img src="https://img.shields.io/badge/Ko--fi-apoyar-FF5E5B?logo=ko-fi&logoColor=white" alt="Apoyar en Ko-fi"></a>
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Descargar APK (3.0)</b></a>
+  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Descargar APK (3.0.1)</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Novedades</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Créditos</a>
   &nbsp;·&nbsp; <a href="https://ko-fi.com/carmelitasoftworks">Apoyar ☕</a>
@@ -28,7 +28,7 @@
 
 - **Winamp completo en el fondo de pantalla**: el skin hacia abajo con el reproductor, el
   ecualizador y la lista de reproducción. Las bandas, ON y AUTO se tocan; la lista muestra la cola
-  de lo que suena y tocar una canción salta a ella.
+  de lo que suena con la letra del propio skin, y tocar una canción salta a ella.
 - **Ajuste automático sin micrófono**: la curva sigue sola al equipo conectado, a lo que suena y al
   volumen.
 - Audífonos y parlantes **Bluetooth LE Audio** y TV por **HDMI** reconocidos.
@@ -99,7 +99,7 @@ ecualizador sin abrir la app.
 2. Ábrelo y permite instalar apps de esa fuente si Android lo pide.
 3. Actualiza encima de la versión anterior sin perder tus ajustes.
 
-SHA-256 del APK 3.0: `bfefd83f5c71f8d69e1073590769a479e7a0cfb40e44f9c58faf818446d4bad2`
+SHA-256 del APK 3.0.1: `6e9157621ef767ecdb8ddb772da50082fb41c0f889508dc346de812bb234905d`
 
 ### Permisos
 

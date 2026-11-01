@@ -1,5 +1,13 @@
 # Cambios
 
+## 3.0.1
+- La lista de reproducción del skin completo usa la letra del propio skin (TEXT.BMP), teñida con
+  los colores de su lista; también en skins con letra con sombra o degradado.
+- Fondo multitáctil: cada dedo cuenta por separado y ya no se pierden toques seguidos.
+- Con el cajón de apps abierto los toques ya no llegan al reproductor (por el zoom del fondo en
+  Android 11+ o, si el launcher no lo usa, tras deslizar hacia arriba hasta 5 s sin tocar). Si el
+  launcher avisa de los toques en zonas libres, solo se usan esos.
+
 ## 3.0
 - **Winamp completo** en el fondo: el skin hacia abajo con el reproductor, el ecualizador (con tus
   bandas reales: se tocan para cambiarlas, ON lo enciende y AUTO activa el ajuste automático) y la

@@ -21,6 +21,11 @@ import android.view.SurfaceHolder
 class SpectrumWallpaperService : WallpaperService() {
     override fun onCreateEngine(): Engine = SpectrumEngine()
 
+    private companion object {
+        /** Tiempo que se considera abierto el cajón de apps tras abrirlo o tocarlo. */
+        const val DRAWER_HOLD_MS = 5000L
+    }
+
     inner class SpectrumEngine : Engine(), Choreographer.FrameCallback {
         private val renderer = SpectrumRenderer()
         /** Cada motor (inicio, bloqueo, vista previa) se registra aparte para no apagar a los demás. */
@@ -71,37 +76,82 @@ class SpectrumWallpaperService : WallpaperService() {
         }
 
         /**
-         * Toques en la pantalla de inicio. Hay dos caminos y se usan ambos: Android entrega al fondo
-         * los toques de la pantalla de inicio que lo deja ver ([onTouchEvent]), y algunos launchers
-         * además avisan de los toques en zonas sin íconos (COMMAND_TAP). Si llegan los dos, cuenta uno.
+         * Toques en la pantalla de inicio. Hay dos caminos: Android entrega al fondo los toques de la
+         * pantalla que lo deja ver ([onTouchEvent], también los de los íconos y del cajón de apps) y
+         * algunos launchers avisan de los toques en zonas sin íconos (COMMAND_TAP). Si el launcher
+         * avisa, se le cree solo a él; si no (como el de vivo), se usan los toques directos, sin los
+         * que llegan con el cajón de apps abierto.
          */
         override fun onCommand(action: String?, x: Int, y: Int, z: Int, extras: android.os.Bundle?, resultRequested: Boolean): android.os.Bundle? {
-            if (action == android.app.WallpaperManager.COMMAND_TAP) tap(x.toFloat(), y.toFloat())
+            if (action == android.app.WallpaperManager.COMMAND_TAP) {
+                launcherTaps = true
+                tap(x.toFloat(), y.toFloat())
+            }
             return super.onCommand(action, x, y, z, extras, resultRequested)
         }
 
-        private var downX = 0f
-        private var downY = 0f
-        private var downAt = 0L
-        private var lastTapAt = 0L
+        /** El launcher avisa de los toques en zonas libres: los toques directos ya no hacen falta. */
+        private var launcherTaps = false
+        /**
+         * El cajón de apps (u otra vista del launcher) tapa el inicio: lo dice el zoom del fondo o un
+         * deslizamiento hacia arriba, hasta [DRAWER_HOLD_MS] sin tocar o hasta salir y volver al inicio.
+         */
+        private var zoomed = false
+        private var drawerUntil = 0L
 
-        /** Un toque corto y sin desplazamiento (pasar de página no cuenta). */
+        /** Android 11+: los launchers acercan el fondo al abrir el cajón de apps o las apps recientes. */
+        override fun onZoomChanged(zoom: Float) {
+            zoomed = zoom > 0.05f
+        }
+
+        private fun drawerOpen() = zoomed || android.os.SystemClock.uptimeMillis() < drawerUntil
+
+        /** Cada dedo por separado: dónde y cuándo bajó, y si ya se movió (no es un toque). */
+        private inner class Finger(val x: Float, val y: Float, val at: Long) { var moved = false }
+        private val fingers = android.util.SparseArray<Finger>()
+        private var lastTapAt = 0L
+        private var lastTapX = 0f
+        private var lastTapY = 0f
+
         override fun onTouchEvent(event: android.view.MotionEvent) {
+            val slop = android.view.ViewConfiguration.get(this@SpectrumWallpaperService).scaledTouchSlop * 1.5f
+            val now = android.os.SystemClock.uptimeMillis()
+            // Mientras se usa el cajón, cada toque lo mantiene «abierto» un rato más
+            if (drawerUntil > now) drawerUntil = now + DRAWER_HOLD_MS
             when (event.actionMasked) {
-                android.view.MotionEvent.ACTION_DOWN -> { downX = event.x; downY = event.y; downAt = event.eventTime }
-                android.view.MotionEvent.ACTION_UP -> {
-                    val slop = android.view.ViewConfiguration.get(this@SpectrumWallpaperService).scaledTouchSlop
-                    if (event.eventTime - downAt < 350 && kotlin.math.hypot(event.x - downX, event.y - downY) < slop) tap(event.x, event.y)
+                android.view.MotionEvent.ACTION_DOWN, android.view.MotionEvent.ACTION_POINTER_DOWN -> {
+                    val i = event.actionIndex
+                    fingers.put(event.getPointerId(i), Finger(event.getX(i), event.getY(i), event.eventTime))
                 }
+                android.view.MotionEvent.ACTION_MOVE -> for (i in 0 until event.pointerCount) {
+                    val f = fingers[event.getPointerId(i)] ?: continue
+                    val dx = event.getX(i) - f.x
+                    val dy = event.getY(i) - f.y
+                    if (kotlin.math.hypot(dx, dy) > slop) f.moved = true
+                    // Deslizar hacia arriba abre el cajón de apps. Hacia abajo no se da por cerrado: dentro
+                    // del cajón también se desliza así para recorrer la lista; se cierra solo, sin toques
+                    if (dy < -slop * 4 && -dy > kotlin.math.abs(dx) * 1.5f) drawerUntil = now + DRAWER_HOLD_MS
+                }
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_POINTER_UP -> {
+                    val i = event.actionIndex
+                    val id = event.getPointerId(i)
+                    val f = fingers[id]
+                    fingers.remove(id)
+                    if (f != null && !f.moved && event.eventTime - f.at < 500 && !launcherTaps && !drawerOpen()) {
+                        tap(event.getX(i), event.getY(i))
+                    }
+                }
+                android.view.MotionEvent.ACTION_CANCEL -> fingers.clear()
             }
             super.onTouchEvent(event)
         }
 
         private fun tap(x: Float, y: Float) {
             val now = android.os.SystemClock.uptimeMillis()
-            if (now - lastTapAt < 400) return
+            // El mismo toque por los dos caminos cuenta una vez; toques seguidos en otro lugar, todos
+            if (now - lastTapAt < 250 && kotlin.math.hypot(x - lastTapX, y - lastTapY) < 40f) return
             val hit = renderer.hitAt(x - drawnX, y - drawnY) ?: return
-            lastTapAt = now
+            lastTapAt = now; lastTapX = x; lastTapY = y
             val ctx = this@SpectrumWallpaperService
             // El volumen y el ecualizador no dependen del reproductor que suena
             val needsSession = hit !is WinampWindow.Hit.Volume && hit != WinampWindow.Hit.OpenEqualizer &&
@@ -126,6 +176,8 @@ class SpectrumWallpaperService : WallpaperService() {
 
         override fun onVisibilityChanged(isVisible: Boolean) {
             visible = isVisible
+            drawerUntil = 0L
+            fingers.clear()
             if (isVisible) {
                 NowPlaying.readVolume(this@SpectrumWallpaperService)
                 error = if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
