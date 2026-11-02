@@ -914,6 +914,9 @@ private fun WallpaperCard() {
             val eqState by EqEngine.get(ctx).state.collectAsState()
             val queue by NowPlaying.queue.collectAsState()
             val track by NowPlaying.track.collectAsState()
+            OptionRow(stringResource(R.string.eq_spectrum_option), spectrum.winampEqSpectrum) { on ->
+                SpectrumPrefs.update(ctx) { it.copy(winampEqSpectrum = on) }
+            }
             key(eqState, queue, track) {
                 WinampPreview(
                     ws.view.spectrumSettings(spectrum).copy(winampMarquee = false),

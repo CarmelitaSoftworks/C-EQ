@@ -277,4 +277,5 @@
     <string name="art_background">Album art of what\'s playing as background</string>
     <string name="speaker_protect">Protect the phone speaker</string>
     <string name="speaker_protect_hint">The phone speaker can\'t play deep bass: boosting it only makes it distort. With this on, bass below 125 Hz isn\'t boosted, extra volume goes up to +2 dB and headroom is kept so it doesn\'t distort.</string>
+    <string name="eq_spectrum_option">Spectrum behind the equalizer curve (not in the original Winamp)</string>
 </resources>

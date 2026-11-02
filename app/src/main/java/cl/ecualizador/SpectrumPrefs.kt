@@ -30,6 +30,7 @@ object SpectrumPrefs {
                 appTheme = p.getBoolean("appTheme", d.appTheme),
                 winampBars = p.getInt("winampBars", d.winampBars).takeIf { it in SpectrumSettings.WINAMP_BAR_OPTIONS } ?: d.winampBars,
                 winampLines = p.getInt("winampLines", d.winampLines).takeIf { it in SpectrumSettings.WINAMP_LINE_OPTIONS } ?: d.winampLines,
+                winampEqSpectrum = p.getBoolean("winampEqSpectrum", d.winampEqSpectrum),
             )
             loaded = true
         }
@@ -47,6 +48,7 @@ object SpectrumPrefs {
             .putString("winampPattern", s.winampPattern.name).putBoolean("winampFrame", s.winampFrame)
             .putBoolean("appTheme", s.appTheme)
             .putInt("winampBars", s.winampBars).putInt("winampLines", s.winampLines)
+            .putBoolean("winampEqSpectrum", s.winampEqSpectrum)
             .apply()
     }
 }

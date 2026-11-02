@@ -1,5 +1,9 @@
 # Cambios
 
+## 3.4.2
+- El espectro detrás de la curva del ecualizador del skin pasa a ser una opción, apagada por
+  defecto: como en Winamp, la curva va sola.
+
 ## 3.4.1
 - **Limitador más firme**: actúa desde −2 dBFS, 30:1 y en medio milisegundo; antes (−1 dBFS, 10:1,
   1 ms) dejaba pasar picos que se recortaban.

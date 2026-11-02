@@ -226,7 +226,9 @@ class SpectrumRenderer {
             shade != null && window != null -> drawSkinShade(canvas, w, h, shade, window)
             // Sin ventana plegada en el skin ni en el base: el marco simple, que cabe en una barra
             s.winampShade -> drawWinampFrame(canvas, w, h, skin, density)
-            window != null && s.winampStack -> drawSkinStack(canvas, w, h, window, skin, s.winampMarquee, values)
+            // Como el original, la curva del ecualizador va sola salvo que se pida el espectro detrás
+            window != null && s.winampStack ->
+                drawSkinStack(canvas, w, h, window, skin, s.winampMarquee, if (s.winampEqSpectrum) values else NO_VALUES)
             window != null -> drawSkinWindow(canvas, w, h, window, s.winampPart, skin, s.winampMarquee)
             s.winampFrame -> drawWinampFrame(canvas, w, h, skin, density)
             else -> null
@@ -980,6 +982,7 @@ class SpectrumRenderer {
 
     private companion object {
         /** «  ***  » entre vueltas del título, como en Winamp. */
+        val NO_VALUES = FloatArray(1)
         const val FONT_W = 155
         const val FONT_H = 18
         val MARQUEE_GAP: IntArray = "  ***  ".map { WinampWindow.glyph(it).let { (c, r) -> c or (r shl 8) } }.toIntArray()

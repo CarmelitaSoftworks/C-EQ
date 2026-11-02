@@ -104,4 +104,9 @@ class NewFeaturesTest {
         assertEquals(cut, EqCore.protectSpeaker(cut))
         assertTrue(EqCore.LIMITER_THRESHOLD_DB < 0f && EqCore.LIMITER_RATIO >= 20f)
     }
+
+    @Test
+    fun equalizerCurveIsAloneByDefaultLikeWinamp() {
+        assertTrue(!SpectrumSettings().winampEqSpectrum)
+    }
 }

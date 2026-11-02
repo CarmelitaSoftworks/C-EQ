@@ -277,4 +277,5 @@
     <string name="art_background">Carátula de lo que suena como fondo</string>
     <string name="speaker_protect">Proteger el altavoz del teléfono</string>
     <string name="speaker_protect_hint">El altavoz del teléfono no puede dar graves profundos: subirlos solo lo satura. Con esto no se suben los graves bajo 125 Hz, el volumen extra llega hasta +2 dB y se deja margen para que no distorsione.</string>
+    <string name="eq_spectrum_option">Espectro detrás de la curva del ecualizador (Winamp no lo tenía)</string>
 </resources>

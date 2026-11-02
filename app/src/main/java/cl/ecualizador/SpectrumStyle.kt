@@ -205,6 +205,8 @@ data class SpectrumSettings(
     val winampMarquee: Boolean = true,
     /** Skin completo hacia abajo: reproductor, ecualizador y lista de reproducción (no se guarda). */
     val winampStack: Boolean = false,
+    /** Espectro de lo que suena detrás de la curva del ecualizador del skin (Winamp no lo tenía). */
+    val winampEqSpectrum: Boolean = false,
     /** Ventana plegada de Winamp («shade»): una barra delgada (no se guarda). */
     val winampShade: Boolean = false,
 ) {
