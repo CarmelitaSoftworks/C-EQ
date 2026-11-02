@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml"><img src="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml/badge.svg" alt="Compilación"></a>
-  <img src="https://img.shields.io/badge/versi%C3%B3n-3.4.1-B388FF" alt="Versión 3.4.1">
+  <img src="https://img.shields.io/badge/versi%C3%B3n-3.5-B388FF" alt="Versión 3.5">
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0 o superior">
   <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-blue" alt="GPL-3.0"></a>
   <a href="https://ko-fi.com/carmelitasoftworks"><img src="https://img.shields.io/badge/Ko--fi-apoyar-FF5E5B?logo=ko-fi&logoColor=white" alt="Apoyar en Ko-fi"></a>
@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Descargar APK (3.4.1)</b></a>
+  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Descargar APK (3.5)</b></a>
   &nbsp;·&nbsp; <a href="https://github.com/CarmelitaSoftworks/C-EQ/releases">Todas las versiones</a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Novedades</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Créditos</a>
@@ -34,6 +34,8 @@
 ---
 
 ## ✨ Novedades
+
+**3.5 — Menos batería y guía de inicio.** El fondo animado a 30 o 60 cuadros por segundo y en pausa cuando no suena nada, una guía de inicio con los permisos en orden, y el espectro detrás del ecualizador del skin como opción.
 
 **3.4.1 — Sin saturación en el altavoz.** Limitador más firme y protección del altavoz del teléfono.
 
@@ -162,7 +164,7 @@ elige en Ajustes › Idioma de las apps.
    Si aparece un aviso de Play Protect, lee [por qué avisa](#play-protect).
 3. Actualiza encima de la versión anterior sin perder tus ajustes.
 
-SHA-256 del APK 3.4.1: `1268d4f23b38a9be675f823f3512573ed1be94dd2f62b2c08ac0644d60dd4f02`
+SHA-256 del APK 3.5: `5bd218f3922d20681a6d9969d6e928e4728241eb226d2a31f9743ac47e931148`
 
 ### Permisos
 
@@ -197,11 +199,11 @@ desactivar Play Protect.
 
 | | SHA-256 |
 |---|---|
-| APK 3.4.1 | `1268d4f23b38a9be675f823f3512573ed1be94dd2f62b2c08ac0644d60dd4f02` |
+| APK 3.5 | `5bd218f3922d20681a6d9969d6e928e4728241eb226d2a31f9743ac47e931148` |
 | Certificado de firma | `e399d964d3de12bc48776c779b65ab49be2ca6ec8eaeb64f4cb8e61d7948b2d0` |
 
 Con las herramientas del SDK de Android también puedes ver que no pide Internet:
-`aapt2 dump permissions C-EQ-3.4.1.apk` (no aparece `android.permission.INTERNET`).
+`aapt2 dump permissions C-EQ-3.5.apk` (no aparece `android.permission.INTERNET`).
 
 ## 🛠️ Compilar
 

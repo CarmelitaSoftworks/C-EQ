@@ -1,8 +1,9 @@
 # Cambios
 
 ## 3.5
-- **Menos batería en el fondo animado**: opción de 30 cuadros por segundo, y el fondo deja de
-  redibujarse solo cuando no suena nada (vuelve al empezar la música o al tocar el skin).
+- **Menos batería en el fondo animado**: 30 o 60 cuadros por segundo de verdad también en pantallas
+  de 90 y 120 Hz, y el fondo deja de redibujarse solo cuando no suena nada (vuelve con la música, al
+  tocar el skin o si cambia algo que se ve; un título largo se sigue desplazando).
 - **Guía de inicio**: la primera vez, los permisos en orden con para qué sirve cada uno y una marca
   cuando ya está; se vuelve a abrir desde Créditos.
 

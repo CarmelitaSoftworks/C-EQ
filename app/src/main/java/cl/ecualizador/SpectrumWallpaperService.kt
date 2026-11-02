@@ -229,13 +229,16 @@ class SpectrumWallpaperService : WallpaperService() {
                     Spectrum.acquire(spectrumUser, this@SpectrumWallpaperService)
                 }
                 lastFrameNanos = 0
+                pacer.reset()
                 idle = false
                 quietSince = 0L
                 main.removeCallbacks(quietCheck)
+                main.removeCallbacks(marqueeTick)
                 Choreographer.getInstance().postFrameCallback(this)
             } else {
                 Choreographer.getInstance().removeFrameCallback(this)
                 main.removeCallbacks(quietCheck)
+                main.removeCallbacks(marqueeTick)
                 Spectrum.release(spectrumUser)
             }
         }
@@ -243,12 +246,14 @@ class SpectrumWallpaperService : WallpaperService() {
         override fun onSurfaceDestroyed(holder: SurfaceHolder) {
             visible = false
             main.removeCallbacks(quietCheck)
+            main.removeCallbacks(marqueeTick)
             Choreographer.getInstance().removeFrameCallback(this)
             Spectrum.release(spectrumUser)
         }
 
         override fun onDestroy() {
             main.removeCallbacks(quietCheck)
+            main.removeCallbacks(marqueeTick)
             runCatching { unregisterReceiver(screenOn) }
             Choreographer.getInstance().removeFrameCallback(this)
             Spectrum.release(spectrumUser)
@@ -258,14 +263,36 @@ class SpectrumWallpaperService : WallpaperService() {
         /** Desde cuándo no suena nada (0: suena), y si el fondo dejó de redibujarse por eso. */
         private var quietSince = 0L
         private var idle = false
-        private var lastDrawNanos = 0L
+        private val pacer = WallpaperPacing.Pacer()
+
+        /** En pausa por silencio, el título largo del skin se sigue desplazando (redibujando poco). */
+        private val marqueeTick = object : Runnable {
+            override fun run() {
+                if (!visible || !idle || !renderer.titleScrolling) return
+                drawFrame()
+                main.postDelayed(this, WallpaperPacing.MARQUEE_FRAME_MS)
+            }
+        }
         private val main = android.os.Handler(android.os.Looper.getMainLooper())
 
-        /** En pausa: revisa cada medio segundo si volvió la música, y si volvió, sigue animando. */
+        /** Lo que se ve en el fondo además del espectro: si cambia en pausa, hay que redibujar. */
+        private var idleShown: List<Any?> = emptyList()
+        private fun shownState(): List<Any?> = listOf(
+            NowPlaying.track.value, NowPlaying.volume, NowPlaying.art.value,
+            WallpaperPrefs.load(this@SpectrumWallpaperService), SpectrumPrefs.load(this@SpectrumWallpaperService),
+            EqEngine.get(this@SpectrumWallpaperService).state.value,
+        )
+
+        private fun silent() = WallpaperPacing.isQuiet(Spectrum.bars.value, NowPlaying.track.value?.state == PlayingTrack.State.PLAYING)
+
+        /**
+         * En pausa: revisa cada medio segundo si volvió la música o cambió algo que se ve (volumen,
+         * canción, ajustes), y si es así, sigue animando.
+         */
         private val quietCheck = object : Runnable {
             override fun run() {
                 if (!visible || !idle) return
-                if (WallpaperPacing.isQuiet(Spectrum.bars.value, NowPlaying.track.value?.state == PlayingTrack.State.PLAYING)) {
+                if (silent() && shownState() == idleShown) {
                     main.postDelayed(this, WallpaperPacing.QUIET_CHECK_MS)
                 } else wake()
             }
@@ -275,9 +302,11 @@ class SpectrumWallpaperService : WallpaperService() {
         private fun wake() {
             quietSince = 0L
             main.removeCallbacks(quietCheck)
+            main.removeCallbacks(marqueeTick)
             if (!idle || !visible) return
             idle = false
             lastFrameNanos = 0
+            pacer.reset()
             Choreographer.getInstance().postFrameCallback(this)
         }
 
@@ -291,19 +320,19 @@ class SpectrumWallpaperService : WallpaperService() {
             s.fallPerSec = settings.fall.perSec
             s.step(SpectrumShape.resample(Spectrum.bars.value, settings.effectiveBars), dt)
             // A 30 cuadros por segundo se dibuja uno de cada dos (el espectro igual avanza en cada uno)
-            if (WallpaperPacing.shouldDraw(ws.fps, (frameTimeNanos - lastDrawNanos) / 1_000_000)) {
-                lastDrawNanos = frameTimeNanos
-                drawFrame()
-            }
-            // Sin música un rato (y con las barras ya caídas): se deja de redibujar hasta que vuelva
+            val drawn = pacer.tick(dt.toFloat(), ws.fps)
+            if (drawn) drawFrame()
+            // Sin música un rato (y con las barras y sus topes ya caídos, que caen más lento): se deja
+            // de redibujar hasta que vuelva. Los topes nunca están bajo las barras
             val now = android.os.SystemClock.uptimeMillis()
-            val quiet = WallpaperPacing.isQuiet(Spectrum.bars.value, NowPlaying.track.value?.state == PlayingTrack.State.PLAYING) &&
-                s.values.all { it < 0.01f }
+            val quiet = silent() && s.peaks.all { it < 0.01f }
             if (!quiet) quietSince = 0L else if (quietSince == 0L) quietSince = now
             if (quiet && now - quietSince >= WallpaperPacing.QUIET_AFTER_MS) {
                 idle = true
-                drawFrame()
+                if (!drawn) drawFrame()
+                idleShown = shownState()
                 main.postDelayed(quietCheck, WallpaperPacing.QUIET_CHECK_MS)
+                if (renderer.titleScrolling) main.postDelayed(marqueeTick, WallpaperPacing.MARQUEE_FRAME_MS)
                 return
             }
             Choreographer.getInstance().postFrameCallback(this)

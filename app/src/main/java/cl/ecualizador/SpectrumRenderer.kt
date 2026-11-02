@@ -54,6 +54,7 @@ class SpectrumRenderer {
         hitPart = null // lo vuelve a fijar el skin real si se dibuja
         stackScale = 0f
         shadeScale = 0f
+        titleScrolling = false
         // Cada estilo deja sus ajustes en los pinceles compartidos: se reinician en cada cuadro.
         fill.shader = null; fill.alpha = 255
         stroke.shader = null; stroke.alpha = 255; stroke.strokeCap = Paint.Cap.ROUND
@@ -748,6 +749,10 @@ class SpectrumRenderer {
         return bmp
     }
 
+    /** El título del skin no cabe y se está desplazando (en el último cuadro dibujado). */
+    var titleScrolling = false
+        private set
+
     private var titleSource = ""
     private var titleGlyphs = IntArray(0)
 
@@ -789,6 +794,7 @@ class SpectrumRenderer {
             titleGlyphs = IntArray(plain.length) { i -> WinampWindow.glyph(plain[i]).let { (c, r) -> c or (r shl 8) } }
         }
         val glyphs = if (marquee && titleGlyphs.size * 5 > WinampWindow.TITLE_W) titleGlyphs + MARQUEE_GAP else titleGlyphs
+        titleScrolling = glyphs !== titleGlyphs
         val total = glyphs.size * 5
         val offset = if (glyphs === titleGlyphs) 0 else ((now / 40) % total).toInt()
         val x0 = WinampWindow.TITLE_X
@@ -981,10 +987,11 @@ class SpectrumRenderer {
     }
 
     private companion object {
-        /** «  ***  » entre vueltas del título, como en Winamp. */
+        /** Espectro vacío: la curva del ecualizador del skin sin nada detrás. */
         val NO_VALUES = FloatArray(1)
         const val FONT_W = 155
         const val FONT_H = 18
+        /** «  ***  » entre vueltas del título, como en Winamp. */
         val MARQUEE_GAP: IntArray = "  ***  ".map { WinampWindow.glyph(it).let { (c, r) -> c or (r shl 8) } }.toIntArray()
     }
 }

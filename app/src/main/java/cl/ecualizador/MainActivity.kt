@@ -442,23 +442,35 @@ private fun WelcomeGuide() {
     val lifecycle by LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
     fun granted(p: String) = ctx.checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
     var refresh by remember { mutableStateOf(0) }
-    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { refresh++ }
+    var asked by remember { mutableStateOf<String?>(null) }
+    // Denegado para siempre, Android ya no muestra el diálogo: se abre la página de la app en Ajustes
+    val askResult = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        val p = asked
+        if (!ok && p != null && (ctx as? android.app.Activity)?.shouldShowRequestPermissionRationale(p) == false) {
+            runCatching {
+                ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    android.net.Uri.fromParts("package", ctx.packageName, null)))
+            }
+        }
+        refresh++
+    }
+    fun ask(p: String) { asked = p; askResult.launch(p) }
 
     class Step(val title: Int, val why: Int, val done: Boolean, val action: () -> Unit)
     val steps = remember(lifecycle, refresh) {
-        listOfNotNull(
+        listOf(
             Step(R.string.welcome_notifications, R.string.welcome_notifications_why,
                 Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || granted(Manifest.permission.POST_NOTIFICATIONS)) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ask.launch(Manifest.permission.POST_NOTIFICATIONS)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ask(Manifest.permission.POST_NOTIFICATIONS)
             },
             Step(R.string.welcome_spectrum, R.string.welcome_spectrum_why, granted(Manifest.permission.RECORD_AUDIO)) {
-                ask.launch(Manifest.permission.RECORD_AUDIO)
+                ask(Manifest.permission.RECORD_AUDIO)
             },
             Step(R.string.welcome_now_playing, R.string.welcome_now_playing_why, NowPlaying.hasAccess(ctx)) {
                 runCatching { ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
             },
             Step(R.string.welcome_bluetooth, R.string.welcome_bluetooth_why, DeviceAnalyzer.hasBtPermission(ctx)) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ask.launch(Manifest.permission.BLUETOOTH_CONNECT)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ask(Manifest.permission.BLUETOOTH_CONNECT)
             },
         )
     }

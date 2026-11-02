@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 
 /** Con -DpreviewDir: captura la pantalla principal con letra grande (ventana alta para que entre entera). */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], qualifiers = "w392dp-h3600dp-xxhdpi", fontScale = 1.3f)
+@Config(sdk = [34], qualifiers = "w392dp-h5200dp-xxhdpi", fontScale = 1.3f)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ScreenPreviewTest {
     @Test

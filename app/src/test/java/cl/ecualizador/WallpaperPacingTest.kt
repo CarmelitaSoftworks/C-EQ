@@ -6,13 +6,21 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WallpaperPacingTest {
+    private fun drawnPerSecond(refreshHz: Int, fps: Int): Int {
+        val pacer = WallpaperPacing.Pacer()
+        val frameMs = 1000f / refreshHz
+        return (0 until refreshHz).count { pacer.tick(frameMs, fps) }
+    }
+
     @Test
-    fun thirtyFpsDrawsEveryOtherFrame() {
-        assertTrue(WallpaperPacing.shouldDraw(60, 16))
-        assertFalse(WallpaperPacing.shouldDraw(30, 16))
-        assertTrue(WallpaperPacing.shouldDraw(30, 33))
-        // El reloj de los cuadros tiembla un poco: 31 ms cuenta como el siguiente cuadro a 30
-        assertTrue(WallpaperPacing.shouldDraw(30, 31))
+    fun framesMatchTheChosenRateOnAnyScreen() {
+        // El primer cuadro se dibuja enseguida: puede sumar uno
+        assertTrue(drawnPerSecond(60, 60) in 59..61)
+        assertTrue(drawnPerSecond(60, 30) in 29..31)
+        // En pantallas de 90 y 120 Hz, «60» son 60 y no 90 o 120
+        assertTrue(drawnPerSecond(90, 60) in 59..61)
+        assertTrue(drawnPerSecond(120, 60) in 59..61)
+        assertTrue(drawnPerSecond(120, 30) in 29..31)
     }
 
     @Test

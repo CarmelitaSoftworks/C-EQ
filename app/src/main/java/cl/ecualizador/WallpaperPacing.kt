@@ -15,8 +15,29 @@ object WallpaperPacing {
     /** Cada cuánto se revisa, en pausa, si volvió la música. */
     const val QUIET_CHECK_MS = 500L
 
-    /** Si toca dibujar este cuadro con [fps] y [sinceLastDrawMs] desde el anterior (con margen por el temblor del reloj). */
-    fun shouldDraw(fps: Int, sinceLastDrawMs: Long): Boolean = fps >= 60 || sinceLastDrawMs >= 1000L / fps.coerceAtLeast(1) - 4
+    /** En pausa, si el título del skin se desplaza, se redibuja solo para moverlo (≈12 cuadros por segundo). */
+    const val MARQUEE_FRAME_MS = 80L
+
+    /**
+     * Presupuesto de cuadros: cada refresco de pantalla suma su duración y se dibuja cuando alcanza
+     * para un cuadro a los [fps] pedidos. Así 60 son 60 también en pantallas de 90 o 120 Hz (a 90 Hz
+     * se dibujan 2 de cada 3 refrescos) y 30 son 30 en cualquiera.
+     */
+    class Pacer {
+        private var credit = 1f
+
+        /** Pasó un refresco de [frameMs] milisegundos: si hay que dibujar este cuadro. */
+        fun tick(frameMs: Float, fps: Int): Boolean {
+            credit = (credit + frameMs * fps.coerceAtLeast(1) / 1000f).coerceAtMost(2f)
+            // Un poco de tolerancia: el reloj de los refrescos tiembla y 16,6 ms casi completan uno a 60
+            if (credit < 0.95f) return false
+            credit = (credit - 1f).coerceAtLeast(0f)
+            return true
+        }
+
+        /** Al volver a animar, el primer cuadro se dibuja enseguida. */
+        fun reset() { credit = 1f }
+    }
 
     /** No suena nada: el reproductor no está reproduciendo y el espectro está en cero. */
     fun isQuiet(values: FloatArray, playing: Boolean): Boolean = !playing && values.all { it < 0.01f }

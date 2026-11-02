@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 
 /** Con -DpreviewDir: la pantalla principal en español, con letra grande (ventana alta para que entre entera). */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], qualifiers = "es-w392dp-h3600dp-xxhdpi", fontScale = 1.3f)
+@Config(sdk = [34], qualifiers = "es-w392dp-h5200dp-xxhdpi", fontScale = 1.3f)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ScreenPreviewSpanishTest {
     @Test
