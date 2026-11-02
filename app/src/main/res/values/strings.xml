@@ -278,4 +278,20 @@
     <string name="speaker_protect">Protect the phone speaker</string>
     <string name="speaker_protect_hint">The phone speaker can\'t play deep bass: boosting it only makes it distort. With this on, bass below 125 Hz isn\'t boosted, extra volume goes up to +2 dB and headroom is kept so it doesn\'t distort.</string>
     <string name="eq_spectrum_option">Spectrum behind the equalizer curve (not in the original Winamp)</string>
+    <string name="fps_title">Frames per second</string>
+    <string name="fps_hint">30 uses less battery and looks almost as smooth. Also, the wallpaper stops redrawing by itself when nothing is playing, and comes back when the music starts.</string>
+    <string name="welcome_title">Welcome to C-EQ</string>
+    <string name="welcome_intro">To work fully, the app needs a few permissions. Grant them in order; each one says what it\'s for. The app doesn\'t use the Internet: nothing leaves your phone.</string>
+    <string name="welcome_notifications">Notifications</string>
+    <string name="welcome_notifications_why">So the equalizer stays on with the app closed, and for the player in the notification shade.</string>
+    <string name="welcome_spectrum">Spectrum (microphone)</string>
+    <string name="welcome_spectrum_why">Android requires it to read the audio output and draw the spectrum. Nothing is recorded.</string>
+    <string name="welcome_now_playing">What\'s playing</string>
+    <string name="welcome_now_playing_why">Notification access: to see the song and the queue and use the skin\'s buttons. It doesn\'t read your notifications.</string>
+    <string name="welcome_bluetooth">Bluetooth devices (optional)</string>
+    <string name="welcome_bluetooth_why">To recognize your headphones or speakers and use their profile and measured curve.</string>
+    <string name="welcome_allow">Allow</string>
+    <string name="welcome_done">Done</string>
+    <string name="welcome_later">Continue for now (you can come back from Credits)</string>
+    <string name="welcome_show">Show the welcome guide</string>
 </resources>

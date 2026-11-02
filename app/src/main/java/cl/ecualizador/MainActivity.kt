@@ -219,6 +219,7 @@ private fun EqualizerScreen() {
             Text(stringResource(R.string.profile_fmt, profileName), fontSize = 14.sp)
         }
 
+        WelcomeGuide()
         UpdateReminder()
 
         eq.error?.let { Text(it, color = Color(0xFFEF5350), fontSize = 13.sp) }
@@ -415,6 +416,74 @@ private fun readSmallFile(ctx: android.content.Context, uri: android.net.Uri, ma
     }.getOrNull()
 }
 
+/** Si se completó u omitió la guía de inicio (y la forma de volver a verla). */
+private object Welcome {
+    private const val PREFS = "welcome"
+    val shown = kotlinx.coroutines.flow.MutableStateFlow<Boolean?>(null)
+    fun load(ctx: android.content.Context): Boolean =
+        shown.value ?: (!ctx.getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE).getBoolean("done", false)).also { shown.value = it }
+    fun set(ctx: android.content.Context, show: Boolean) {
+        ctx.getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE).edit().putBoolean("done", !show).apply()
+        shown.value = show
+    }
+}
+
+/**
+ * Guía de inicio: los permisos en orden, con para qué sirve cada uno y una marca cuando ya está.
+ * Aparece la primera vez; se cierra con «Listo» y se vuelve a abrir desde Créditos.
+ */
+@Composable
+private fun WelcomeGuide() {
+    val ctx = LocalContext.current
+    val visible by Welcome.shown.collectAsState()
+    LaunchedEffect(Unit) { Welcome.load(ctx) }
+    if (visible != true) return
+    // Se revisa al volver a la app (el acceso a lo que suena se da en Ajustes)
+    val lifecycle by LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
+    fun granted(p: String) = ctx.checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
+    var refresh by remember { mutableStateOf(0) }
+    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { refresh++ }
+
+    class Step(val title: Int, val why: Int, val done: Boolean, val action: () -> Unit)
+    val steps = remember(lifecycle, refresh) {
+        listOfNotNull(
+            Step(R.string.welcome_notifications, R.string.welcome_notifications_why,
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || granted(Manifest.permission.POST_NOTIFICATIONS)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ask.launch(Manifest.permission.POST_NOTIFICATIONS)
+            },
+            Step(R.string.welcome_spectrum, R.string.welcome_spectrum_why, granted(Manifest.permission.RECORD_AUDIO)) {
+                ask.launch(Manifest.permission.RECORD_AUDIO)
+            },
+            Step(R.string.welcome_now_playing, R.string.welcome_now_playing_why, NowPlaying.hasAccess(ctx)) {
+                runCatching { ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
+            },
+            Step(R.string.welcome_bluetooth, R.string.welcome_bluetooth_why, DeviceAnalyzer.hasBtPermission(ctx)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ask.launch(Manifest.permission.BLUETOOTH_CONNECT)
+            },
+        )
+    }
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Card).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(stringResource(R.string.welcome_title), fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
+        Text(stringResource(R.string.welcome_intro), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+        steps.forEachIndexed { i, step ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("${i + 1}. " + stringResource(step.title), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(step.why), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+                }
+                if (step.done) Text("✓", color = Accent, fontSize = 20.sp, modifier = Modifier.padding(start = 8.dp))
+                else TextButton(onClick = step.action) { Text(stringResource(R.string.welcome_allow)) }
+            }
+        }
+        Button(onClick = { Welcome.set(ctx, false) }, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(if (steps.all { it.done }) R.string.welcome_done else R.string.welcome_later))
+        }
+    }
+}
+
 /** Aviso para buscar una versión nueva cuando la instalada ya tiene un tiempo (ver [Updates]). */
 @Composable
 private fun UpdateReminder() {
@@ -461,6 +530,7 @@ private fun CreditsCard() {
         TextButton(onClick = { open("https://github.com/CarmelitaSoftworks/C-EQ/blob/main/CREDITS.md") }) {
             Text(stringResource(R.string.full_credits))
         }
+        TextButton(onClick = { Welcome.set(ctx, true) }) { Text(stringResource(R.string.welcome_show)) }
     }
 }
 
@@ -951,6 +1021,13 @@ private fun WallpaperCard() {
             }
             Text(stringResource(R.string.touch_hint), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
         }
+        Text(stringResource(R.string.fps_title), color = Muted, fontSize = 13.sp)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            WallpaperPacing.FPS_OPTIONS.forEach { f ->
+                FilterChip(selected = ws.fps == f, onClick = { set { it.copy(fps = f) } }, label = { Text("$f") })
+            }
+        }
+        Text(stringResource(R.string.fps_hint), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
         Text(stringResource(R.string.position), color = Muted, fontSize = 13.sp)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             WallpaperPosition.entries.forEach { p ->

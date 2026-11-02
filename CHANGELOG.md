@@ -1,5 +1,11 @@
 # Cambios
 
+## 3.5
+- **Menos batería en el fondo animado**: opción de 30 cuadros por segundo, y el fondo deja de
+  redibujarse solo cuando no suena nada (vuelve al empezar la música o al tocar el skin).
+- **Guía de inicio**: la primera vez, los permisos en orden con para qué sirve cada uno y una marca
+  cuando ya está; se vuelve a abrir desde Créditos.
+
 ## 3.4.2
 - El espectro detrás de la curva del ecualizador del skin pasa a ser una opción, apagada por
   defecto: como en Winamp, la curva va sola.

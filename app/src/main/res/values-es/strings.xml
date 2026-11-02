@@ -278,4 +278,20 @@
     <string name="speaker_protect">Proteger el altavoz del teléfono</string>
     <string name="speaker_protect_hint">El altavoz del teléfono no puede dar graves profundos: subirlos solo lo satura. Con esto no se suben los graves bajo 125 Hz, el volumen extra llega hasta +2 dB y se deja margen para que no distorsione.</string>
     <string name="eq_spectrum_option">Espectro detrás de la curva del ecualizador (Winamp no lo tenía)</string>
+    <string name="fps_title">Cuadros por segundo</string>
+    <string name="fps_hint">30 gasta menos batería y se ve casi igual de fluido. Además, el fondo deja de redibujarse solo cuando no suena nada, y vuelve al empezar la música.</string>
+    <string name="welcome_title">Bienvenida a C-EQ</string>
+    <string name="welcome_intro">Para funcionar completa, la app necesita algunos permisos. Dalos en orden; cada uno dice para qué sirve. La app no usa Internet: nada sale del teléfono.</string>
+    <string name="welcome_notifications">Notificaciones</string>
+    <string name="welcome_notifications_why">Para que el ecualizador siga activo con la app cerrada y para el reproductor en la barra.</string>
+    <string name="welcome_spectrum">Espectro (micrófono)</string>
+    <string name="welcome_spectrum_why">Android lo pide para leer el audio que sale y dibujar el espectro. No se graba nada.</string>
+    <string name="welcome_now_playing">Lo que suena</string>
+    <string name="welcome_now_playing_why">Acceso a notificaciones: para ver la canción, la cola y usar los botones del skin. No lee tus notificaciones.</string>
+    <string name="welcome_bluetooth">Equipos Bluetooth (opcional)</string>
+    <string name="welcome_bluetooth_why">Para reconocer tus audífonos o parlantes y usar su perfil y su curva medida.</string>
+    <string name="welcome_allow">Permitir</string>
+    <string name="welcome_done">Listo</string>
+    <string name="welcome_later">Seguir sin terminar (puedes volver desde Créditos)</string>
+    <string name="welcome_show">Ver la guía de inicio</string>
 </resources>

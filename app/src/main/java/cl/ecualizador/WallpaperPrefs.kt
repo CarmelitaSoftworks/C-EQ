@@ -64,6 +64,8 @@ data class WallpaperSettings(
     val touch: WallpaperTouch = WallpaperTouch.DOUBLE,
     /** La carátula de lo que suena, desenfocada, como fondo en vez de la foto (si hay carátula). */
     val artBackground: Boolean = false,
+    /** Cuadros por segundo del fondo (30 gasta menos batería); ver [WallpaperPacing]. */
+    val fps: Int = 60,
 )
 
 /** Resolución con que se dibujó el fondo: superficie que dio el sistema, pantalla real y foto. */
@@ -109,6 +111,7 @@ object WallpaperPrefs {
                 imageVersion = p.getLong("imageVersion", 0),
                 touch = runCatching { WallpaperTouch.valueOf(p.getString("touch", "DOUBLE")!!) }.getOrDefault(WallpaperTouch.DOUBLE),
                 artBackground = p.getBoolean("artBackground", false),
+                fps = p.getInt("fps", 60).takeIf { it in WallpaperPacing.FPS_OPTIONS } ?: 60,
             )
             loaded = true
         }
@@ -120,7 +123,8 @@ object WallpaperPrefs {
         settings.value = s
         ctx.getSharedPreferences("wallpaper", Context.MODE_PRIVATE).edit()
             .putString("position", s.position.name).putString("view", s.view.name).putFloat("height", s.height).putFloat("dim", s.dim)
-            .putLong("imageVersion", s.imageVersion).putString("touch", s.touch.name).putBoolean("artBackground", s.artBackground).apply()
+            .putLong("imageVersion", s.imageVersion).putString("touch", s.touch.name).putBoolean("artBackground", s.artBackground)
+            .putInt("fps", s.fps).apply()
     }
 
     /**
