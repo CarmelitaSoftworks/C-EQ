@@ -39,7 +39,7 @@ data class EqUiState(
     val auto: Boolean = false,
     /** Curva automática que suena ahora y por qué (solo con [auto]). */
     val autoLevels: List<Float>? = null,
-    val autoWhy: String = "",
+    val autoWhy: List<Txt> = emptyList(),
     val autoContent: ListenContent = ListenContent.MUSIC,
     /** Protección del altavoz del teléfono (ver [EqCore.protectSpeaker]). */
     val speakerProtect: Boolean = true,
@@ -204,7 +204,7 @@ class EqEngine private constructor(private val ctx: Context) {
         effect.setControlStatusListener { _, granted -> main.post { onControl(granted) } }
         dp = effect
         state.update {
-            it.copy(engine = "DynamicsProcessing · 10 bandas + limitador", error = null, hasControl = effect.hasControl(), advanced = true)
+            it.copy(engine = ctx.getString(R.string.engine_dynamics), error = null, hasControl = effect.hasControl(), advanced = true)
         }
         apply()
         effect.enabled = true
@@ -220,14 +220,14 @@ class EqEngine private constructor(private val ctx: Context) {
             e.setControlStatusListener { _, granted -> main.post { onControl(granted) } }
             legacy = e
             state.update {
-                it.copy(engine = "Ecualizador básico · ${e.numberOfBands} bandas", error = null, hasControl = e.hasControl(), advanced = false)
+                it.copy(engine = ctx.getString(R.string.engine_basic_fmt, e.numberOfBands.toInt()), error = null, hasControl = e.hasControl(), advanced = false)
             }
             apply()
             e.enabled = true
         } catch (t: Throwable) {
             legacy = null
             state.update {
-                it.copy(engine = "", error = "Este teléfono no permite un ecualizador global (${t.message ?: t.javaClass.simpleName}).")
+                it.copy(engine = "", error = ctx.getString(R.string.engine_unsupported_fmt, t.message ?: t.javaClass.simpleName))
             }
         }
     }
@@ -487,7 +487,7 @@ class EqEngine private constructor(private val ctx: Context) {
      */
     fun setAuto(on: Boolean) {
         prefs.edit().putBoolean("auto", on).apply()
-        state.update { it.copy(auto = on, autoLevels = null, autoWhy = "") }
+        state.update { it.copy(auto = on, autoLevels = null, autoWhy = emptyList()) }
         watchVolume()
         apply(smooth = true)
         if (on && !state.value.enabled) setEnabled(true)
@@ -502,7 +502,7 @@ class EqEngine private constructor(private val ctx: Context) {
         if (!s.auto) return
         prefs.edit().putBoolean("auto", false).apply()
         state.update {
-            it.copy(auto = false, autoLevels = null, autoWhy = "", levels = if (keepCurve) s.autoLevels ?: s.levels else s.levels, preset = null)
+            it.copy(auto = false, autoLevels = null, autoWhy = emptyList(), levels = if (keepCurve) s.autoLevels ?: s.levels else s.levels, preset = null)
         }
         watchVolume()
     }

@@ -14,7 +14,12 @@ enum class OutputKind(@androidx.annotation.StringRes val label: Int) {
 }
 
 /** Curva propuesta para un tipo de salida, con la explicación que se muestra al usuario. */
-data class AutoCurve(val levels: List<Float>, val bass: Float, val why: String)
+/** Un texto de la app con sus datos, para código que no tiene acceso a los recursos de Android. */
+data class Txt(@androidx.annotation.StringRes val res: Int, val args: List<Any> = emptyList()) {
+    fun resolve(ctx: android.content.Context): String = ctx.getString(res, *args.toTypedArray())
+}
+
+data class AutoCurve(val levels: List<Float>, val bass: Float, val why: List<Txt>)
 
 /**
  * Clasifica lo conectado por nombre y por la clase Bluetooth que informa el equipo, y propone una
@@ -70,38 +75,38 @@ object AutoProfile {
         profile?.let { p ->
             AutoCurve(
                 p.levels.toList(), 0f,
-                "Curva de AutoEQ para ${p.model} (medidos por ${p.source}): corrige la respuesta de tus audífonos hacia el objetivo Harman.",
+                listOf(Txt(R.string.why_autoeq, listOf(p.model, p.source))),
             )
         } ?: curveFor(kind)
 
     fun curveFor(kind: OutputKind): AutoCurve = when (kind) {
         OutputKind.PHONE_SPEAKER -> AutoCurve(
             listOf(-6f, -5f, -2f, 0f, 1f, 1.5f, 2f, 1.5f, 1f, 0f), 0f,
-            "El altavoz del teléfono no puede reproducir graves profundos: se recortan para que no distorsione y se realzan las voces."
+            listOf(Txt(R.string.why_phone_speaker))
         )
         OutputKind.WIRED_HEADPHONES, OutputKind.BT_HEADPHONES -> AutoCurve(
             listOf(4f, 4f, 3f, 1f, 0f, 0f, 1f, 1f, -1f, -1f), 0f,
-            "Curva inspirada en el objetivo Harman para audífonos: graves algo más presentes y agudos suavizados para escuchar sin fatiga."
+            listOf(Txt(R.string.why_headphones))
         )
         OutputKind.BT_PORTABLE_SPEAKER -> AutoCurve(
             listOf(-4f, 0f, 2.5f, 1.5f, 0f, 0f, 0.5f, 1f, 1.5f, 1f), 0.15f,
-            "Los parlantes portátiles casi no suenan bajo 60 Hz: se baja esa zona (solo gasta potencia y distorsiona) y se refuerza 125–250 Hz, donde sí se nota el bajo."
+            listOf(Txt(R.string.why_portable))
         )
         OutputKind.BT_PARTY_SPEAKER -> AutoCurve(
             listOf(1f, 1.5f, 0f, -1.5f, -1f, 0f, 1f, 1.5f, 1.5f, 1f), 0f,
-            "Los equipos de fiesta ya traen mucho bajo (por ejemplo EXTRA BASS): se limpia el «retumbe» de 250–500 Hz y se agrega claridad en 2–8 kHz."
+            listOf(Txt(R.string.why_party))
         )
         OutputKind.BT_CAR -> AutoCurve(
             listOf(3f, 3f, 2f, 0f, -1f, 0f, 1f, 2f, 2f, 1f), 0f,
-            "En el auto el ruido del camino tapa los graves y la claridad: se refuerzan ambos extremos."
+            listOf(Txt(R.string.why_car))
         )
         OutputKind.BT_TV_SOUNDBAR -> AutoCurve(
             listOf(0f, 0f, -0.5f, -1f, 0f, 1.5f, 2.5f, 2f, 0.5f, 0f), 0f,
-            "Pensado para TV y barras: realza 1–4 kHz para que los diálogos se entiendan mejor."
+            listOf(Txt(R.string.why_tv))
         )
         OutputKind.USB_AUDIO, OutputKind.BT_UNKNOWN -> AutoCurve(
             List(EqCore.BANDS) { 0f }, 0f,
-            "No se pudo saber qué tipo de equipo es: se parte de una curva plana. Prueba la calibración con micrófono si es un parlante."
+            listOf(Txt(R.string.why_unknown))
         )
     }
 

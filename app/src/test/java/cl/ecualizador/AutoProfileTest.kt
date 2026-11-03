@@ -34,7 +34,7 @@ class AutoProfileTest {
             val c = AutoProfile.curveFor(k)
             assertEquals(EqCore.BANDS, c.levels.size)
             assertTrue(c.levels.all { it in EqCore.MIN_DB..EqCore.MAX_DB })
-            assertTrue(c.why.isNotBlank())
+            assertTrue(c.why.isNotEmpty())
         }
         assertFalse(AutoProfile.canCalibrate(OutputKind.BT_HEADPHONES))
         assertTrue(AutoProfile.canCalibrate(OutputKind.BT_PARTY_SPEAKER))

@@ -68,15 +68,15 @@ class SpectrumWidgetService : Service() {
         val micOk = !stopping && hasMic && startForegroundCompat(microphone = true)
         if (!micOk) startForegroundCompat(microphone = false)
         if (stopping) {
-            stopAll("Espectro\nToca para ver en vivo")
+            stopAll(getString(R.string.widget_idle))
             return START_NOT_STICKY
         }
         if (!hasMic) {
-            stopAll("Abre Ecualizador y activa\n«Espectro en tiempo real»\npara dar el permiso")
+            stopAll(getString(R.string.widget_need_permission))
             return START_NOT_STICKY
         }
         if (!micOk) {
-            stopAll("Abre Ecualizador y toca\n«Animar el widget»")
+            stopAll(getString(R.string.widget_need_start))
             return START_NOT_STICKY
         }
         Spectrum.acquire("widget", this)?.let { error ->
@@ -97,15 +97,15 @@ class SpectrumWidgetService : Service() {
     /** Devuelve false si Android no permitió el servicio con ese tipo. */
     private fun startForegroundCompat(microphone: Boolean): Boolean {
         val nm = getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL, "Widget de espectro", NotificationManager.IMPORTANCE_MIN))
+        nm.createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.widget_channel), NotificationManager.IMPORTANCE_MIN))
         val stop = PendingIntent.getService(
             this, 2, Intent(this, SpectrumWidgetService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE
         )
         val notification = Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_tile)
-            .setContentTitle("Widget de espectro en vivo")
-            .setContentText("Se pausa con la pantalla apagada")
-            .addAction(Notification.Action.Builder(null, "Detener", stop).build())
+            .setContentTitle(getString(R.string.widget_running))
+            .setContentText(getString(R.string.widget_pauses))
+            .addAction(Notification.Action.Builder(null, getString(R.string.widget_stop), stop).build())
             .setOngoing(true)
             .build()
         return try {
@@ -179,7 +179,7 @@ class SpectrumWidgetService : Service() {
     }
 
     override fun onDestroy() {
-        if (running) stopAll("Espectro\nToca para ver en vivo")
+        if (running) stopAll(getString(R.string.widget_idle))
         scope.cancel()
         super.onDestroy()
     }

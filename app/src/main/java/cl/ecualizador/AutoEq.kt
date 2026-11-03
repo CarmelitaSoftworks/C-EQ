@@ -1,12 +1,12 @@
 package cl.ecualizador
 
 /** Qué se está escuchando, para el ajuste automático. */
-enum class ListenContent(val label: String) {
-    MUSIC("Música"),
-    BASS_MUSIC("Música con graves (urbano, electrónica)"),
-    ACOUSTIC("Música acústica (clásica, jazz)"),
-    SPEECH("Voz (podcast, audiolibro)"),
-    VIDEO("Video"),
+enum class ListenContent(@androidx.annotation.StringRes val label: Int) {
+    MUSIC(R.string.content_music),
+    BASS_MUSIC(R.string.content_bass_music),
+    ACOUSTIC(R.string.content_acoustic),
+    SPEECH(R.string.content_speech),
+    VIDEO(R.string.content_video),
 }
 
 /**
@@ -64,14 +64,14 @@ object AutoEq {
         val base = AutoProfile.curveFor(kind, profile)
         val v = volume.coerceIn(0f, 1f)
         val levels = base.levels.toFloatArray()
-        val why = mutableListOf(base.why)
+        val why = base.why.toMutableList()
         fun add(shape: FloatArray, k: Float = 1f) { for (i in levels.indices) levels[i] += shape[i] * k }
 
         when (content) {
-            ListenContent.SPEECH -> { add(SPEECH); why += "Suena voz: menos graves y voces más claras." }
-            ListenContent.VIDEO -> { add(VIDEO); why += "Suena un video: diálogos más claros." }
-            ListenContent.BASS_MUSIC -> { add(BASS_MUSIC); why += "Música con graves: un poco más de bajo." }
-            ListenContent.ACOUSTIC -> { add(ACOUSTIC); why += "Música acústica: más aire en los agudos." }
+            ListenContent.SPEECH -> { add(SPEECH); why += Txt(R.string.why_speech) }
+            ListenContent.VIDEO -> { add(VIDEO); why += Txt(R.string.why_video) }
+            ListenContent.BASS_MUSIC -> { add(BASS_MUSIC); why += Txt(R.string.why_bass_music) }
+            ListenContent.ACOUSTIC -> { add(ACOUSTIC); why += Txt(R.string.why_acoustic) }
             ListenContent.MUSIC -> {}
         }
         // Volumen bajo: compensación de sonoridad (en la voz solo la mitad, para no embarrarla)
@@ -79,14 +79,14 @@ object AutoEq {
         if (loud.any { it > 0f }) {
             val k = if (content == ListenContent.SPEECH) 0.5f else 1f
             for (i in levels.indices) levels[i] += loud[i] * k
-            why += "Volumen bajo: más graves y agudos, que el oído pierde a poco volumen."
+            why += Txt(R.string.why_low_volume)
         }
         // Volumen alto: proteger parlantes chicos y oídos
         val high = ((v - 0.7f) / 0.3f).coerceIn(0f, 1f)
-        if (high > 0f && small(kind)) { add(SMALL_SPEAKER_LOUD, high); why += "Volumen alto: menos graves profundos para que el parlante no distorsione." }
-        if (high > 0f && headphones(kind)) { add(HEADPHONES_LOUD, high); why += "Volumen alto: agudos más suaves para no cansar el oído." }
+        if (high > 0f && small(kind)) { add(SMALL_SPEAKER_LOUD, high); why += Txt(R.string.why_loud_speaker) }
+        if (high > 0f && headphones(kind)) { add(HEADPHONES_LOUD, high); why += Txt(R.string.why_loud_headphones) }
 
         val bass = if (content == ListenContent.SPEECH) 0f else base.bass
-        return AutoCurve(levels.map { Math.round(it.coerceIn(EqCore.MIN_DB, EqCore.MAX_DB) * 2) / 2f }, bass, why.joinToString(" "))
+        return AutoCurve(levels.map { Math.round(it.coerceIn(EqCore.MIN_DB, EqCore.MAX_DB) * 2) / 2f }, bass, why.toList())
     }
 }

@@ -25,9 +25,9 @@ class EqTileService : TileService() {
         val tile = qsTile ?: return
         val s = EqEngine.get(this).state.value
         tile.state = if (s.enabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
-        tile.label = "Ecualizador"
+        tile.label = getString(R.string.app_name)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            tile.subtitle = if (s.enabled) s.preset ?: "Personalizado" else "Apagado"
+            tile.subtitle = if (s.enabled) s.preset?.let { EqCore.presetLabel(this, it) } ?: getString(R.string.tile_custom) else getString(R.string.eq_off)
         }
         tile.updateTile()
     }

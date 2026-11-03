@@ -67,10 +67,14 @@ object Spectrum {
     }
 
     /** [user] identifica a quien lo usa ("app", "widget", "wallpaper"). Devuelve un error o null. */
+    /** Para los mensajes de error (en el idioma de la app). */
+    private var app: Context? = null
+
     @Synchronized
     fun acquire(user: String, ctx: Context): String? {
         users += user
         activeUsers.value = users.toSet()
+        app = ctx.applicationContext
         if (visualizer != null) return null
         if (audio == null) {
             audio = ctx.applicationContext.getSystemService(AudioManager::class.java)
@@ -120,7 +124,8 @@ object Spectrum {
         running.value = true
         null
     } catch (t: Throwable) {
-        "Este teléfono no permite ver el espectro (${t.message ?: t.javaClass.simpleName})."
+        val reason = t.message ?: t.javaClass.simpleName
+        app?.getString(R.string.spectrum_unsupported_fmt, reason) ?: reason
     }
 
     /**

@@ -195,6 +195,38 @@ object EqCore {
         "Parlante pequeño" to listOf(-5f, -2f, 2f, 2.5f, 1f, 0f, 1f, 1.5f, 1f, 0f),
     )
 
+    /** Nombre de cada preajuste de la app en el idioma del teléfono (se guardan con su nombre original). */
+    val PRESET_LABELS: Map<String, Int> = mapOf(
+        "Plano" to R.string.preset_flat,
+        "Graves extra" to R.string.preset_bass_extra,
+        "Graves y agudos" to R.string.preset_bass_treble,
+        "Fiesta" to R.string.preset_party,
+        "Rock" to R.string.preset_rock,
+        "Pop" to R.string.preset_pop,
+        "Voces" to R.string.preset_vocals,
+        "Clásica" to R.string.preset_classical,
+        "Podcast" to R.string.preset_podcast,
+        "Volumen bajo" to R.string.preset_low_volume,
+        "Automático" to R.string.preset_automatic,
+        "Calibrado" to R.string.preset_calibrated,
+        "Importado" to R.string.preset_imported,
+        "Electrónica" to R.string.preset_electronic,
+        "Hip-hop" to R.string.preset_hiphop,
+        "Reggaetón" to R.string.preset_reggaeton,
+        "Metal" to R.string.preset_metal,
+        "Jazz" to R.string.preset_jazz,
+        "Acústica" to R.string.preset_acoustic,
+        "R&B" to R.string.preset_rnb,
+        "Latina" to R.string.preset_latin,
+        "Cine" to R.string.preset_movies,
+        "Noche" to R.string.preset_night,
+        "Menos graves" to R.string.preset_less_bass,
+        "Agudos extra" to R.string.preset_more_treble,
+        "Parlante pequeño" to R.string.preset_small_speaker,
+    )
+
+    fun presetLabel(ctx: android.content.Context, name: String): String = PRESET_LABELS[name]?.let { ctx.getString(it) } ?: name
+
     /**
      * Preajustes de Winamp (.eqf y winamp.q1): cabecera «Winamp EQ library file v1.1», «\u001A!--» y
      * entradas de 257 bytes de nombre más 11 valores (10 bandas y preamplificador) de 0 (+12 dB) a 63

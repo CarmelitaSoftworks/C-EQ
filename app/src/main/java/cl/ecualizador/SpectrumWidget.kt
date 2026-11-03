@@ -35,11 +35,11 @@ class SpectrumWidget : AppWidgetProvider() {
     }
 
     override fun onUpdate(ctx: Context, manager: AppWidgetManager, appWidgetIds: IntArray) {
-        if (!SpectrumWidgetService.running) showMessage(ctx, "Espectro\nToca para ver en vivo")
+        if (!SpectrumWidgetService.running) showMessage(ctx, ctx.getString(R.string.widget_idle))
     }
 
     override fun onAppWidgetOptionsChanged(ctx: Context, manager: AppWidgetManager, id: Int, newOptions: Bundle) {
-        if (!SpectrumWidgetService.running) showMessage(ctx, "Espectro\nToca para ver en vivo")
+        if (!SpectrumWidgetService.running) showMessage(ctx, ctx.getString(R.string.widget_idle))
     }
 
     override fun onDisabled(ctx: Context) {

@@ -41,27 +41,27 @@ object DeviceAnalyzer {
                     else -> k
                 }
             }
-            val details = formatDetails(bt) + listOfNotNull(
-                btClass?.let { "Clase Bluetooth: ${classLabel(it)} (0x%04X)".format(it) }
-                    ?: if (!hasBtPermission(ctx)) "Clase Bluetooth: sin permiso para leerla" else null,
-                if (kind == OutputKind.BT_UNKNOWN) "Tipo no reconocido por el nombre" else "Reconocido como: ${ctx.getString(kind.label)}",
-                HeadphoneProfiles.match(name)?.let { "Curva medida de AutoEQ: ${it.model}" },
+            val details = formatDetails(ctx, bt) + listOfNotNull(
+                btClass?.let { ctx.getString(R.string.detail_bt_class_fmt, classLabel(ctx, it), "0x%04X".format(it)) }
+                    ?: if (!hasBtPermission(ctx)) ctx.getString(R.string.detail_bt_class_no_permission) else null,
+                if (kind == OutputKind.BT_UNKNOWN) ctx.getString(R.string.detail_unrecognized) else ctx.getString(R.string.detail_recognized_fmt, ctx.getString(kind.label)),
+                HeadphoneProfiles.match(name)?.let { ctx.getString(R.string.detail_autoeq_fmt, it.model) },
             )
             return OutputInfo("bt:$name", name, kind, details)
         }
         outs.firstOrNull { it.type in WIRED }?.let {
-            return OutputInfo("wired", ctx.getString(R.string.kind_wired), OutputKind.WIRED_HEADPHONES, formatDetails(it))
+            return OutputInfo("wired", ctx.getString(R.string.kind_wired), OutputKind.WIRED_HEADPHONES, formatDetails(ctx, it))
         }
         outs.firstOrNull { it.type in USB }?.let {
             val name = it.productName?.toString()?.takeIf { n -> n.isNotBlank() } ?: ctx.getString(R.string.kind_usb)
-            return OutputInfo("wired", name, OutputKind.USB_AUDIO, formatDetails(it))
+            return OutputInfo("wired", name, OutputKind.USB_AUDIO, formatDetails(ctx, it))
         }
         outs.firstOrNull { it.type in HDMI }?.let {
             val name = it.productName?.toString()?.takeIf { n -> n.isNotBlank() } ?: ctx.getString(R.string.out_hdmi)
-            return OutputInfo("hdmi", name, OutputKind.BT_TV_SOUNDBAR, formatDetails(it) + "Conectado por HDMI")
+            return OutputInfo("hdmi", name, OutputKind.BT_TV_SOUNDBAR, formatDetails(ctx, it) + ctx.getString(R.string.detail_hdmi))
         }
         val speaker = outs.firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
-        return OutputInfo("speaker", ctx.getString(R.string.kind_phone_speaker), OutputKind.PHONE_SPEAKER, speaker?.let { formatDetails(it) }.orEmpty())
+        return OutputInfo("speaker", ctx.getString(R.string.kind_phone_speaker), OutputKind.PHONE_SPEAKER, speaker?.let { formatDetails(ctx, it) }.orEmpty())
     }
 
     fun hasBtPermission(ctx: Context) = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
@@ -79,18 +79,18 @@ object DeviceAnalyzer {
         return match?.bluetoothClass?.deviceClass
     }
 
-    private fun classLabel(c: Int) = when (c) {
-        0x0404, 0x0408 -> "manos libres / headset"
-        0x0414 -> "parlante"
-        0x0418 -> "audífonos"
-        0x041C -> "audio portátil"
-        0x0420 -> "audio de auto"
-        0x0428 -> "equipo Hi-Fi"
-        0x043C -> "pantalla con parlantes"
-        else -> "audio"
-    }
+    private fun classLabel(ctx: Context, c: Int) = ctx.getString(when (c) {
+        0x0404, 0x0408 -> R.string.btclass_headset
+        0x0414 -> R.string.btclass_speaker
+        0x0418 -> R.string.btclass_headphones
+        0x041C -> R.string.btclass_portable
+        0x0420 -> R.string.btclass_car
+        0x0428 -> R.string.btclass_hifi
+        0x043C -> R.string.btclass_display
+        else -> R.string.btclass_audio
+    })
 
-    private fun formatDetails(d: AudioDeviceInfo): List<String> {
+    private fun formatDetails(ctx: Context, d: AudioDeviceInfo): List<String> {
         val rates = d.sampleRates.toList().sorted()
         val channels = d.channelCounts.toList()
         val encodings = d.encodings.toList().mapNotNull {
@@ -98,21 +98,21 @@ object DeviceAnalyzer {
                 AudioFormat.ENCODING_PCM_16BIT -> "16 bits"
                 AudioFormat.ENCODING_PCM_24BIT_PACKED -> "24 bits"
                 AudioFormat.ENCODING_PCM_32BIT -> "32 bits"
-                AudioFormat.ENCODING_PCM_FLOAT -> "coma flotante"
+                AudioFormat.ENCODING_PCM_FLOAT -> ctx.getString(R.string.detail_float)
                 else -> null
             }
         }.distinct()
         return listOfNotNull(
-            "Frecuencias de muestreo: " + (
-                if (rates.isEmpty()) "las que pida el sistema"
+            ctx.getString(R.string.detail_rates_fmt, (
+                if (rates.isEmpty()) ctx.getString(R.string.detail_rates_any)
                 else rates.joinToString(" / ") { r: Int -> if (r % 1000 == 0) "${r / 1000} kHz" else "%.1f kHz".format(r / 1000f) }
-                ),
-            "Canales: " + when {
-                channels.isEmpty() -> "según el contenido"
-                channels.max() >= 2 -> "estéreo"
-                else -> "mono"
-            },
-            encodings.takeIf { it.isNotEmpty() }?.let { "Formatos: " + it.joinToString(", ") },
+                )),
+            ctx.getString(R.string.detail_channels_fmt, ctx.getString(when {
+                channels.isEmpty() -> R.string.detail_channels_any
+                channels.max() >= 2 -> R.string.detail_stereo
+                else -> R.string.detail_mono
+            })),
+            encodings.takeIf { it.isNotEmpty() }?.let { ctx.getString(R.string.detail_formats_fmt, it.joinToString(", ")) },
         )
     }
 }

@@ -38,7 +38,7 @@ class EqService : Service() {
             return START_NOT_STICKY
         }
         val nm = getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL, "Ecualizador", NotificationManager.IMPORTANCE_LOW))
+        nm.createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.app_name), NotificationManager.IMPORTANCE_LOW))
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val stop = PendingIntent.getService(
             this, 1, Intent(this, EqService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE
@@ -46,10 +46,10 @@ class EqService : Service() {
         val profile = EqEngine.get(this).state.value.profileName
         val notification = Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_tile)
-            .setContentTitle("Ecualizador activo")
-            .setContentText("Perfil: $profile")
+            .setContentTitle(getString(R.string.service_active))
+            .setContentText(getString(R.string.profile_fmt, profile))
             .setContentIntent(open)
-            .addAction(Notification.Action.Builder(null, "Desactivar", stop).build())
+            .addAction(Notification.Action.Builder(null, getString(R.string.service_turn_off), stop).build())
             .setOngoing(true)
             .build()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {

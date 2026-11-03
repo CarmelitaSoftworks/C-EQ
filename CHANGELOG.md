@@ -1,5 +1,13 @@
 # Cambios
 
+## 3.6
+- **App completa en inglés y español**: también la notificación, los widgets, el mosaico, los
+  mensajes del fondo, la calibración y las explicaciones del equipo y del ajuste automático.
+- **Copia de seguridad**: guarda y restaura en un .zip tus perfiles, preajustes, skins importados,
+  foto del fondo y opciones.
+- **Accesibilidad**: TalkBack lee cada banda («Banda de 125 Hz, +3 dB») y la ajusta de a 0,5 dB, lee
+  las curvas y las vistas previas, y la comparación A/B se alterna con un toque doble.
+
 ## 3.5
 - **Menos batería en el fondo animado**: 30 o 60 cuadros por segundo de verdad también en pantallas
   de 90 y 120 Hz, y el fondo deja de redibujarse solo cuando no suena nada (vuelve con la música, al

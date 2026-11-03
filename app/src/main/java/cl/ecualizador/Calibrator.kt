@@ -35,7 +35,7 @@ class Calibrator(private val ctx: Context) {
         val engine = EqEngine.get(ctx)
         val audio = ctx.getSystemService(AudioManager::class.java)
 
-        onProgress(0f, "Preparando el ruido de prueba…")
+        onProgress(0f, ctx.getString(R.string.calib_preparing))
         val noise = CalibrationMath.pinkNoise(rate * seconds)
         val peak = noise.maxOf { kotlin.math.abs(it) }.coerceAtLeast(1e-6f)
         val fade = rate / 3
@@ -51,7 +51,7 @@ class Calibrator(private val ctx: Context) {
         val recorder = AudioRecord(source, rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, maxOf(minBuf, rate))
         if (recorder.state != AudioRecord.STATE_INITIALIZED) {
             recorder.release()
-            throw CalibrationException("No se pudo usar el micrófono.")
+            throw CalibrationException(ctx.getString(R.string.calib_mic_failed))
         }
         val track = try {
             AudioTrack.Builder()
@@ -68,7 +68,7 @@ class Calibrator(private val ctx: Context) {
             .build()
         } catch (e: Exception) {
             recorder.release()
-            throw CalibrationException("No se pudo reproducir el sonido de prueba (${e.message}).")
+            throw CalibrationException(ctx.getString(R.string.calib_play_failed_fmt, e.message.orEmpty()))
         }
 
         val recorded = ShortArray(rate * (seconds + 1))
@@ -83,7 +83,7 @@ class Calibrator(private val ctx: Context) {
                 val n = recorder.read(recorded, read, minOf(4096, recorded.size - read))
                 if (n <= 0) break
                 read += n
-                onProgress(read / recorded.size.toFloat(), "Midiendo… mantén el silencio")
+                onProgress(read / recorded.size.toFloat(), ctx.getString(R.string.calib_measuring))
             }
         } finally {
             runCatching { track.stop() }; track.release()
@@ -91,17 +91,17 @@ class Calibrator(private val ctx: Context) {
             engine.setBypass(false)
         }
 
-        onProgress(1f, "Analizando…")
+        onProgress(1f, ctx.getString(R.string.calib_analyzing))
         // Se descarta el comienzo (retardo del Bluetooth, hasta ~0,5 s) y el final con el desvanecido.
         val from = (rate * 1.5).toInt()
         val to = rate * (seconds - 1)
         val analysis = FloatArray(to - from) { recorded[from + it] / 32768f }
         val level = CalibrationMath.rmsDb(analysis)
         if (level < -55f) {
-            throw CalibrationException("El micrófono casi no escuchó el ruido (${"%.0f".format(level)} dBFS). Sube el volumen y acerca el teléfono al equipo.")
+            throw CalibrationException(ctx.getString(R.string.calib_too_quiet_fmt, Math.round(level)))
         }
         if (analysis.count { kotlin.math.abs(it) > 0.98f } > analysis.size / 200) {
-            throw CalibrationException("El sonido llegó saturado al micrófono. Baja un poco el volumen y vuelve a intentarlo.")
+            throw CalibrationException(ctx.getString(R.string.calib_too_loud))
         }
         val levels = CalibrationMath.octaveLevels(analysis, rate)
         val ref = (2..7).map { levels[it] }.average().toFloat()

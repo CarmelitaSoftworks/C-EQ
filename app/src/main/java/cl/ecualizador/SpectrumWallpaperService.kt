@@ -196,14 +196,14 @@ class SpectrumWallpaperService : WallpaperService() {
             when {
                 needsSession && !NowPlaying.hasAccess(ctx) -> if (!accessHintShown) {
                     accessHintShown = true
-                    android.widget.Toast.makeText(ctx, "Para usar los botones, activa «Mostrar lo que suena» en Ecualizador", android.widget.Toast.LENGTH_LONG).show()
+                    android.widget.Toast.makeText(ctx, getString(R.string.wallpaper_need_access), android.widget.Toast.LENGTH_LONG).show()
                 }
                 NowPlaying.perform(ctx, hit) -> {
                     (hit as? WinampWindow.Hit.Press)?.let { renderer.press(it.button) }
                     // En pausa por silencio: se ve el botón presionado y lo que cambió
                     wake()
                 }
-                needsSession -> android.widget.Toast.makeText(ctx, "No hay música abierta", android.widget.Toast.LENGTH_SHORT).show()
+                needsSession -> android.widget.Toast.makeText(ctx, getString(R.string.wallpaper_no_music), android.widget.Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -224,7 +224,7 @@ class SpectrumWallpaperService : WallpaperService() {
             if (isVisible) {
                 NowPlaying.readVolume(this@SpectrumWallpaperService)
                 error = if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                    "Abre Ecualizador y activa «Espectro en tiempo real» para dar el permiso"
+                    getString(R.string.wallpaper_need_permission)
                 } else {
                     Spectrum.acquire(spectrumUser, this@SpectrumWallpaperService)
                 }

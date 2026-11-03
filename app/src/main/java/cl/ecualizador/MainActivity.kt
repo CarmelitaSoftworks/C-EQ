@@ -16,6 +16,14 @@ import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.setProgress
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -139,6 +147,26 @@ private fun EqualizerScreen() {
     var importing by remember { mutableStateOf(false) }
     var winampMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    var backupMessage by remember { mutableStateOf<String?>(null) }
+    var restored by remember { mutableStateOf(false) }
+    val backupExport = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val ok = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                runCatching { ctx.contentResolver.openOutputStream(uri)?.use { Backup.export(ctx, it) } != null }.getOrDefault(false)
+            }
+            backupMessage = ctx.getString(if (ok) R.string.backup_saved else R.string.backup_save_failed)
+        }
+    }
+    val backupImport = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val ok = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                runCatching { ctx.contentResolver.openInputStream(uri)?.use { Backup.import(ctx, it) } != null }.getOrDefault(false)
+            }
+            if (ok) restored = true else backupMessage = ctx.getString(R.string.backup_restore_failed)
+        }
+    }
     val winampPresets = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
@@ -343,6 +371,12 @@ private fun EqualizerScreen() {
                 TextButton(onClick = { importing = true }) { Text(stringResource(R.string.import_curve)) }
             }
             TextButton(onClick = { winampPresets.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.winamp_presets_import)) }
+            Text(stringResource(R.string.backup_title), fontSize = 14.sp)
+            Row {
+                TextButton(onClick = { backupExport.launch("C-EQ-${java.time.LocalDate.now()}.zip") }) { Text(stringResource(R.string.backup_export)) }
+                TextButton(onClick = { backupImport.launch(arrayOf("application/zip", "application/octet-stream", "*/*")) }) { Text(stringResource(R.string.backup_import)) }
+            }
+            backupMessage?.let { Text(it, fontSize = 12.sp, color = Accent) }
             winampMessage?.let { Text(it, fontSize = 12.sp, color = Accent) }
             if (eq.surroundSupported) {
                 LabeledSlider(
@@ -367,6 +401,21 @@ private fun EqualizerScreen() {
         )
 
         CreditsCard()
+    }
+
+    if (restored) {
+        // Restaurado: la app se cierra para empezar con los ajustes de la copia
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text(stringResource(R.string.backup_restored_title)) },
+            text = { Text(stringResource(R.string.backup_restored_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    (ctx as? android.app.Activity)?.finishAffinity()
+                    android.os.Process.killProcess(android.os.Process.myPid())
+                }) { Text(stringResource(R.string.backup_close)) }
+            },
+        )
     }
 
     if (importing) ImportDialog(onDismiss = { importing = false }) { curve ->
@@ -546,12 +595,24 @@ private fun CreditsCard() {
     }
 }
 
+/** La curva en palabras para TalkBack: «31 Hz +2 dB, 62 Hz 0 dB, …». */
+@Composable
+private fun curveDescription(levels: List<Float>): String {
+    val bands = levels.mapIndexed { i, db ->
+        val label = EqCore.label(i)
+        val hz = if (label.endsWith("k")) label.removeSuffix("k") + " kHz" else "$label Hz"
+        "$hz " + "%+.1f".format(db).replace(".0", "") + " dB"
+    }.joinToString(", ")
+    return stringResource(R.string.a11y_curve_fmt, bands)
+}
+
 /** Curva de respuesta (−12..+12 dB, 20 Hz–20 kHz) con el espectro opcional detrás. */
 @Composable
 private fun ResponseGraph(gains: List<Float>) {
     val curve = remember(gains) { EqCore.responseCurve(gains, 96) }
     val ink = Ink; val accent = Accent; val track = Track; val muted = Muted
-    Canvas(Modifier.fillMaxWidth().height(150.dp)) {
+    val described = curveDescription(gains)
+    Canvas(Modifier.fillMaxWidth().height(150.dp).semantics { contentDescription = described }) {
         val w = size.width
         val h = size.height
         val minF = ln(20f)
@@ -633,7 +694,7 @@ private fun DeviceCard(profileKey: String, engine: EqEngine) {
         val eq by engine.state.collectAsState()
         OptionRow(stringResource(R.string.auto_option), eq.auto, engine::setAuto)
         Text(
-            if (eq.auto) "Suena: ${eq.autoContent.label.lowercase()}. ${eq.autoWhy}"
+            if (eq.auto) stringResource(R.string.auto_playing_fmt, stringResource(eq.autoContent.label).lowercase(), eq.autoWhy.joinToString(" ") { it.resolve(ctx) })
             else stringResource(R.string.auto_hint),
             fontSize = 12.sp, lineHeight = 16.sp, color = Muted
         )
@@ -653,7 +714,7 @@ private fun DeviceCard(profileKey: String, engine: EqEngine) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ResponseGraph(EqCore.finalGains(curve.levels, curve.bass))
-                    Text(curve.why, fontSize = 13.sp, lineHeight = 18.sp)
+                    Text(curve.why.joinToString(" ") { it.resolve(ctx) }, fontSize = 13.sp, lineHeight = 18.sp)
                     Text(stringResource(R.string.saved_in_fmt, info.name), fontSize = 12.sp, color = Muted)
                 }
             },
@@ -752,7 +813,8 @@ private fun proposal(correction: List<Float>, base: AutoCurve, addBase: Boolean)
 @Composable
 private fun CompareGraph(measured: List<Float>, proposal: List<Float>) {
     val ink = Ink; val accent = Accent; val track = Track; val muted = Muted
-    Canvas(Modifier.fillMaxWidth().height(140.dp)) {
+    val described = curveDescription(proposal)
+    Canvas(Modifier.fillMaxWidth().height(140.dp).semantics { contentDescription = described }) {
         val w = size.width
         val h = size.height
         fun x(i: Int) = i / (EqCore.BANDS - 1f) * w
@@ -1158,7 +1220,8 @@ private object WinampDemo {
 private fun WinampPreview(settings: SpectrumSettings, modifier: Modifier) {
     val renderer = remember { SpectrumRenderer() }
     val density = androidx.compose.ui.platform.LocalDensity.current.density
-    Canvas(modifier) {
+    val described = stringResource(R.string.a11y_skin_preview_fmt, settings.winampSkin)
+    Canvas(modifier.semantics { contentDescription = described }) {
         val (values, peaks) = WinampDemo.of(settings.effectiveBars)
         drawIntoCanvas { c ->
             renderer.draw(c.nativeCanvas, size.width, size.height, values, peaks, settings, density, WinampDemo.wave)
@@ -1226,7 +1289,8 @@ private fun WinampSkinPicker(settings: SpectrumSettings, set: ((SpectrumSettings
                         }
                         out.toByteArray()
                     } ?: throw IllegalArgumentException(ctx.getString(R.string.cant_open_file))
-                    val archive = SkinArchive.read(bytes.inputStream())
+                    val archive = runCatching { SkinArchive.read(bytes.inputStream()) }
+                        .getOrElse { throw IllegalArgumentException(ctx.getString(R.string.not_a_skin)) }
                     val skins = SkinImport.import(archive, fileName.substringBeforeLast('.').replace('_', ' '), SkinImport.ANDROID_DECODER)
                     if (SkinImport.isModern(archive)) throw IllegalArgumentException(ctx.getString(R.string.only_classic))
                     if (skins.isEmpty()) throw IllegalArgumentException(ctx.getString(R.string.not_classic))
@@ -1406,8 +1470,15 @@ private fun SpectrumSettingsDialog(settings: SpectrumSettings, running: Boolean,
 private fun CompareButton(enabled: Boolean, onHold: (Boolean) -> Unit) {
     var held by remember { mutableStateOf(false) }
     val hold by rememberUpdatedState(onHold)
+    // Con TalkBack no se puede mantener presionado: un toque doble alterna con y sin ecualizador
+    val toggleLabel = stringResource(R.string.a11y_compare_toggle)
     Box(
-        Modifier.clip(RoundedCornerShape(50))
+        Modifier
+            .semantics {
+                role = androidx.compose.ui.semantics.Role.Button
+                if (enabled) onClick(toggleLabel) { held = !held; hold(held); true }
+            }
+            .clip(RoundedCornerShape(50))
             .background(if (held) Accent else Track)
             .pointerInput(enabled) {
                 if (!enabled) return@pointerInput
@@ -1463,7 +1534,19 @@ private fun BandSlider(value: Float, label: String, onChange: (Float) -> Unit) {
     val current by rememberUpdatedState(onChange)
     val range = EqCore.MAX_DB - EqCore.MIN_DB
     fun fromY(y: Float, h: Float) = Math.round((EqCore.MAX_DB - (y / h).coerceIn(0f, 1f) * range) * 2) / 2f
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    // Para TalkBack: la banda como un deslizador («125 Hz, +3 dB»), que se mueve de a 0,5 dB
+    val hz = if (label.endsWith("k")) label.removeSuffix("k") + " kHz" else "$label Hz"
+    val description = stringResource(R.string.a11y_band_fmt, hz)
+    val valueText = stringResource(R.string.a11y_db_fmt, "%+.1f".format(value).replace(".0", ""))
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.semantics(mergeDescendants = true) {
+            contentDescription = description
+            stateDescription = valueText
+            progressBarRangeInfo = ProgressBarRangeInfo(value, EqCore.MIN_DB..EqCore.MAX_DB, steps = ((EqCore.MAX_DB - EqCore.MIN_DB) * 2).toInt() - 1)
+            setProgress { target -> current(Math.round(target.coerceIn(EqCore.MIN_DB, EqCore.MAX_DB) * 2) / 2f); true }
+        },
+    ) {
         Text("%+.1f".format(value).replace(".0", ""), fontSize = 10.sp, color = Ink.copy(alpha = 0.7f))
         val ink = Ink; val accent = Accent; val track = Track; val muted = Muted
         Canvas(
@@ -1581,36 +1664,8 @@ private fun MultiSpeakerCard() {
 
 /** Nombre de un preajuste en el idioma del teléfono (se guardan con su nombre original). */
 @Composable
-private fun presetLabel(name: String): String = PRESET_LABELS[name]?.let { stringResource(it) } ?: name
+private fun presetLabel(name: String): String = EqCore.PRESET_LABELS[name]?.let { stringResource(it) } ?: name
 
-private val PRESET_LABELS = mapOf(
-    "Plano" to R.string.preset_flat,
-    "Graves extra" to R.string.preset_bass_extra,
-    "Graves y agudos" to R.string.preset_bass_treble,
-    "Fiesta" to R.string.preset_party,
-    "Rock" to R.string.preset_rock,
-    "Pop" to R.string.preset_pop,
-    "Voces" to R.string.preset_vocals,
-    "Clásica" to R.string.preset_classical,
-    "Podcast" to R.string.preset_podcast,
-    "Volumen bajo" to R.string.preset_low_volume,
-    "Automático" to R.string.preset_automatic,
-    "Calibrado" to R.string.preset_calibrated,
-    "Importado" to R.string.preset_imported,
-    "Electrónica" to R.string.preset_electronic,
-    "Hip-hop" to R.string.preset_hiphop,
-    "Reggaetón" to R.string.preset_reggaeton,
-    "Metal" to R.string.preset_metal,
-    "Jazz" to R.string.preset_jazz,
-    "Acústica" to R.string.preset_acoustic,
-    "R&B" to R.string.preset_rnb,
-    "Latina" to R.string.preset_latin,
-    "Cine" to R.string.preset_movies,
-    "Noche" to R.string.preset_night,
-    "Menos graves" to R.string.preset_less_bass,
-    "Agudos extra" to R.string.preset_more_treble,
-    "Parlante pequeño" to R.string.preset_small_speaker,
-)
 
 /** Nombre del grupo de skins en el idioma del teléfono (los skins no cambian). */
 @Composable
