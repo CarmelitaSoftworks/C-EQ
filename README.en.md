@@ -24,6 +24,7 @@
   &nbsp;·&nbsp; <a href="https://github.com/CarmelitaSoftworks/C-EQ/releases">All versions</a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Credits</a>
+  &nbsp;·&nbsp; <a href="#how-it-was-made">How it was made</a>
   &nbsp;·&nbsp; <a href="https://ko-fi.com/carmelitasoftworks">Support ☕</a>
 </p>
 
@@ -238,6 +239,35 @@ keyPassword=…
 - `SkinImportTest.classicImportMatchesBuiltInCatalog` with `-DclassicWszDir=<folders>` checks that
   the importer produces the same colors as the generated catalog.
 - `tools/promo.sh` renders the promo GIF and a vertical MP4 with `PromoFramesTest` and ffmpeg.
+
+<a id="how-it-was-made"></a>
+
+## 🤖 How it was made
+
+C-EQ was developed **with the help of AI**: the code was written by Claude (by Anthropic), a coding
+assistant, which is why the commits name it as co-author. We're not hiding it.
+
+What the AI didn't do on its own:
+
+- **The idea and the decisions:** what the app does, how it looks and what it doesn't do, like not
+  asking for the Internet permission or following Winamp's original design.
+- **Testing on a real phone:** every version was tested on a vivo V30, and the problems found there
+  (distortion on the phone speaker, wallpaper touches firing by accident, the shade player landing
+  in "Silent", imported skins not loading…) were reported and fixed.
+- **Review:** before release, every version goes through a code review and automated tests, and the
+  issues found are fixed before building.
+
+### You can check it yourself
+
+- **No Internet:** `aapt2 dump permissions C-EQ.apk` doesn't list `android.permission.INTERNET`.
+  Nothing leaves your phone.
+- **Open source (GPL-3.0):** everything is in this repository, including the tools that build the
+  skins and the headphone curves.
+- **Automated tests:** over 130, run by GitHub on every change (the "Build" badge at the top).
+- **Reproducible, verifiable APK:** every release lists its SHA-256 and the signing certificate's.
+
+Found a bug or something that feels sloppy?
+[Open an issue](https://github.com/CarmelitaSoftworks/C-EQ/issues): it gets reviewed and fixed.
 
 ## 🙌 Credits
 

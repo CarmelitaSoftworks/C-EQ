@@ -24,6 +24,7 @@
   &nbsp;·&nbsp; <a href="https://github.com/CarmelitaSoftworks/C-EQ/releases">Todas las versiones</a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Novedades</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Créditos</a>
+  &nbsp;·&nbsp; <a href="#como-se-hizo">Cómo se hizo</a>
   &nbsp;·&nbsp; <a href="https://ko-fi.com/carmelitasoftworks">Apoyar ☕</a>
 </p>
 
@@ -237,6 +238,37 @@ keyPassword=…
   actualizan solos cuando cambia el formato.
 - `SkinImportTest.classicImportMatchesBuiltInCatalog` con `-DclassicWszDir=<carpetas>` comprueba que
   el importador da los mismos colores que el catálogo generado.
+
+<a id="como-se-hizo"></a>
+
+## 🤖 Cómo se hizo
+
+C-EQ se desarrolló **con ayuda de inteligencia artificial**: el código lo escribió Claude (de Anthropic),
+un asistente de programación, y por eso los commits lo nombran como coautor. No lo escondemos.
+
+Lo que no hizo la IA sola:
+
+- **La idea y las decisiones:** qué hace la app, cómo se ve y qué no hace, como no pedir permiso de
+  Internet o seguir el diseño original de Winamp.
+- **Las pruebas en un teléfono real:** cada versión se probó en un vivo V30, y los problemas que
+  aparecieron ahí (saturación en el altavoz, toques del fondo que se activaban solos, el reproductor
+  de la barra en «Silenciadas», skins importados que no cargaban…) se reportaron y se corrigieron.
+- **La revisión:** antes de publicar, cada versión pasa por una revisión de código y por pruebas
+  automáticas, y los errores encontrados se arreglan antes de compilar.
+
+### Lo puedes comprobar tú
+
+- **Sin Internet:** `aapt2 dump permissions C-EQ.apk` no muestra `android.permission.INTERNET`. Nada
+  sale del teléfono.
+- **Código abierto (GPL-3.0):** todo está en este repositorio, incluidas las herramientas que arman
+  los skins y las curvas de audífonos.
+- **Pruebas automáticas:** más de 130, que GitHub corre en cada cambio (insignia «Compilación»
+  arriba).
+- **APK reproducible y verificable:** cada versión trae su huella SHA-256 y la del certificado de
+  firma.
+
+¿Encontraste un error o algo que se siente descuidado?
+[Abre un issue](https://github.com/CarmelitaSoftworks/C-EQ/issues): se revisa y se arregla.
 
 ## 🙌 Créditos
 
