@@ -236,6 +236,10 @@ keyPassword=…
   skin's BMPs. `SkinImportTest.generateClassicWindows` generates them with `-DclassicWszDir`,
   `-DwinampExeBitmaps` (BITMAP resources from winamp.exe, for the base skin) and `-DwindowsOut`. The
   original `.wsz` files are not in the repository.
+- **Original C-EQ skins** (Carmelita, Cobre, Neón, Fósforo and Hielo): our own designs, in the
+  [`skins/`](skins/) folder as `.wsz` files that work in any classic player. `tools/gen_original_skins.py`
+  generates them (with `OriginalSkins.kt`); the app builds their `ceq-*.png` windows from the `.wsz`
+  with `OriginalSkinsTest` (`-DoriginalWindowsOut=<folder>`), which also checks they stay in sync.
 - Skins imported by the user keep their window and their `.wsz` in the app's files, and are
   rebuilt automatically when the format changes.
 - `SkinImportTest.classicImportMatchesBuiltInCatalog` with `-DclassicWszDir=<folders>` checks that

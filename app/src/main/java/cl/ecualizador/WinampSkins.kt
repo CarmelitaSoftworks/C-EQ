@@ -31,7 +31,8 @@ object WinampSkins {
 
     val DEFAULT = WinampSkin("Winamp 2 (original)", "base-2.91", WinampColors.VIS)
 
-    val BUILT_IN: List<WinampSkin> = listOf(DEFAULT) + WinampClassicSkins.ALL
+    /** El base, los originales de C-EQ ([OriginalSkins]) y los clásicos de Internet Archive. */
+    val BUILT_IN: List<WinampSkin> = listOf(DEFAULT) + OriginalSkins.ALL + WinampClassicSkins.ALL
 
     /** Skins importados desde archivos .wsz (se guardan en la app). */
     val imported = MutableStateFlow<List<WinampSkin>>(emptyList())

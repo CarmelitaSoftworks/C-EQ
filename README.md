@@ -236,6 +236,11 @@ keyPassword=…
   `WinampWindow` a partir de sus BMP. Las genera `SkinImportTest.generateClassicWindows` con
   `-DclassicWszDir`, `-DwinampExeBitmaps` (recursos BITMAP de winamp.exe, para el skin base) y
   `-DwindowsOut`. Los `.wsz` originales no están en el repositorio.
+- **Skins originales de C-EQ** (Carmelita, Cobre, Neón, Fósforo y Hielo): diseños propios, en la carpeta
+  [`skins/`](skins/) como `.wsz` que sirven en cualquier reproductor clásico. Los genera
+  `tools/gen_original_skins.py` (junto con `OriginalSkins.kt`); sus ventanas `ceq-*.png` las arma la
+  app desde el `.wsz` con `OriginalSkinsTest` (`-DoriginalWindowsOut=<carpeta>`), que además comprueba
+  que no queden desfasadas.
 - Los skins que importa el usuario guardan su ventana y el `.wsz` en los archivos de la app, y se
   actualizan solos cuando cambia el formato.
 - `SkinImportTest.classicImportMatchesBuiltInCatalog` con `-DclassicWszDir=<carpetas>` comprueba que

@@ -49,7 +49,7 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
         unitTests.all {
-            listOf("previewDir", "classicWszDir", "winampExeBitmaps", "windowsOut", "importSkin", "wallpaperPhoto", "promoDir").forEach { k ->
+            listOf("previewDir", "classicWszDir", "winampExeBitmaps", "windowsOut", "importSkin", "wallpaperPhoto", "promoDir", "originalWindowsOut").forEach { k ->
                 it.systemProperty(k, System.getProperty(k) ?: "")
             }
         }
