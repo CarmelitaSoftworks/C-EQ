@@ -362,9 +362,8 @@ def numbers_bmp():
     for n, segs in enumerate(DIGITS):
         x = n * 9
         for s, (sx, sy, w, h) in SEGMENTS.items():
-            c.rect(x + sx, sy, w, h, P["lt"] if s in segs else P["ld"])
-    for s, (sx, sy, w, h) in SEGMENTS.items():   # espacio en blanco (sin segmentos)
-        c.rect(90 + sx, sy, w, h, P["ld"])
+            if s in segs:
+                c.rect(x + sx, sy, w, h, P["lt"])
     return c.im
 
 

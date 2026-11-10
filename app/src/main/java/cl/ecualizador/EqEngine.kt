@@ -46,6 +46,10 @@ data class EqUiState(
     /** Sonido envolvente (Virtualizer de Android), 0..1, si el teléfono lo permite en todo el audio. */
     val surround: Float = 0f,
     val surroundSupported: Boolean = false,
+    /** Ajuste por app: preajuste (por nombre) que se suma a la curva mientras suena esa app (paquete). */
+    val appPresets: Map<String, String> = emptyMap(),
+    /** El ajuste por app que suena ahora (paquete y preajuste), si la app que suena tiene uno. */
+    val appRule: Pair<String, String>? = null,
 ) {
     /** La curva que se ve: la automática si está activa, si no la del perfil. */
     val shownLevels: List<Float> get() = autoLevels ?: levels
@@ -279,11 +283,44 @@ class EqEngine private constructor(private val ctx: Context) {
             if (s.autoLevels != curve.levels || s.autoWhy != curve.why || s.autoContent != content) {
                 state.update { it.copy(autoLevels = curve.levels, autoWhy = curve.why, autoContent = content) }
             }
-            return EqCore.finalGains(curve.levels, maxOf(curve.bass, s.bass))
+            return withApp(EqCore.finalGains(curve.levels, maxOf(curve.bass, s.bass)))
         }
         val base = EqCore.finalGains(s.levels, s.bass)
-        if (!s.loudness) return base
-        return base.zip(EqCore.loudness(musicVolume())) { g, l -> g + l }
+        if (!s.loudness) return withApp(base)
+        return withApp(base.zip(EqCore.loudness(musicVolume())) { g, l -> g + l })
+    }
+
+    // ---------- Ajuste por app ----------
+
+    /** Preajuste de la app que suena ahora, si tiene uno (paquete y nombre del preajuste). */
+    private fun currentAppRule(): Pair<String, String>? {
+        val app = NowPlaying.track.value?.app?.takeIf { it.isNotEmpty() } ?: return null
+        val preset = state.value.appPresets[app] ?: return null
+        return app to preset
+    }
+
+    /** Suma a [gains] la forma del preajuste de la app que suena (y lo informa en el estado). */
+    private fun withApp(gains: List<Float>): List<Float> {
+        val rule = currentAppRule()?.takeIf { presetCurve(it.second) != null }
+        if (state.value.appRule != rule) state.update { it.copy(appRule = rule) }
+        val shape = rule?.let { presetCurve(it.second) } ?: return gains
+        return EqCore.addShape(gains, shape)
+    }
+
+    private fun presetCurve(name: String): List<Float>? = EqCore.PRESETS[name] ?: customPresets()[name]
+
+    private fun appPresetsFromPrefs(): Map<String, String> = runCatching {
+        val json = JSONObject(prefs.getString("appPresets", "{}")!!)
+        json.keys().asSequence().associateWith { json.getString(it) }
+    }.getOrDefault(emptyMap())
+
+    /** Asigna [preset] a la app [pkg] (null la quita). */
+    fun setAppPreset(pkg: String, preset: String?) {
+        val map = state.value.appPresets.toMutableMap()
+        if (preset == null) map.remove(pkg) else map[pkg] = preset
+        prefs.edit().putString("appPresets", JSONObject(map as Map<*, *>).toString()).apply()
+        state.update { it.copy(appPresets = map.toSortedMap()) }
+        if (state.value.enabled) apply(smooth = true)
     }
 
     /**
@@ -509,7 +546,10 @@ class EqEngine private constructor(private val ctx: Context) {
 
     /** Cambió lo que suena: el ajuste automático puede cambiar (voz, video o música). */
     fun onMediaChanged() {
-        if (state.value.auto && state.value.enabled) main.post { apply(smooth = true) }
+        if (!state.value.enabled) return
+        // Con el ajuste automático la curva puede cambiar con lo que suena; si no, solo si cambió la
+        // app y con ella su ajuste
+        if (state.value.auto || currentAppRule() != state.value.appRule) main.post { apply(smooth = true) }
     }
 
     /**
@@ -609,6 +649,8 @@ class EqEngine private constructor(private val ctx: Context) {
         json.remove(name)
         prefs.edit().putString("customPresets", json.toString()).apply()
         state.update { it.copy(customPresets = customPresets().keys.toList()) }
+        // Las apps que usaban ese preajuste vuelven a la curva del equipo
+        state.value.appPresets.filterValues { it == name }.keys.forEach { setAppPreset(it, null) }
     }
 
     /**
@@ -631,6 +673,7 @@ class EqEngine private constructor(private val ctx: Context) {
                 surround = prefs.getFloat("surround", 0f),
                 speakerProtect = prefs.getBoolean("speakerProtect", true),
                 customPresets = customPresets().keys.toList(),
+                appPresets = appPresetsFromPrefs().toSortedMap(),
             )
         }
         switchProfile(currentOutput())

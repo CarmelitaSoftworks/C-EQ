@@ -376,4 +376,15 @@
     <string name="a11y_curve_fmt">Equalizer curve: %1$s</string>
     <string name="a11y_skin_preview_fmt">Preview of the %1$s skin</string>
     <string name="a11y_compare_toggle">Toggle with and without the equalizer</string>
+    <string name="app_presets_title">Per-app setting</string>
+    <string name="app_presets_hint">A preset added on top of the device\'s curve while that app plays: for example, more bass in Spotify and clearer voices in your podcast app.</string>
+    <string name="app_presets_need_access">It needs “What\'s playing” access (notification access) to know which app is playing.</string>
+    <string name="app_presets_add">Add app</string>
+    <string name="app_presets_change">Change preset</string>
+    <string name="app_presets_pick_app">Choose the app</string>
+    <string name="app_presets_no_apps">No music or video apps found. Play something in the app you want and come back.</string>
+    <string name="app_presets_playing">playing</string>
+    <string name="app_presets_pick_preset_fmt">Preset for %1$s</string>
+    <string name="app_preset_row_fmt">%1$s: %2$s</string>
+    <string name="app_rule_active_fmt">Playing in %1$s: %2$s on top of this curve.</string>
 </resources>

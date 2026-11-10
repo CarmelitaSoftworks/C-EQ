@@ -41,6 +41,9 @@ object AutoEq {
         "com.apple.atve.androidtv.appletv", "com.paramountplus.android", "com.star.plus", "com.mxtech.videoplayer.ad",
     )
 
+    /** Apps de voz y de video conocidas (para la lista del ajuste por app). */
+    val KNOWN_APPS: Set<String> get() = SPEECH_APPS + VIDEO_APPS
+
     private val GENRE_SPEECH = Regex("""podcast|spoken|audiobook|audiolibro|talk|news|noticia|habla|speech|comedy""", RegexOption.IGNORE_CASE)
     private val GENRE_BASS = Regex("""rap|hip.?hop|trap|reggae?ton|urban|dembow|drill|electr|edm|house|techno|dub|drum|bass|dance|phonk|funk""", RegexOption.IGNORE_CASE)
     private val GENRE_ACOUSTIC = Regex("""classical|cl[aá]sic|jazz|acoustic|ac[uú]stic|folk|blues|soundtrack|banda sonora|ambient|piano|bolero|opera|ópera""", RegexOption.IGNORE_CASE)

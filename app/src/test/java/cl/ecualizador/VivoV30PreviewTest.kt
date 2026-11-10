@@ -33,7 +33,8 @@ class VivoV30PreviewTest {
             val skins = SkinImport.import(SkinArchive.read(f.inputStream()), "Paper-Amp", SkinImport.ANDROID_DECODER)
             names += WinampSkins.add(ctx, skins).map { it.name }
         }
-        names += listOf("Major Tom", "Expensive Hi-Fi")
+        // Los skins originales de C-EQ, para las capturas del README
+        names += listOf("Carmelita", "Neón", "Hielo")
         val w = 1260; val h = 2800; val density = 3f
         val photo = System.getProperty("wallpaperPhoto")?.takeIf { it.isNotEmpty() }?.let { BitmapFactory.decodeFile(it) }
         val values = FloatArray(SpectrumSettings.WINAMP_BARS_ORIGINAL) { i -> (0.95f - i * 0.04f + 0.15f * kotlin.math.sin(i * 1.3f)).coerceIn(0.05f, 1f) }

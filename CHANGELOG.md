@@ -1,5 +1,14 @@
 # Cambios
 
+## Próxima versión (en desarrollo)
+- **Ajuste por app**: un preajuste que se suma a la curva del equipo mientras suena esa app (por
+  ejemplo, más graves en Spotify y voces más claras en los podcasts). Se elige en Opciones › Ajuste
+  por app; usa el acceso a «Lo que suena» para saber qué app está sonando.
+- **La app en portugués**, además de español e inglés, y el README del repositorio en portugués.
+- **Cinco skins originales de C-EQ** (Carmelita, Cobre, Neón, Fósforo y Hielo), también como `.wsz`
+  en la carpeta `skins/`.
+- Capturas, GIF y banner del README con los skins originales.
+
 ## 3.6
 - **App completa en inglés y español**: también la notificación, los widgets, el mosaico, los
   mensajes del fondo, la calibración y las explicaciones del equipo y del ajuste automático.

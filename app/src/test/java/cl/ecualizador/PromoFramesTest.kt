@@ -32,7 +32,7 @@ class PromoFramesTest {
         WinampWindows.init(ctx)
         WinampSkins.load(ctx)
         val engine = EqEngine.get(ctx)
-        val skins = listOf(WinampSkins.DEFAULT.name, "Major Tom", "Expensive Hi-Fi", "Bento Classified")
+        val skins = listOf("Carmelita", "Neón", "Cobre", "Hielo")
         val presets = listOf("Rock", "Fiesta", "Graves y agudos", "Pop")
         val songs = listOf(
             "Llama Whippin' Intro" to "DJ Mike Llama", "Stumble" to "Just Plain Ant", "Ocean Eyes" to "Neon Tide",

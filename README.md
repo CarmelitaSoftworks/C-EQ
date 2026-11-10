@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="docs/banner.png" alt="C-EQ: ecualizador para Android con alma de Winamp" width="100%">
+  <img src="docs/banner.png" alt="C-EQ: ecualizador para Android con skins clásicos" width="100%">
 </p>
 
 <p align="center">
-  <b>🇪🇸 Español</b> · <a href="README.en.md">🇬🇧 English</a>
+  <b>🇪🇸 Español</b> · <a href="README.en.md">🇬🇧 English</a> · <a href="README.pt.md">🇧🇷 Português</a>
 </p>
 
 <p align="center">
@@ -35,6 +35,8 @@
 ---
 
 ## ✨ Novedades
+
+**Próxima versión (en desarrollo).** Ajuste por app (un preajuste encima de la curva mientras suena cada app), la app en portugués y cinco skins originales de C-EQ.
 
 **3.6 — Respaldo, accesibilidad y en inglés completo.** Guarda y restaura todos tus ajustes y skins en un .zip, el ecualizador funciona con TalkBack (cada banda se lee y se ajusta por voz), y toda la app, avisos y widget incluidos, sigue el idioma del teléfono.
 
@@ -70,7 +72,7 @@ Audio dual en Samsung o un cable AUX.
 - Aleatorio encendido en todos los skins, créditos y Ko-fi dentro de la app.
 
 <p align="center">
-  <img src="docs/winamp-completo.png" alt="Winamp completo con tres skins: el original, Major Tom y uno de Sony" width="90%">
+  <img src="docs/winamp-completo.png" alt="Winamp completo con tres skins originales de C-EQ: Carmelita, Neón y Hielo" width="90%">
 </p>
 
 ## 🎚️ Qué hace
@@ -90,6 +92,8 @@ Audio dual en Samsung o un cable AUX.
   conectarlos se reconoce el modelo y se corrige su sonido.
 - **23 preajustes** (Rock, Pop, Reggaetón, Electrónica, Jazz, Cine, Noche…), los tuyos propios y los
   de **Winamp** (.eqf y winamp.q1).
+- **Ajuste por app**: un preajuste que se suma a la curva mientras suena esa app (más graves en
+  Spotify, voces más claras en los podcasts…).
 - **Calibración con micrófono** para parlantes, deshacer y comparación A/B.
 - **Sonido envolvente** en los teléfonos que lo permiten.
 - Refuerzo de graves **sin perder volumen**, volumen extra y balance.
@@ -105,6 +109,8 @@ Audio dual en Samsung o un cable AUX.
 ### Skins de Winamp
 - **88 skins clásicos** con su ventana original: barra de título, botones, posición, volumen, fuente
   del skin y el visor dentro de su recuadro. También se **importan archivos `.wsz`**.
+- **5 skins originales de C-EQ** (Carmelita, Cobre, Neón, Fósforo y Hielo), también como
+  [`.wsz`](skins/) para cualquier reproductor clásico.
 - **Lo que suena en vivo**: título, artista, reloj, barra de posición y volumen. Los botones,
   la posición y el volumen funcionan.
 - **Patrones de color** del visor y **tema de la app** tomado del skin.
@@ -156,7 +162,7 @@ También trae un **widget del reproductor** con el skin y sus botones, **widget*
 ecualizador sin abrir la app.
 
 ### Idiomas
-El menú sigue el idioma del teléfono: **español** o **inglés**. En Android 13 o superior también se
+El menú sigue el idioma del teléfono: **español**, **inglés** o **portugués**. En Android 13 o superior también se
 elige en Ajustes › Idioma de las apps.
 
 ## 📲 Instalar
@@ -245,6 +251,8 @@ keyPassword=…
   actualizan solos cuando cambia el formato.
 - `SkinImportTest.classicImportMatchesBuiltInCatalog` con `-DclassicWszDir=<carpetas>` comprueba que
   el importador da los mismos colores que el catálogo generado.
+- `tools/promo.sh` arma el GIF de promoción y un MP4 vertical con `PromoFramesTest` y ffmpeg, y
+  `tools/docs_images.py` arma las imágenes de este README desde las capturas de las pruebas.
 
 <a id="como-se-hizo"></a>
 
@@ -287,7 +295,8 @@ skins, con el enlace a cada uno, está en [CREDITS.md](CREDITS.md).
 ## 📄 Licencia
 
 El código es [GPL-3.0](LICENSE). Los skins de Winamp incluidos (ventanas y colores) siguen siendo
-de sus autores y no quedan bajo esa licencia; ver [CREDITS.md](CREDITS.md).
+de sus autores y no quedan bajo esa licencia; ver [CREDITS.md](CREDITS.md). Los cinco skins
+originales de C-EQ son parte del proyecto y van con la GPL-3.0.
 
 ## ☕ Apoyar
 

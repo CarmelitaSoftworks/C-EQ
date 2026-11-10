@@ -37,6 +37,14 @@ object EqCore {
         (levels.getOrElse(i) { 0f } + bass.coerceIn(0f, 1f) * BASS_MAX_DB * BASS_WEIGHTS[i]).coerceIn(-15f, 21f)
     }
 
+    /**
+     * Suma la forma de un preajuste ([shape], la del ajuste por app) a la curva final, en el mismo
+     * rango que [finalGains].
+     */
+    fun addShape(gains: List<Float>, shape: List<Float>): List<Float> = List(BANDS) { i ->
+        (gains.getOrElse(i) { 0f } + shape.getOrElse(i) { 0f }).coerceIn(-15f, 21f)
+    }
+
     /** Preamplificador negativo que compensa la banda más alta, para no saturar (como Equalizer APO). */
     fun autoPreamp(gains: List<Float>): Float = -(gains.maxOrNull() ?: 0f).coerceAtLeast(0f)
 

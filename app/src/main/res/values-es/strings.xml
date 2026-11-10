@@ -376,4 +376,15 @@
     <string name="a11y_curve_fmt">Curva del ecualizador: %1$s</string>
     <string name="a11y_skin_preview_fmt">Vista previa del skin %1$s</string>
     <string name="a11y_compare_toggle">Alternar con y sin ecualizador</string>
+    <string name="app_presets_title">Ajuste por app</string>
+    <string name="app_presets_hint">Un preajuste que se suma a la curva del equipo mientras suena esa app: por ejemplo, más graves en Spotify y voces más claras en tu app de podcasts.</string>
+    <string name="app_presets_need_access">Necesita el acceso a «Lo que suena» (acceso a notificaciones) para saber qué app está sonando.</string>
+    <string name="app_presets_add">Agregar app</string>
+    <string name="app_presets_change">Cambiar preajuste</string>
+    <string name="app_presets_pick_app">Elige la app</string>
+    <string name="app_presets_no_apps">No se encontraron apps de música ni de video. Reproduce algo en la app que quieras y vuelve.</string>
+    <string name="app_presets_playing">sonando</string>
+    <string name="app_presets_pick_preset_fmt">Preajuste para %1$s</string>
+    <string name="app_preset_row_fmt">%1$s: %2$s</string>
+    <string name="app_rule_active_fmt">Sonando en %1$s: %2$s encima de esta curva.</string>
 </resources>

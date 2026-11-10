@@ -105,7 +105,7 @@ class RendererPreviewTest {
         skinSheet(WinampSkins.BUILT_IN.filter { it.group == WinampSkins.GROUP_CLASSIC }, "skins_winamp.png")
 
         // Patrones de color: una fila por patrón, con cuatro skins distintos.
-        val sample = listOf("Winamp 2 (original)", "Major Tom", "Denon Antique", "Purple Glow").map { WinampSkins.byName(it) }
+        val sample = listOf("Carmelita", "Neón", "Fósforo", "Hielo").map { WinampSkins.byName(it) }
         val pats = WinampPattern.entries
         val pcw = 200; val pch = 64; val plab = 150
         val pt = Bitmap.createBitmap(plab + sample.size * (pcw + 8) + 8, pats.size * (pch + 10) + 40, Bitmap.Config.ARGB_8888)
@@ -128,8 +128,8 @@ class RendererPreviewTest {
 
         // Maqueta del tema de la app con distintos skins: fondo, tarjeta, título, deslizadores y botón.
         val themed = listOf(
-            "Winamp 2 (original)", "Major Tom", "Denon Antique", "Mac OS clásico", "Commodore 64", "Purple Glow",
-            "Windows 95", "Pink Box", "Classic Green", "Onkyo", "Steel", "Red Cobra",
+            "Carmelita", "Cobre", "Neón", "Fósforo", "Hielo", "Winamp 2 (original)",
+            "Major Tom", "Denon Antique", "Mac OS clásico", "Commodore 64", "Purple Glow", "Windows 95",
         ).map { WinampSkins.byName(it) }
         val tw = 260; val th = 200
         val app = Bitmap.createBitmap(3 * (tw + 10) + 10, 4 * (th + 36) + 10, Bitmap.Config.ARGB_8888)

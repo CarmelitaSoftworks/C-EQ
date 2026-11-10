@@ -292,6 +292,12 @@ private fun EqualizerScreen() {
                 FilterChip(selected = eq.preset == name, onClick = { engine.usePreset(name) }, label = { Text(presetLabel(name)) })
             }
         }
+        eq.appRule?.let { (pkg, preset) ->
+            Text(
+                stringResource(R.string.app_rule_active_fmt, AppNames.label(ctx, pkg), presetLabel(preset)),
+                fontSize = 12.sp, lineHeight = 16.sp, color = Accent
+            )
+        }
 
         Column(
             Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Card).padding(vertical = 8.dp, horizontal = 6.dp)
@@ -386,6 +392,7 @@ private fun EqualizerScreen() {
                 )
                 Text(stringResource(R.string.surround_hint), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
             }
+            AppPresetsSection(eq, engine)
             eq.customPresets.forEach { name ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(name, Modifier.weight(1f), fontSize = 14.sp)
@@ -560,6 +567,83 @@ private fun UpdateReminder() {
             TextButton(onClick = { Updates.openReleases(ctx) }) { Text(stringResource(R.string.update_check)) }
             TextButton(onClick = { Updates.snooze(ctx); show = false }) { Text(stringResource(R.string.update_later)) }
         }
+    }
+}
+
+/**
+ * Ajuste por app: un preajuste que se suma a la curva del equipo mientras suena esa app (por
+ * ejemplo, más graves en Spotify y voz más clara en los podcasts). La app que suena se sabe por el
+ * acceso a notificaciones, el mismo del reproductor.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AppPresetsSection(eq: EqUiState, engine: EqEngine) {
+    val ctx = LocalContext.current
+    val playing by NowPlaying.track.collectAsState()
+    var picking by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<String?>(null) }
+    Text(stringResource(R.string.app_presets_title), fontSize = 14.sp)
+    Text(stringResource(R.string.app_presets_hint), fontSize = 12.sp, lineHeight = 16.sp, color = Muted)
+    if (!NowPlaying.hasAccess(ctx)) {
+        Text(stringResource(R.string.app_presets_need_access), fontSize = 12.sp, lineHeight = 16.sp, color = Warn)
+    }
+    eq.appPresets.forEach { (pkg, preset) ->
+        val name = AppNames.label(ctx, pkg)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.app_preset_row_fmt, name, presetLabel(preset)),
+                Modifier.weight(1f).clickable(onClickLabel = stringResource(R.string.app_presets_change)) { editing = pkg }
+                    .padding(vertical = 8.dp),
+                fontSize = 14.sp,
+            )
+            IconButton(onClick = { engine.setAppPreset(pkg, null) }) { Icon(Icons.Filled.Delete, stringResource(R.string.delete_fmt, name)) }
+        }
+    }
+    TextButton(onClick = { picking = true }) { Text(stringResource(R.string.app_presets_add)) }
+
+    if (picking) {
+        val apps = remember(playing?.app, eq.appPresets) {
+            AppNames.mediaApps(ctx, listOfNotNull(playing?.app) + eq.appPresets.keys)
+        }
+        AlertDialog(
+            onDismissRequest = { picking = false },
+            title = { Text(stringResource(R.string.app_presets_pick_app)) },
+            text = {
+                Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                    if (apps.isEmpty()) Text(stringResource(R.string.app_presets_no_apps), fontSize = 13.sp, color = Muted)
+                    apps.forEach { pkg ->
+                        val now = pkg == playing?.app
+                        Text(
+                            AppNames.label(ctx, pkg) + if (now) " · " + stringResource(R.string.app_presets_playing) else "",
+                            Modifier.fillMaxWidth().clickable { picking = false; editing = pkg }.padding(vertical = 10.dp),
+                            fontSize = 15.sp, color = if (now) Accent else Color.Unspecified,
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { picking = false }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
+
+    editing?.let { pkg ->
+        AlertDialog(
+            onDismissRequest = { editing = null },
+            title = { Text(stringResource(R.string.app_presets_pick_preset_fmt, AppNames.label(ctx, pkg))) },
+            text = {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    (EqCore.PRESETS.keys - "Plano" + eq.customPresets).forEach { name ->
+                        FilterChip(
+                            selected = eq.appPresets[pkg] == name,
+                            onClick = { engine.setAppPreset(pkg, name); editing = null },
+                            label = { Text(presetLabel(name)) },
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { editing = null }) { Text(stringResource(R.string.cancel)) } },
+        )
     }
 }
 

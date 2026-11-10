@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="docs/banner.png" alt="C-EQ: an Android equalizer with the soul of Winamp" width="100%">
+  <img src="docs/banner-en.png" alt="C-EQ: an Android equalizer with classic skins" width="100%">
 </p>
 
 <p align="center">
-  <a href="README.md">🇪🇸 Español</a> · <b>🇬🇧 English</b>
+  <a href="README.md">🇪🇸 Español</a> · <b>🇬🇧 English</b> · <a href="README.pt.md">🇧🇷 Português</a>
 </p>
 
 <p align="center">
@@ -32,12 +32,14 @@
   <img src="docs/promo.gif" alt="C-EQ in motion: the full skin with the queue, the equalizer and skin changes" width="380">
 </p>
 
-> The app's menu follows your phone's language: English, or Spanish if your phone is in Spanish.
+> The app's menu follows your phone's language: English, Spanish or Portuguese.
 > The skins, the player and the wallpaper look the same in any language.
 
 ---
 
 ## ✨ What's new
+
+**Next version (in development).** Per-app setting (a preset on top of the curve while each app plays), the app in Portuguese and five original C-EQ skins.
 
 **3.6 — Backup, accessibility and fully translated.** Save and restore all your settings and skins in a .zip, the equalizer works with TalkBack (each band is read aloud and adjustable), and the whole app, notifications and widget included, follows the phone's language.
 
@@ -71,7 +73,7 @@ to the way of using two or more that actually works: the brand's party mode, Aud
 - Shuffle shown as on in every skin; credits and Ko-fi inside the app.
 
 <p align="center">
-  <img src="docs/winamp-completo.png" alt="Full Winamp with three skins: the original, Major Tom and a Sony one" width="90%">
+  <img src="docs/winamp-completo.png" alt="Full Winamp with three original C-EQ skins: Carmelita, Neón and Hielo" width="90%">
 </p>
 
 ## 🎚️ What it does
@@ -91,6 +93,8 @@ to the way of using two or more that actually works: the brand's party mode, Aud
   recognized when it connects and its sound is corrected.
 - **23 presets** (Rock, Pop, Reggaeton, Electronic, Jazz, Movies, Night…), your own ones and
   **Winamp's** (.eqf and winamp.q1).
+- **Per-app setting**: a preset added on top of the curve while that app plays (more bass in
+  Spotify, clearer voices in podcasts…).
 - **Microphone calibration** for speakers, undo and A/B comparison.
 - **Surround sound** on phones that allow it.
 - Bass boost **without losing volume**, extra volume and balance.
@@ -106,6 +110,8 @@ to the way of using two or more that actually works: the brand's party mode, Aud
 ### Winamp skins
 - **88 classic skins** with their original window: title bar, buttons, seek bar, volume, the
   skin's font and the visualizer inside its frame. You can also **import `.wsz` files**.
+- **5 original C-EQ skins** (Carmelita, Cobre, Neón, Fósforo and Hielo), also as
+  [`.wsz`](skins/) files for any classic player.
 - **Now playing, live**: title, artist, clock, seek bar and volume. The buttons, seek bar and volume
   all work.
 - **Color patterns** for the visualizer and an **app theme** taken from the skin.
@@ -156,7 +162,7 @@ It also comes with a **player widget** with the skin and its buttons, a spectrum
 without opening the app.
 
 ### Languages
-The menu follows your phone's language: **English** or **Spanish**. On Android 13+ you can also pick
+The menu follows your phone's language: **English**, **Spanish** or **Portuguese**. On Android 13+ you can also pick
 it in Settings › App languages.
 
 ## 📲 Install
@@ -244,7 +250,8 @@ keyPassword=…
   rebuilt automatically when the format changes.
 - `SkinImportTest.classicImportMatchesBuiltInCatalog` with `-DclassicWszDir=<folders>` checks that
   the importer produces the same colors as the generated catalog.
-- `tools/promo.sh` renders the promo GIF and a vertical MP4 with `PromoFramesTest` and ffmpeg.
+- `tools/promo.sh` renders the promo GIF and a vertical MP4 with `PromoFramesTest` and ffmpeg, and
+  `tools/docs_images.py` builds this README's images from the tests' previews.
 
 <a id="how-it-was-made"></a>
 
@@ -285,7 +292,8 @@ link to each one, is in [CREDITS.md](CREDITS.md). Not affiliated with Winamp or 
 ## 📄 License
 
 The code is [GPL-3.0](LICENSE). The bundled Winamp skins (windows and colors) still belong to their
-authors and are not covered by that license; see [CREDITS.md](CREDITS.md).
+authors and are not covered by that license; see [CREDITS.md](CREDITS.md). The five original C-EQ
+skins are part of the project and are GPL-3.0.
 
 ## ☕ Support
 
