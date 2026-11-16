@@ -293,8 +293,9 @@ private fun EqualizerScreen() {
             }
         }
         eq.appRule?.let { (pkg, preset) ->
+            val appName = remember(pkg) { AppNames.label(ctx, pkg) }
             Text(
-                stringResource(R.string.app_rule_active_fmt, AppNames.label(ctx, pkg), presetLabel(preset)),
+                stringResource(R.string.app_rule_active_fmt, appName, presetLabel(preset)),
                 fontSize = 12.sp, lineHeight = 16.sp, color = Accent
             )
         }
@@ -588,7 +589,7 @@ private fun AppPresetsSection(eq: EqUiState, engine: EqEngine) {
         Text(stringResource(R.string.app_presets_need_access), fontSize = 12.sp, lineHeight = 16.sp, color = Warn)
     }
     eq.appPresets.forEach { (pkg, preset) ->
-        val name = AppNames.label(ctx, pkg)
+        val name = remember(pkg) { AppNames.label(ctx, pkg) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 stringResource(R.string.app_preset_row_fmt, name, presetLabel(preset)),
@@ -602,19 +603,23 @@ private fun AppPresetsSection(eq: EqUiState, engine: EqEngine) {
     TextButton(onClick = { picking = true }) { Text(stringResource(R.string.app_presets_add)) }
 
     if (picking) {
-        val apps = remember(playing?.app, eq.appPresets) {
-            AppNames.mediaApps(ctx, listOfNotNull(playing?.app) + eq.appPresets.keys)
+        // La lista pregunta al sistema por cada app: se arma fuera del hilo de la pantalla
+        val apps by produceState<List<Pair<String, String>>?>(null, playing?.app, eq.appPresets) {
+            val extra = listOfNotNull(playing?.app) + eq.appPresets.keys
+            value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { AppNames.mediaApps(ctx, extra) }
         }
         AlertDialog(
             onDismissRequest = { picking = false },
             title = { Text(stringResource(R.string.app_presets_pick_app)) },
             text = {
                 Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
-                    if (apps.isEmpty()) Text(stringResource(R.string.app_presets_no_apps), fontSize = 13.sp, color = Muted)
-                    apps.forEach { pkg ->
+                    val list = apps
+                    if (list == null) Text(stringResource(R.string.preparing), fontSize = 13.sp, color = Muted)
+                    else if (list.isEmpty()) Text(stringResource(R.string.app_presets_no_apps), fontSize = 13.sp, color = Muted)
+                    list?.forEach { (pkg, name) ->
                         val now = pkg == playing?.app
                         Text(
-                            AppNames.label(ctx, pkg) + if (now) " · " + stringResource(R.string.app_presets_playing) else "",
+                            name + if (now) " · " + stringResource(R.string.app_presets_playing) else "",
                             Modifier.fillMaxWidth().clickable { picking = false; editing = pkg }.padding(vertical = 10.dp),
                             fontSize = 15.sp, color = if (now) Accent else Color.Unspecified,
                         )
@@ -629,7 +634,7 @@ private fun AppPresetsSection(eq: EqUiState, engine: EqEngine) {
     editing?.let { pkg ->
         AlertDialog(
             onDismissRequest = { editing = null },
-            title = { Text(stringResource(R.string.app_presets_pick_preset_fmt, AppNames.label(ctx, pkg))) },
+            title = { Text(stringResource(R.string.app_presets_pick_preset_fmt, remember(pkg) { AppNames.label(ctx, pkg) })) },
             text = {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     (EqCore.PRESETS.keys - "Plano" + eq.customPresets).forEach { name ->

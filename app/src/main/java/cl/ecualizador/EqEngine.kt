@@ -292,18 +292,27 @@ class EqEngine private constructor(private val ctx: Context) {
 
     // ---------- Ajuste por app ----------
 
-    /** Preajuste de la app que suena ahora, si tiene uno (paquete y nombre del preajuste). */
+    /**
+     * Ajuste de la app que suena ahora (paquete y preajuste), si el ecualizador está encendido, la
+     * app está reproduciendo (no en pausa: puede estar sonando otra cosa) y su preajuste existe.
+     */
     private fun currentAppRule(): Pair<String, String>? {
-        val app = NowPlaying.track.value?.app?.takeIf { it.isNotEmpty() } ?: return null
-        val preset = state.value.appPresets[app] ?: return null
-        return app to preset
+        val s = state.value
+        if (!s.enabled) return null
+        val track = NowPlaying.track.value?.takeIf { it.state == PlayingTrack.State.PLAYING } ?: return null
+        return EqCore.appRule(track.app, s.appPresets) { presetCurve(it) != null }
     }
 
-    /** Suma a [gains] la forma del preajuste de la app que suena (y lo informa en el estado). */
-    private fun withApp(gains: List<Float>): List<Float> {
-        val rule = currentAppRule()?.takeIf { presetCurve(it.second) != null }
+    /** Deja en el estado el ajuste por app que vale ahora (lo que muestra la pantalla) y lo devuelve. */
+    private fun syncAppRule(): Pair<String, String>? {
+        val rule = currentAppRule()
         if (state.value.appRule != rule) state.update { it.copy(appRule = rule) }
-        val shape = rule?.let { presetCurve(it.second) } ?: return gains
+        return rule
+    }
+
+    /** Suma a [gains] la forma del preajuste de la app que suena. */
+    private fun withApp(gains: List<Float>): List<Float> {
+        val shape = syncAppRule()?.let { presetCurve(it.second) } ?: return gains
         return EqCore.addShape(gains, shape)
     }
 
@@ -318,9 +327,13 @@ class EqEngine private constructor(private val ctx: Context) {
     fun setAppPreset(pkg: String, preset: String?) {
         val map = state.value.appPresets.toMutableMap()
         if (preset == null) map.remove(pkg) else map[pkg] = preset
+        storeAppPresets(map)
+    }
+
+    private fun storeAppPresets(map: Map<String, String>) {
         prefs.edit().putString("appPresets", JSONObject(map as Map<*, *>).toString()).apply()
         state.update { it.copy(appPresets = map.toSortedMap()) }
-        if (state.value.enabled) apply(smooth = true)
+        if (state.value.enabled) apply(smooth = true) else syncAppRule()
     }
 
     /**
@@ -444,6 +457,7 @@ class EqEngine private constructor(private val ctx: Context) {
         state.update { it.copy(enabled = on) }
         reclaimAttempts = 0
         if (on) createEffect() else release()
+        syncAppRule()
         if (on) EqService.start(ctx) else EqService.stop(ctx)
         EqTileService.refresh(ctx)
     }
@@ -546,10 +560,13 @@ class EqEngine private constructor(private val ctx: Context) {
 
     /** Cambió lo que suena: el ajuste automático puede cambiar (voz, video o música). */
     fun onMediaChanged() {
+        // El ajuste por app que se muestra sigue a lo que suena también con el ecualizador apagado
+        val before = state.value.appRule
+        val now = syncAppRule()
         if (!state.value.enabled) return
         // Con el ajuste automático la curva puede cambiar con lo que suena; si no, solo si cambió la
-        // app y con ella su ajuste
-        if (state.value.auto || currentAppRule() != state.value.appRule) main.post { apply(smooth = true) }
+        // app (o pasó a pausa) y con ella su ajuste
+        if (state.value.auto || before != now) main.post { apply(smooth = true) }
     }
 
     /**
@@ -584,11 +601,15 @@ class EqEngine private constructor(private val ctx: Context) {
         if (state.value.enabled) createEffect()
     }
 
+    /** Preajustes propios ya leídos: la curva se pide en cada paso de un cambio suave. */
+    private var customCache: Map<String, List<Float>>? = null
+
     private fun customPresets(): Map<String, List<Float>> {
+        customCache?.let { return it }
         val json = runCatching { JSONObject(prefs.getString("customPresets", "{}")!!) }.getOrNull() ?: return emptyMap()
         return json.keys().asSequence().associateWith { k ->
             val a = json.getJSONArray(k); List(EqCore.BANDS) { a.optDouble(it, 0.0).toFloat() }
-        }
+        }.also { customCache = it }
     }
 
     /** Nombres que la app usa para sus propias curvas: un preajuste propio no puede llamarse así. */
@@ -614,6 +635,7 @@ class EqEngine private constructor(private val ctx: Context) {
 
     private fun storeCustom(json: JSONObject) {
         prefs.edit().putString("customPresets", json.toString()).apply()
+        customCache = null
         state.update { it.copy(customPresets = customPresets().keys.toList()) }
     }
 
@@ -624,6 +646,8 @@ class EqEngine private constructor(private val ctx: Context) {
         storeCustom(json)
         state.update { it.copy(preset = saved) }
         saveProfile()
+        // Si reemplazó al preajuste de la app que suena, que suene la forma nueva
+        if (state.value.enabled && state.value.appRule?.second == saved) apply(smooth = true)
     }
 
     /** PRESETS del skin: el preajuste siguiente (incluidos y propios, en orden), y vuelta al principio. */
@@ -647,10 +671,10 @@ class EqEngine private constructor(private val ctx: Context) {
     fun deleteCustomPreset(name: String) {
         val json = runCatching { JSONObject(prefs.getString("customPresets", "{}")!!) }.getOrNull() ?: return
         json.remove(name)
-        prefs.edit().putString("customPresets", json.toString()).apply()
-        state.update { it.copy(customPresets = customPresets().keys.toList()) }
-        // Las apps que usaban ese preajuste vuelven a la curva del equipo
-        state.value.appPresets.filterValues { it == name }.keys.forEach { setAppPreset(it, null) }
+        storeCustom(json)
+        // Las apps que usaban ese preajuste vuelven a la curva del equipo (de una vez)
+        val rules = state.value.appPresets
+        if (rules.containsValue(name)) storeAppPresets(rules.filterValues { it != name })
     }
 
     /**

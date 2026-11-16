@@ -45,6 +45,16 @@ object EqCore {
         (gains.getOrElse(i) { 0f } + shape.getOrElse(i) { 0f }).coerceIn(-15f, 21f)
     }
 
+    /**
+     * Ajuste por app que corresponde a la app [app] que suena: su preajuste en [rules], si existe
+     * ([exists]). Un ajuste que apunta a un preajuste borrado no cuenta.
+     */
+    fun appRule(app: String, rules: Map<String, String>, exists: (String) -> Boolean): Pair<String, String>? {
+        if (app.isEmpty()) return null
+        val preset = rules[app]?.takeIf(exists) ?: return null
+        return app to preset
+    }
+
     /** Preamplificador negativo que compensa la banda más alta, para no saturar (como Equalizer APO). */
     fun autoPreamp(gains: List<Float>): Float = -(gains.maxOrNull() ?: 0f).coerceAtLeast(0f)
 

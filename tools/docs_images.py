@@ -37,7 +37,14 @@ def content_box(im, bg=None, tolerance=12):
 
 
 def panel(strip, mode, skin):
-    i = MODES.index(mode) * len(SKINS) + SKINS.index(skin)
+    # La tira trae, por modo, el skin base, los importados con -DimportSkin (si hay) y, al final, los
+    # tres originales: se ubican por su lugar y no por un número fijo de skins por modo
+    panels, rest = divmod(strip.width - MARGIN, PANEL_STEP)
+    per_mode, uneven = divmod(panels, len(MODES))
+    if rest or uneven or per_mode < len(SKINS):
+        raise SystemExit(f"v30_fondos.png no tiene el formato esperado ({strip.width} px, {panels} paneles)")
+    k = SKINS.index(skin)
+    i = MODES.index(mode) * per_mode + (0 if k == 0 else per_mode - (len(SKINS) - k))
     x = MARGIN + i * PANEL_STEP
     return strip.crop((x, MARGIN, x + PANEL_W, MARGIN + PANEL_H))
 
