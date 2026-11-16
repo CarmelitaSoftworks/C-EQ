@@ -1,6 +1,6 @@
 # Cambios
 
-## Próxima versión (en desarrollo)
+## 3.7
 - **Ajuste por app**: un preajuste que se suma a la curva del equipo mientras suena esa app (por
   ejemplo, más graves en Spotify y voces más claras en los podcasts). Se elige en Opciones › Ajuste
   por app; usa el acceso a «Lo que suena» para saber qué app está sonando.

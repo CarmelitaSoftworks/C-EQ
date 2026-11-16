@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml"><img src="https://github.com/CarmelitaSoftworks/C-EQ/actions/workflows/android.yml/badge.svg" alt="Compilación"></a>
-  <img src="https://img.shields.io/badge/versi%C3%B3n-3.6-B388FF" alt="Versión 3.6">
+  <img src="https://img.shields.io/badge/versi%C3%B3n-3.7-B388FF" alt="Versión 3.7">
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0 o superior">
   <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-blue" alt="GPL-3.0"></a>
   <a href="https://ko-fi.com/carmelitasoftworks"><img src="https://img.shields.io/badge/Ko--fi-apoyar-FF5E5B?logo=ko-fi&logoColor=white" alt="Apoyar en Ko-fi"></a>
@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Descargar APK (3.6)</b></a>
+  <a href="https://github.com/CarmelitaSoftworks/C-EQ/raw/main/dist/C-EQ.apk"><b>⬇️ Descargar APK (3.7)</b></a>
   &nbsp;·&nbsp; <a href="https://github.com/CarmelitaSoftworks/C-EQ/releases">Todas las versiones</a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Novedades</a>
   &nbsp;·&nbsp; <a href="CREDITS.md">Créditos</a>
@@ -36,7 +36,7 @@
 
 ## ✨ Novedades
 
-**Próxima versión (en desarrollo).** Ajuste por app (un preajuste encima de la curva mientras suena cada app), la app en portugués y cinco skins originales de C-EQ.
+**3.7 — Ajuste por app, portugués y skins propios.** Un preajuste que se suma a la curva mientras suena cada app (más graves en Spotify, voces más claras en los podcasts), la app en portugués y cinco skins originales de C-EQ: Carmelita, Cobre, Neón, Fósforo y Hielo.
 
 **3.6 — Respaldo, accesibilidad y en inglés completo.** Guarda y restaura todos tus ajustes y skins en un .zip, el ecualizador funciona con TalkBack (cada banda se lee y se ajusta por voz), y toda la app, avisos y widget incluidos, sigue el idioma del teléfono.
 
@@ -173,7 +173,7 @@ elige en Ajustes › Idioma de las apps.
    Si aparece un aviso de Play Protect, lee [por qué avisa](#play-protect).
 3. Actualiza encima de la versión anterior sin perder tus ajustes.
 
-SHA-256 del APK 3.6: `668bf97dd3dd4f7431401e292260cdf4192f93bcc767eee76f5331639f90b5cf`
+SHA-256 del APK 3.7: `9540252a6dc15a1dbd937b7219f5a66b648dcb1200dca0b3f1c68d23ad4686c0`
 
 ### Permisos
 
@@ -208,11 +208,11 @@ desactivar Play Protect.
 
 | | SHA-256 |
 |---|---|
-| APK 3.6 | `668bf97dd3dd4f7431401e292260cdf4192f93bcc767eee76f5331639f90b5cf` |
+| APK 3.7 | `9540252a6dc15a1dbd937b7219f5a66b648dcb1200dca0b3f1c68d23ad4686c0` |
 | Certificado de firma | `e399d964d3de12bc48776c779b65ab49be2ca6ec8eaeb64f4cb8e61d7948b2d0` |
 
 Con las herramientas del SDK de Android también puedes ver que no pide Internet:
-`aapt2 dump permissions C-EQ-3.6.apk` (no aparece `android.permission.INTERNET`).
+`aapt2 dump permissions C-EQ-3.7.apk` (no aparece `android.permission.INTERNET`).
 
 ## 🛠️ Compilar
 
